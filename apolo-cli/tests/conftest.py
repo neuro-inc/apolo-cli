@@ -9,6 +9,7 @@ from jose import jwt
 from yarl import URL
 
 from apolo_sdk import (
+    AppsConfig,
     Client,
     Cluster,
     PluginManager,
@@ -168,6 +169,7 @@ def cluster_config() -> Cluster:
         },
         name="default",
         orgs=["NO_ORG", "some-org"],
+        apps=AppsConfig(hostname_templates=["{app_name}.default.neu.ro"]),
     )
 
 
@@ -295,6 +297,7 @@ def make_client(
                 },
                 name="default",
                 orgs=[org_name or "NO_ORG"],
+                apps=AppsConfig(hostname_templates=["{app_name}.default.neu.ro"]),
             )
             clusters = {cluster_config.name: cluster_config}
         if projects is None:

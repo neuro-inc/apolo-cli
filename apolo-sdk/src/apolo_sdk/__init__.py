@@ -139,7 +139,7 @@ from ._parser import (
 from ._parsing_utils import LocalImage, RemoteImage, Tag, TagOption
 from ._plugins import ConfigBuilder, ConfigScope, PluginManager, VersionChecker
 from ._secrets import Secret, Secrets
-from ._server_cfg import Cluster, Preset, Project, ResourcePool
+from ._server_cfg import AppsConfig, Cluster, Preset, Project, ResourcePool
 from ._service_accounts import ServiceAccount, ServiceAccounts
 from ._storage import DiskUsageInfo, FileStatus, FileStatusType, Storage
 from ._tracing import gen_trace_id
@@ -156,6 +156,7 @@ __all__ = (
     "AbstractFileProgress",
     "AbstractRecursiveFileProgress",
     "Action",
+    "AppsConfig",
     "AsyncFilterFunc",
     "AuthError",
     "AuthError",

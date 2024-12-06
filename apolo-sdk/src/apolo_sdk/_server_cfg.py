@@ -84,6 +84,12 @@ class Project:
 
 @rewrite_module
 @dataclass(frozen=True)
+class AppsConfig:
+    hostname_templates: Sequence[str] = ()
+
+
+@rewrite_module
+@dataclass(frozen=True)
 class Cluster:
     name: str
     orgs: List[str]
@@ -96,6 +102,7 @@ class Cluster:
     buckets_url: URL
     resource_pools: Mapping[str, ResourcePool]
     presets: Mapping[str, Preset]
+    apps: AppsConfig
 
 
 @dataclass(frozen=True)
@@ -179,6 +186,15 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
         orgs = ["NO_ORG"]
     else:
         orgs = [org if org is not None else "NO_ORG" for org in orgs]
+
+    apps_payload = payload.get("apps", {})
+    if apps_payload:
+        apps_config = AppsConfig(
+            hostname_templates=apps_payload.get("apps_hostname_templates", [])
+        )
+    else:
+        apps_config = AppsConfig()
+
     cluster_config = Cluster(
         name=payload["name"],
         orgs=orgs,
@@ -191,6 +207,7 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
         buckets_url=URL(payload["buckets_url"]),
         resource_pools=resource_pools,
         presets=presets,
+        apps=apps_config,
     )
     return cluster_config
 

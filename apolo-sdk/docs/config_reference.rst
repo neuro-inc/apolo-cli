@@ -196,6 +196,9 @@ Cluster
       A :class:`typing.Mapping` of available job resource presets, keys are preset names
       (:class:`str`), values are :class:`Preset` objects.
 
+   .. attribute:: apps
+
+      A :class:`AppsConfig` object, representing platform applications configuration in the cluster.
 
 Preset
 ======
@@ -239,3 +242,20 @@ Preset
    .. attribute:: tpu_software_version
 
       Requested TPU software version.
+
+
+AppsConfig
+==========
+
+.. class:: AppsConfig
+
+   *Read-only* :class:`~dataclasses.dataclass` for describing applications configuration within the cluster
+   provided by Apolo Platform.
+
+   Applications configurations are loaded on login to the Apolo platform and depends on the used
+   cluster.
+
+   .. attribute:: hostname_templates
+
+      Represent application ingress hostname templates, :class:`list[str]`. Empty :class:`list` by default.
+      The hostname templates are defined and controlled by the cluster administrators and should be used when creating ingress resources for applications.

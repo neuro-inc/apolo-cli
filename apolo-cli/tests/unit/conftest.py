@@ -12,7 +12,7 @@ import pytest
 from rich.console import Console, RenderableType
 from yarl import URL
 
-from apolo_sdk import Cluster, Factory, Preset, Project, ResourcePool
+from apolo_sdk import AppsConfig, Cluster, Factory, Preset, Project, ResourcePool
 from apolo_sdk._config import _AuthConfig, _AuthToken, _ConfigData
 
 from apolo_cli import __version__
@@ -134,6 +134,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
         },
         name="default",
         orgs=["NO_ORG", "org"],
+        apps=AppsConfig(),
     )
     cluster2_config = Cluster(
         registry_url=URL("https://registry2-dev.neu.ro"),
@@ -161,6 +162,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
         },
         name="other",
         orgs=["NO_ORG"],
+        apps=AppsConfig(),
     )
     config = _ConfigData(
         auth_config=auth_config,

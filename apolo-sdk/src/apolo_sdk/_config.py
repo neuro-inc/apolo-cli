@@ -9,7 +9,7 @@ import sqlite3
 import sys
 import time
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
@@ -24,6 +24,7 @@ from ._login import AuthTokenClient, _AuthConfig, _AuthToken
 from ._plugins import ConfigScope, PluginManager, _ParamType
 from ._rewrite import rewrite_module
 from ._server_cfg import (
+    AppsConfig,
     Cluster,
     Preset,
     Project,
@@ -664,6 +665,7 @@ def _deserialize_clusters(payload: dict[str, Any]) -> dict[str, Cluster]:
                 _deserialize_resource_preset(data)
                 for data in cluster_config.get("presets", [])
             ),
+            apps=AppsConfig(**cluster_config.get("apps", {})),
         )
         ret[cluster.name] = cluster
     return ret
@@ -841,6 +843,7 @@ def _serialize_clusters(clusters: Mapping[str, Cluster]) -> str:
                 _serialize_resource_preset(name, preset)
                 for name, preset in cluster.presets.items()
             ],
+            "apps": asdict(cluster.apps),
         }
         ret.append(cluster_config)
     return json.dumps(ret)

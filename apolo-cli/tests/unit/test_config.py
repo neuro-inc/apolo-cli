@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from yarl import URL
 
-from apolo_sdk import Client, Cluster, Preset, Project, ResourcePool
+from apolo_sdk import AppsConfig, Client, Cluster, Preset, Project, ResourcePool
 
 from apolo_cli.config import prompt_cluster, prompt_project
 from apolo_cli.root import Root
@@ -46,6 +46,7 @@ def test_prompt_cluster(make_client: Callable[..., Client]) -> None:
             },
             name="first",
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
         "second": Cluster(
             registry_url=URL("https://registry2-dev.neu.ro"),
@@ -69,6 +70,7 @@ def test_prompt_cluster(make_client: Callable[..., Client]) -> None:
             },
             name="second",
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
     }
 
@@ -134,6 +136,7 @@ def test_prompt_cluster_default(make_client: Callable[..., Client]) -> None:
             },
             name="first",
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
         "second": Cluster(
             registry_url=URL("https://registry2-dev.neu.ro"),
@@ -157,6 +160,7 @@ def test_prompt_cluster_default(make_client: Callable[..., Client]) -> None:
             },
             name="second",
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
     }
 
@@ -223,6 +227,7 @@ def test_prompt_project(make_client: Callable[..., Client]) -> None:
                 "cpu-small": Preset(credits_per_hour=Decimal("10"), cpu=1, memory=2**30)
             },
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
     }
     project = Project(
@@ -292,6 +297,7 @@ def test_prompt_project_default(make_client: Callable[..., Client]) -> None:
                 "cpu-small": Preset(credits_per_hour=Decimal("10"), cpu=1, memory=2**30)
             },
             orgs=["NO_ORG"],
+            apps=AppsConfig(),
         ),
     }
     project = Project(

@@ -5,7 +5,7 @@ import pytest
 from aiohttp import web
 from yarl import URL
 
-from apolo_sdk import AuthError, Cluster, Preset, Project, ResourcePool
+from apolo_sdk import AppsConfig, AuthError, Cluster, Preset, Project, ResourcePool
 from apolo_sdk._login import _AuthConfig
 from apolo_sdk._server_cfg import _ServerConfig, get_server_config
 
@@ -262,6 +262,9 @@ async def test_get_server_config_with_token(
                         "preemptible_node": True,
                     },
                 ],
+                "apps": {
+                    "apps_hostname_templates": "customtemplate",
+                },
             }
         ],
         "projects": [
@@ -413,6 +416,7 @@ async def test_get_server_config_with_token(
                 },
                 name="default",
                 orgs=["NO_ORG"],
+                apps=AppsConfig(hostname_templates="customtemplate"),
             )
         },
         projects={project.key: project},
