@@ -145,9 +145,12 @@ class TestClustersFormatter:
             max_size=2,
             idle_size=1 if has_idle else 0,
             machine_type="n1-highmem-8",
+            cpu=8.0,
             available_cpu=7.0,
+            memory=51200 * 2**20,
             available_memory=46080 * 2**20,
             disk_size=150 * 2**30,
+            available_disk_size=100 * 2**30,
             disk_type=disk_type,
             nvidia_gpu=1 if is_gpu else 0,
             nvidia_gpu_model="nvidia-tesla-k80" if is_gpu else None,
@@ -218,7 +221,6 @@ class TestClustersFormatter:
                         credentials={},
                         node_pools=[],
                         storage=_GoogleStorage(
-                            id="standard",
                             description="Filestore",
                             tier=_GoogleFilestoreTier.STANDARD,
                             instances=[
@@ -255,7 +257,6 @@ class TestClustersFormatter:
                         credentials={},
                         node_pools=[],
                         storage=_GoogleStorage(
-                            id="standard",
                             description="Filestore",
                             tier=_GoogleFilestoreTier.STANDARD,
                             instances=[
@@ -369,7 +370,6 @@ class TestCloudProviderOptionsFormatter:
             type=_CloudProviderType.AWS,
             node_pools=[
                 _NodePoolOptions(
-                    id="m5_xlarge",
                     machine_type="m5.xlarge",
                     cpu=4,
                     available_cpu=3,
@@ -377,17 +377,15 @@ class TestCloudProviderOptionsFormatter:
                     available_memory=14 * 2**30,
                 ),
                 _NodePoolOptions(
-                    id="p2_xlarge",
                     machine_type="p2.xlarge",
                     cpu=4,
                     available_cpu=3,
                     memory=64 * 10**3,
                     available_memory=60 * 2**30,
-                    gpu=1,
-                    gpu_model="nvidia-tesla-k80",
+                    nvidia_gpu=1,
+                    nvidia_gpu_model="nvidia-tesla-k80",
                 ),
             ],
-            storages=[],
         )
         rich_cmp(formatter(options))
 
@@ -397,7 +395,6 @@ class TestCloudProviderOptionsFormatter:
             type=_CloudProviderType.GCP,
             node_pools=[
                 _NodePoolOptions(
-                    id="n1_highmem_4",
                     machine_type="n1-highmem-4",
                     cpu=4,
                     available_cpu=3,
@@ -405,17 +402,15 @@ class TestCloudProviderOptionsFormatter:
                     available_memory=14 * 2**30,
                 ),
                 _NodePoolOptions(
-                    id="n1_highmem_4",
                     machine_type="n1-highmem-4",
                     cpu=4,
                     available_cpu=3,
                     memory=64 * 10**3,
                     available_memory=60 * 2**30,
-                    gpu=1,
-                    gpu_model="nvidia-tesla-k80",
+                    nvidia_gpu=1,
+                    nvidia_gpu_model="nvidia-tesla-k80",
                 ),
             ],
-            storages=[],
         )
         rich_cmp(formatter(options))
 
@@ -425,7 +420,6 @@ class TestCloudProviderOptionsFormatter:
             type=_CloudProviderType.AZURE,
             node_pools=[
                 _NodePoolOptions(
-                    id="Standard_D4_v3",
                     machine_type="Standard_D4_v3",
                     cpu=4,
                     available_cpu=3,
@@ -433,17 +427,15 @@ class TestCloudProviderOptionsFormatter:
                     available_memory=14 * 2**30,
                 ),
                 _NodePoolOptions(
-                    id="Standard_NC6",
                     machine_type="Standard_NC6",
                     cpu=4,
                     available_cpu=3,
                     memory=64 * 10**3,
                     available_memory=60 * 2**30,
-                    gpu=1,
-                    gpu_model="nvidia-tesla-k80",
+                    nvidia_gpu=1,
+                    nvidia_gpu_model="nvidia-tesla-k80",
                 ),
             ],
-            storages=[],
         )
         rich_cmp(formatter(options))
 
