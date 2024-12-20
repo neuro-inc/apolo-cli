@@ -394,8 +394,8 @@ class CloudProviderOptionsFormatter:
         return RichGroup(*out)
 
     def _gpu(self, node_pool: _NodePoolOptions) -> str:
-        if node_pool.gpu:
-            return f"{node_pool.gpu} x {node_pool.gpu_model}"
+        if node_pool.nvidia_gpu:
+            return f"{node_pool.nvidia_gpu} x {node_pool.nvidia_gpu_model}"
         return ""
 
 

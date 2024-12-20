@@ -27,6 +27,7 @@ from neuro_config_client import GoogleStorage as _GoogleStorage
 from neuro_config_client import NodePool as _NodePool
 from neuro_config_client import NodePoolOptions as _NodePoolOptions
 from neuro_config_client import OnPremCloudProvider as _OnPremCloudProvider
+from neuro_config_client import PatchNodePoolSizeRequest as _PatchNodePoolSizeRequest
 from neuro_config_client import ResourcePreset as _ResourcePreset
 from neuro_config_client import Storage as _Storage
 from neuro_config_client import StorageInstance as _StorageInstance
@@ -137,11 +138,9 @@ class _Clusters(metaclass=NoPublicConstructor):
         await self._client.setup_cluster_cloud_provider(name, config)
 
     async def update_node_pool(
-        self, cluster_name: str, node_pool_name: str, *, idle_size: Optional[int] = None
+        self, cluster_name: str, node_pool_name: str, request: _PatchNodePoolSizeRequest
     ) -> None:
-        await self._client.patch_node_pool(
-            cluster_name, node_pool_name, idle_size=idle_size
-        )
+        await self._client.patch_node_pool(cluster_name, node_pool_name, request)
 
     async def add_resource_preset(
         self, cluster_name: str, preset: _ResourcePreset

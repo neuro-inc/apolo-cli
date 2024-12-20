@@ -23,6 +23,7 @@ from apolo_sdk import (
     _ConfigCluster,
     _OrgCluster,
     _OrgUserRoleType,
+    _PatchNodePoolSizeRequest,
     _Project,
     _ProjectUser,
     _ProjectUserRoleType,
@@ -116,7 +117,7 @@ async def update_node_pool(
     Update cluster node pool.
     """
     await root.client._clusters.update_node_pool(
-        cluster_name, node_pool_name, idle_size=idle_size
+        cluster_name, node_pool_name, _PatchNodePoolSizeRequest(idle_size=idle_size)
     )
     if not root.quiet:
         root.print(

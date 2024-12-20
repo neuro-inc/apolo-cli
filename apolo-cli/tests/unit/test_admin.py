@@ -16,6 +16,7 @@ from apolo_sdk import (
     _NodePoolOptions,
     _OrgUserRoleType,
     _OrgUserWithInfo,
+    _PatchNodePoolSizeRequest,
     _Quota,
     _ResourcePreset,
     _TPUPreset,
@@ -364,17 +365,15 @@ def test_show_cluster_config_options(run_cli: _RunCli) -> None:
             type=_CloudProviderType.AWS,
             node_pools=[
                 _NodePoolOptions(
-                    id=" p2_xlarge",
                     machine_type="p2.xlarge",
                     cpu=4,
                     available_cpu=3,
                     memory=64 * 2**30,
                     available_memory=60 * 2**30,
-                    gpu=1,
-                    gpu_model="nvidia-tesla-k80",
+                    nvidia_gpu=1,
+                    nvidia_gpu_model="nvidia-tesla-k80",
                 )
             ],
-            storages=[],
         )
 
         async def get_cloud_provider_options(
@@ -658,11 +657,11 @@ def test_update_node_pool(run_cli: _RunCli) -> None:
         )
 
         async def update_node_pool(
-            cluster_name: str, node_pool_name: str, *, idle_size: Optional[int]
+            cluster_name: str, node_pool_name: str, request: _PatchNodePoolSizeRequest
         ) -> None:
             assert cluster_name == "default"
             assert node_pool_name == "cpu"
-            assert idle_size == 1
+            assert request.idle_size == 1
 
         clusters_mocked.side_effect = update_node_pool
 
