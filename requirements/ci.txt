@@ -2,7 +2,7 @@
 pexpect==4.9.0
 pytest==8.3.4
 pytest-aiohttp==1.0.5
-pytest-asyncio==0.25.0
+pytest-asyncio==0.25.1
 pytest-cov==6.0.0
 pytest-timeout==2.3.1
 pytest-xdist==3.6.1
