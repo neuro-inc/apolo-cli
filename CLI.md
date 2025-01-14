@@ -906,7 +906,7 @@ Get info about user quota in given cluster
 **Usage:**
 
 ```bash
-apolo admin get-user-quota [OPTIONS] CLUSTER_NAME USER_NAME
+apolo admin get-user-quota [OPTIONS] CLUSTER_NAME USER_NAME ORG
 ```
 
 **Options:**
@@ -914,7 +914,6 @@ apolo admin get-user-quota [OPTIONS] CLUSTER_NAME USER_NAME
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
-|_--org ORG_|org name for org-cluster users|
 
 
 
