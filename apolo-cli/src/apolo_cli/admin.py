@@ -792,31 +792,29 @@ async def remove_cluster_user(
 @command()
 @argument("cluster_name", required=True, type=str)
 @argument("user_name", required=True, type=str)
-@option(
-    "--org",
-    metavar="ORG",
-    default=None,
-    type=str,
-    help="org name for org-cluster users",
-)
+@argument("org", required=True, type=str)
 async def get_user_quota(
     root: Root,
     cluster_name: str,
     user_name: str,
-    org: str | None,
+    org: str,
 ) -> None:
     """
     Get info about user quota in given cluster
     """
-    user_with_quota = await root.client._admin.get_cluster_user(
+    org_name = _get_org(root, org)
+    cluster_user = await root.client._admin.get_cluster_user(
         cluster_name=cluster_name,
         user_name=user_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=org_name,
+    )
+    org_user = await root.client._admin.get_org_user(
+        org_name=org_name, user_name=user_name
     )
     quota_fmt = AdminQuotaFormatter()
     balance_fmt = BalanceFormatter()
     root.print(
-        f"Quota and balance for [u]{rich_escape(user_with_quota.user_name)}[/u] "
+        f"Quota and balance for [u]{rich_escape(cluster_user.user_name)}[/u] "
         + (
             f"as member of org [bold]{rich_escape(org)}[/bold] "
             if org is not None
@@ -825,8 +823,8 @@ async def get_user_quota(
         + f"on cluster [u]{rich_escape(cluster_name)}[/u]:",
         markup=True,
     )
-    root.print(quota_fmt(user_with_quota.quota))
-    root.print(balance_fmt(user_with_quota.balance))
+    root.print(quota_fmt(cluster_user.quota))
+    root.print(balance_fmt(org_user.balance))
 
 
 @command()
