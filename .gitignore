@@ -16,6 +16,7 @@
 .update-deps
 .venv
 .vscode
+.DS_Store
 apolo-cli/build
 apolo-cli/dist
 apolo-cli/dist-neuro
