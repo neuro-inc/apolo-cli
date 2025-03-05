@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import AsyncIterator, Optional
 
-from ._core import _Core
 from ._config import Config
+from ._core import _Core
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
 
