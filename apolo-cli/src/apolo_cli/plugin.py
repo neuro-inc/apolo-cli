@@ -1,5 +1,7 @@
 from apolo_sdk import ConfigScope, PluginManager
 
+from .apps import app
+
 APOLO_CLI_UPGRADE = """\
 You are using Apolo Platform Client {old_ver}, however {new_ver} is available.
 You should consider upgrading via the following command:
@@ -34,6 +36,9 @@ def setup(manager: PluginManager) -> None:
     manager.config.define_str("job", "org-name", scope=ConfigScope.LOCAL)
     manager.config.define_str_list("storage", "cp-exclude")
     manager.config.define_str_list("storage", "cp-exclude-from-files")
+    
+    # Register CLI commands
+    manager.add_cli_command(app)
 
     manager.version_checker.register("apolo-cli", get_apolo_cli_txt)
     manager.version_checker.register("certifi", get_certifi_txt, delay=14 * 3600 * 24)
