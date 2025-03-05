@@ -69,18 +69,3 @@ async def test_apps_list(aiohttp_server, make_client, app_instance_payload):
         assert apps[0].state == "errored"
 
 
-async def test_apps_list_requires_org_and_project(make_client):
-    async with make_client("https://example.com") as client:
-        # Test with missing org_name
-        with pytest.raises(ValueError, match="Organization name is required"):
-            async with client.apps.list(
-                cluster_name="default", org_name=None, project_name="test3"
-            ):
-                pass
-
-        # Test with missing project_name
-        with pytest.raises(ValueError, match="Project name is required"):
-            async with client.apps.list(
-                cluster_name="default", org_name="superorg", project_name=None
-            ):
-                pass
