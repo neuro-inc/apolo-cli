@@ -38,22 +38,18 @@ class Apps(metaclass=NoPublicConstructor):
         project_name = project_name or self._config.project_name
 
         # Get the base URL without the /api/v1 prefix
-        base_url = self._config.api_url
-        # Remove /api/v1 from the URL if present
-        if str(base_url).endswith('/api/v1'):
-            base_url = base_url.parent.parent
-        
-        url = base_url / "apis/apps/v1/cluster" / cluster_name
-        if org_name:
-            url = url / "org" / org_name
-            if project_name:
-                url = url / "project" / project_name / "instances"
-            else:
-                url = url / "instances"
-        else:
-            url = url / "instances"
+        base_url = self._config.api_url.with_path("")
+        url = (
+            base_url
+            / "apis/apps/v1/cluster"
+            / cluster_name
+            / "org"
+            / org_name
+            / "project"
+            / project_name
+            / "instances"
+        )
 
-        print(f"DEBUG: Making GET request to URL: {url}")
         auth = await self._config._api_auth()
         async with self._core.request("GET", url, auth=auth) as resp:
             data = await resp.json()
