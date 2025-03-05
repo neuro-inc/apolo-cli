@@ -44,8 +44,6 @@ async def list(
     table.add_column("Display Name")
     table.add_column("Template")
     table.add_column("Version")
-    table.add_column("Project")
-    table.add_column("Organization")
     table.add_column("State")
 
     count = 0
@@ -59,8 +57,6 @@ async def list(
             instance.display_name,
             instance.template_name,
             instance.template_version,
-            instance.project_name,
-            instance.org_name,
             instance.state,
         )
 
