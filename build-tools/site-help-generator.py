@@ -277,7 +277,7 @@ def main(target_dir):
     # For summary
     groups.append(click.Group(name="shortcuts"))
 
-    gen_summary(HERE.parent, sorted(groups, key=lambda g: g.name), ctx)
+    gen_summary(target_path, sorted(groups, key=lambda g: g.name), ctx)
 
 
 if __name__ == "__main__":
