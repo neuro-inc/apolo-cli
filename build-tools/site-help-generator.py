@@ -214,14 +214,12 @@ def gen_summary(target_path, groups, ctx):
 
     out.append("\n## Commands\n")
     for group in groups:
-        out.append(f"* [{group.name}](apolo-cli/docs/{group.name}.md)")
+        out.append(f"* [{group.name}]({group.name}.md)")
 
     out.append("\n## Topics\n")
     for name in topics.list_commands(ctx):
         topic = topics.get_command(ctx, name)
-        out.append(
-            f"* [{topic.get_short_help_str()}](apolo-cli/docs/topic-{topic.name}.md)"
-        )
+        out.append(f"* [{topic.get_short_help_str()}](topic-{topic.name}.md)")
 
     fname = target_path / "SUMMARY.md"
     fname.write_text("\n".join(out))
