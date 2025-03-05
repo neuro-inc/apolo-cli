@@ -47,6 +47,7 @@ class Apps(metaclass=NoPublicConstructor):
         else:
             url = url / "instances"
 
+        print(f"DEBUG: Making GET request to URL: {url}")
         auth = await self._config._api_auth()
         async with self._core.request("GET", url, auth=auth) as resp:
             data = await resp.json()
