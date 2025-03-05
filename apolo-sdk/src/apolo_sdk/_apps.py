@@ -37,7 +37,13 @@ class Apps(metaclass=NoPublicConstructor):
         org_name = org_name or self._config.org_name
         project_name = project_name or self._config.project_name
 
-        url = self._config.api_url / "apis/apps/v1/cluster" / cluster_name
+        # Get the base URL without the /api/v1 prefix
+        base_url = self._config.api_url
+        # Remove /api/v1 from the URL if present
+        if str(base_url).endswith('/api/v1'):
+            base_url = base_url.parent.parent
+        
+        url = base_url / "apis/apps/v1/cluster" / cluster_name
         if org_name:
             url = url / "org" / org_name
             if project_name:
