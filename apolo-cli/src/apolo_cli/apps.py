@@ -47,18 +47,19 @@ async def list(
     table.add_column("State")
 
     count = 0
-    async for instance in client.apps.list(
+    async with client.apps.list(
         cluster_name=cluster, org_name=org, project_name=project
-    ):
-        count += 1
-        table.add_row(
-            instance.id,
-            instance.name,
-            instance.display_name,
-            instance.template_name,
-            instance.template_version,
-            instance.state,
-        )
+    ) as it:
+        async for instance in it:
+            count += 1
+            table.add_row(
+                instance.id,
+                instance.name,
+                instance.display_name,
+                instance.template_name,
+                instance.template_version,
+                instance.state,
+            )
 
     if count:
         root.print(table)

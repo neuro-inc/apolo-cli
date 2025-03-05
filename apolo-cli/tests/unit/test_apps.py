@@ -35,11 +35,9 @@ class TestAppList:
 
     async def test_app_list(self, app_instances, root, capsys):
         # Mock the client.apps.list method
-        async def list_mock(*args, **kwargs):
-            for instance in app_instances:
-                yield instance
-
-        root.client.apps.list = mock.AsyncMock(side_effect=list_mock)
+        mock_cm = mock.AsyncMock()
+        mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
+        root.client.apps.list.return_value = mock_cm
 
         # Call the list command
         await app_list(root, "default", "superorg", "test3")
@@ -55,11 +53,9 @@ class TestAppList:
 
     async def test_app_list_empty(self, root, capsys):
         # Mock the client.apps.list method to return no instances
-        async def empty_list_mock(*args, **kwargs):
-            return
-            yield  # This makes it an async generator
-
-        root.client.apps.list = mock.AsyncMock(side_effect=empty_list_mock)
+        mock_cm = mock.AsyncMock()
+        mock_cm.__aenter__.return_value.__aiter__.return_value = []
+        root.client.apps.list.return_value = mock_cm
 
         # Call the list command
         await app_list(root, "default", "superorg", "test3")

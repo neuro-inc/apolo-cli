@@ -51,10 +51,11 @@ async def test_apps_list(aiohttp_server, make_client, app_instance_payload):
 
     async with make_client(srv.make_url("/")) as client:
         apps = []
-        async for app_instance in client.apps.list(
+        async with client.apps.list(
             cluster_name="default", org_name="superorg", project_name="test3"
-        ):
-            apps.append(app_instance)
+        ) as it:
+            async for app_instance in it:
+                apps.append(app_instance)
 
         assert len(apps) == 2
         assert isinstance(apps[0], AppInstance)
@@ -72,14 +73,14 @@ async def test_apps_list_requires_org_and_project(make_client):
     async with make_client("https://example.com") as client:
         # Test with missing org_name
         with pytest.raises(ValueError, match="Organization name is required"):
-            async for _ in client.apps.list(
+            async with client.apps.list(
                 cluster_name="default", org_name=None, project_name="test3"
             ):
                 pass
 
         # Test with missing project_name
         with pytest.raises(ValueError, match="Project name is required"):
-            async for _ in client.apps.list(
+            async with client.apps.list(
                 cluster_name="default", org_name="superorg", project_name=None
             ):
                 pass
