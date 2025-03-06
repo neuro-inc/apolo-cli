@@ -5,7 +5,7 @@ from apolo_sdk import AppInstance
 
 
 @pytest.fixture
-def app_instance_payload() -> dict[str, any]:
+def app_instance_payload() -> dict[str, object]:
     return {
         "items": [
             {
@@ -36,7 +36,7 @@ def app_instance_payload() -> dict[str, any]:
     }
 
 
-async def test_apps_list(aiohttp_server: any, make_client: any, app_instance_payload: dict[str, any]) -> None:
+async def test_apps_list(aiohttp_server: object, make_client: object, app_instance_payload: dict[str, object]) -> None:
     async def handler(request: web.Request) -> web.Response:
         assert (
             request.path
