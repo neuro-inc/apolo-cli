@@ -30,8 +30,8 @@ class Apps(metaclass=NoPublicConstructor):
     async def list(
         self,
         cluster_name: Optional[str] = None,
-        org_name: str = None,
-        project_name: str = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
     ) -> AsyncIterator[AppInstance]:
         cluster_name = cluster_name or self._config.cluster_name
         if org_name is None:
