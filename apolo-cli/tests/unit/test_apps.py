@@ -6,6 +6,7 @@ import pytest
 from apolo_sdk import AppInstance
 
 from apolo_cli.apps import list as app_list
+from apolo_cli.root import Root
 
 
 class TestAppList:
@@ -34,7 +35,9 @@ class TestAppList:
             ),
         ]
 
-    async def test_app_list(self, app_instances: list[AppInstance], root: Any, capsys: Any) -> None:
+    async def test_app_list(
+        self, app_instances: list[AppInstance], root: Root, capsys: Any
+    ) -> None:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
@@ -52,7 +55,7 @@ class TestAppList:
         assert "master" in captured.out
         assert "errored" in captured.out
 
-    async def test_app_list_empty(self, root: Any, capsys: Any) -> None:
+    async def test_app_list_empty(self, root: Root, capsys: Any) -> None:
         # Mock the client.apps.list method to return no instances
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = []
