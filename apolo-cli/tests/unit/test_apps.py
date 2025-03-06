@@ -41,10 +41,10 @@ class TestAppList:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
-        root.client.apps.list = mock.AsyncMock(return_value=mock_cm)
-
-        # Call the list command
-        await app_list(root, "default", "superorg", "test3")
+        
+        with mock.patch.object(root.client.apps, 'list', return_value=mock_cm):
+            # Call the list command
+            await app_list(root, "default", "superorg", "test3")
 
         # Check the output
         captured = capsys.readouterr()
@@ -59,10 +59,10 @@ class TestAppList:
         # Mock the client.apps.list method to return no instances
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = []
-        root.client.apps.list = mock.AsyncMock(return_value=mock_cm)
-
-        # Call the list command
-        await app_list(root, "default", "superorg", "test3")
+        
+        with mock.patch.object(root.client.apps, 'list', return_value=mock_cm):
+            # Call the list command
+            await app_list(root, "default", "superorg", "test3")
 
         # Check the output
         captured = capsys.readouterr()
