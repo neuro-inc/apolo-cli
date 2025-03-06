@@ -1,4 +1,3 @@
-from typing import AsyncIterator
 from unittest import mock
 
 import pytest

@@ -1,9 +1,7 @@
 import pytest
 from aiohttp import web
-from yarl import URL
 
 from apolo_sdk import AppInstance
-from apolo_sdk._apps import Apps
 
 
 @pytest.fixture

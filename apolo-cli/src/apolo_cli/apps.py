@@ -1,12 +1,8 @@
 from typing import Optional
 
-import click
 from rich.table import Table, box
 
-from apolo_sdk import AppInstance
-
 from .click_types import CLUSTER, ORG, PROJECT
-from .formatters.utils import uri_formatter
 from .root import Root
 from .utils import argument, command, group
 
@@ -32,11 +28,6 @@ async def list(
     List all app instances.
     """
     client = root.client
-    uri_f = uri_formatter(
-        project_name=project or client.config.project_name,
-        cluster_name=cluster or client.config.cluster_name,
-        org_name=org or client.config.org_name,
-    )
 
     table = Table(box=box.SIMPLE_HEAVY)
     table.add_column("ID")
