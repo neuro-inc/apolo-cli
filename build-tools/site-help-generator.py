@@ -212,16 +212,16 @@ def gen_topics(target_path, ctx):
 def gen_summary(target_path, groups, ctx):
     out = ["# Table of contents\n"]
 
+    out.append("* [Introduction](README.md)\n")
+
     out.append("\n## Commands\n")
     for group in groups:
-        out.append(f"* [{group.name}](apolo-cli/docs/{group.name}.md)")
+        out.append(f"* [{group.name}]({group.name}.md)")
 
     out.append("\n## Topics\n")
     for name in topics.list_commands(ctx):
         topic = topics.get_command(ctx, name)
-        out.append(
-            f"* [{topic.get_short_help_str()}](apolo-cli/docs/topic-{topic.name}.md)"
-        )
+        out.append(f"* [{topic.get_short_help_str()}](topic-{topic.name}.md)")
 
     fname = target_path / "SUMMARY.md"
     fname.write_text("\n".join(out))
@@ -277,7 +277,7 @@ def main(target_dir):
     # For summary
     groups.append(click.Group(name="shortcuts"))
 
-    gen_summary(HERE.parent, sorted(groups, key=lambda g: g.name), ctx)
+    gen_summary(target_path, sorted(groups, key=lambda g: g.name), ctx)
 
 
 if __name__ == "__main__":
