@@ -9,7 +9,7 @@ from apolo_cli.apps import list as app_list
 
 class TestAppList:
     @pytest.fixture
-    def app_instances(self):
+    def app_instances(self) -> list[AppInstance]:
         return [
             AppInstance(
                 id="704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
