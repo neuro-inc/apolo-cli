@@ -5,6 +5,7 @@ from typing import Mapping, Optional, Type
 import aiohttp
 
 from ._admin import _Admin
+from ._apps import Apps
 from ._buckets import Buckets
 from ._clusters import _Clusters
 from ._config import Config
@@ -60,6 +61,7 @@ class Client(metaclass=NoPublicConstructor):
         self._disks = Disks._create(self._core, self._config)
         self._service_accounts = ServiceAccounts._create(self._core, self._config)
         self._buckets = Buckets._create(self._core, self._config, self._parser)
+        self._apps = Apps._create(self._core, self._config)
         self._images: Optional[Images] = None
         self._version_checker: VersionChecker = VersionChecker._create(
             self._core, self._config, plugin_manager
@@ -142,6 +144,10 @@ class Client(metaclass=NoPublicConstructor):
     @property
     def buckets(self) -> Buckets:
         return self._buckets
+        
+    @property
+    def apps(self) -> Apps:
+        return self._apps
 
     @property
     def parse(self) -> Parser:

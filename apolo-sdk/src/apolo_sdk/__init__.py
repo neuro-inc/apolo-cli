@@ -23,6 +23,7 @@ from ._abc import (
     StorageProgressStart,
     StorageProgressStep,
 )
+from ._apps import AppInstance, Apps
 from ._admin import (
     _Admin,
     _Balance,
@@ -153,6 +154,8 @@ __all__ = (
     "AbstractFileProgress",
     "AbstractRecursiveFileProgress",
     "Action",
+    "AppInstance",
+    "Apps",
     "AppsConfig",
     "AsyncFilterFunc",
     "AuthError",
