@@ -35,9 +35,7 @@ class TestAppList:
             ),
         ]
 
-    async def test_app_list(
-        self, apps: list[App], root: Root, capsys: Any
-    ) -> None:
+    async def test_app_list(self, apps: list[App], root: Root, capsys: Any) -> None:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = apps

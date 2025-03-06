@@ -1406,14 +1406,14 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app list](#apolo-app-list)_| List all app instances |
+| _[apolo app list](#apolo-app-list)_| List all apps |
 
 
 
 
 ### apolo app list
 
-List all app instances.
+List all apps.
 
 **Usage:**
 

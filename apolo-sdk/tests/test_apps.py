@@ -52,11 +52,11 @@ async def test_apps_list(
         )
         return web.json_response(app_payload)
 
-    app = web.Application()
-    app.router.add_get(
+    web_app = web.Application()
+    web_app.router.add_get(
         "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances", handler
     )
-    srv = await aiohttp_server(app)
+    srv = await aiohttp_server(web_app)
 
     async with make_client(srv.make_url("/")) as client:
         apps = []
