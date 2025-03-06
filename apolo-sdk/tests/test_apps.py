@@ -3,13 +3,13 @@ from typing import Any, Callable
 import pytest
 from aiohttp import web
 
-from apolo_sdk import AppInstance, Client
+from apolo_sdk import App, Client
 
 from tests import _TestServerFactory
 
 
 @pytest.fixture
-def app_instance_payload() -> dict[str, Any]:
+def app_payload() -> dict[str, Any]:
     return {
         "items": [
             {
@@ -43,14 +43,14 @@ def app_instance_payload() -> dict[str, Any]:
 async def test_apps_list(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
-    app_instance_payload: dict[str, Any],
+    app_payload: dict[str, Any],
 ) -> None:
     async def handler(request: web.Request) -> web.Response:
         assert (
             request.path
             == "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
         )
-        return web.json_response(app_instance_payload)
+        return web.json_response(app_payload)
 
     app = web.Application()
     app.router.add_get(
@@ -63,11 +63,11 @@ async def test_apps_list(
         async with client.apps.list(
             cluster_name="default", org_name="superorg", project_name="test3"
         ) as it:
-            async for app_instance in it:
-                apps.append(app_instance)
+            async for app in it:
+                apps.append(app)
 
         assert len(apps) == 2
-        assert isinstance(apps[0], AppInstance)
+        assert isinstance(apps[0], App)
         assert apps[0].id == "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
         assert apps[0].name == "superorg-test3-stable-diffusion-704285b2"
         assert apps[0].display_name == "Stable Diffusion"

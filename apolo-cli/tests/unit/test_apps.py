@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from apolo_sdk import AppInstance
+from apolo_sdk import App
 
 from apolo_cli.apps import list as app_list
 from apolo_cli.root import Root
@@ -11,9 +11,9 @@ from apolo_cli.root import Root
 
 class TestAppList:
     @pytest.fixture
-    def app_instances(self) -> list[AppInstance]:
+    def apps(self) -> list[App]:
         return [
-            AppInstance(
+            App(
                 id="704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
                 name="superorg-test3-stable-diffusion-704285b2",
                 display_name="Stable Diffusion",
@@ -23,7 +23,7 @@ class TestAppList:
                 org_name="superorg",
                 state="errored",
             ),
-            AppInstance(
+            App(
                 id="a4723404-f5e2-48b5-b709-629754b5056f",
                 name="superorg-test3-stable-diffusion-a4723404",
                 display_name="Stable Diffusion",
@@ -36,11 +36,11 @@ class TestAppList:
         ]
 
     async def test_app_list(
-        self, app_instances: list[AppInstance], root: Root, capsys: Any
+        self, apps: list[App], root: Root, capsys: Any
     ) -> None:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
-        mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
+        mock_cm.__aenter__.return_value.__aiter__.return_value = apps
 
         with mock.patch.object(root.client.apps, "list", return_value=mock_cm):
             # Call the list command
@@ -56,7 +56,7 @@ class TestAppList:
         assert "errored" in captured.out
 
     async def test_app_list_empty(self, root: Root, capsys: Any) -> None:
-        # Mock the client.apps.list method to return no instances
+        # Mock the client.apps.list method to return no apps
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = []
 
@@ -66,4 +66,4 @@ class TestAppList:
 
         # Check the output
         captured = capsys.readouterr()
-        assert "No app instances found." in captured.out
+        assert "No apps found." in captured.out

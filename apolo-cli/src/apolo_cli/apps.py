@@ -25,7 +25,7 @@ async def list(
     project: Optional[str],
 ) -> None:
     """
-    List all app instances.
+    List all apps.
     """
     client = root.client
 
@@ -41,21 +41,21 @@ async def list(
     async with client.apps.list(
         cluster_name=cluster, org_name=org, project_name=project
     ) as it:
-        async for instance in it:
+        async for app in it:
             count += 1
             table.add_row(
-                instance.id,
-                instance.name,
-                instance.display_name,
-                instance.template_name,
-                instance.template_version,
-                instance.state,
+                app.id,
+                app.name,
+                app.display_name,
+                app.template_name,
+                app.template_version,
+                app.state,
             )
 
     if count:
         root.print(table)
     else:
-        root.print("No app instances found.")
+        root.print("No apps found.")
 
 
 app.add_command(list)
