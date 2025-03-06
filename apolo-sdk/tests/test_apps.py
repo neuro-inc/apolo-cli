@@ -18,7 +18,7 @@ def app_instance_payload():
                 "template_version": "master",
                 "project_name": "test3",
                 "org_name": "superorg",
-                "state": "errored"
+                "state": "errored",
             },
             {
                 "id": "a4723404-f5e2-48b5-b709-629754b5056f",
@@ -28,19 +28,22 @@ def app_instance_payload():
                 "template_version": "master",
                 "project_name": "test3",
                 "org_name": "superorg",
-                "state": "errored"
-            }
+                "state": "errored",
+            },
         ],
         "total": 2,
         "page": 1,
         "size": 50,
-        "pages": 1
+        "pages": 1,
     }
 
 
 async def test_apps_list(aiohttp_server, make_client, app_instance_payload):
     async def handler(request):
-        assert request.path == "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
+        assert (
+            request.path
+            == "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
+        )
         return web.json_response(app_instance_payload)
 
     app = web.Application()
@@ -67,5 +70,3 @@ async def test_apps_list(aiohttp_server, make_client, app_instance_payload):
         assert apps[0].project_name == "test3"
         assert apps[0].org_name == "superorg"
         assert apps[0].state == "errored"
-
-
