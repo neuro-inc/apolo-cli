@@ -41,8 +41,8 @@ class TestAppList:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
-        
-        with mock.patch.object(root.client.apps, 'list', return_value=mock_cm):
+
+        with mock.patch.object(root.client.apps, "list", return_value=mock_cm):
             # Call the list command
             await app_list(root, "default", "superorg", "test3")
 
@@ -59,8 +59,8 @@ class TestAppList:
         # Mock the client.apps.list method to return no instances
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = []
-        
-        with mock.patch.object(root.client.apps, 'list', return_value=mock_cm):
+
+        with mock.patch.object(root.client.apps, "list", return_value=mock_cm):
             # Call the list command
             await app_list(root, "default", "superorg", "test3")
 
