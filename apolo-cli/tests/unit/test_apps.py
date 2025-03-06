@@ -1,3 +1,4 @@
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -33,7 +34,7 @@ class TestAppList:
             ),
         ]
 
-    async def test_app_list(self, app_instances, root, capsys):
+    async def test_app_list(self, app_instances: list[AppInstance], root: Any, capsys: Any) -> None:
         # Mock the client.apps.list method
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = app_instances
@@ -51,7 +52,7 @@ class TestAppList:
         assert "master" in captured.out
         assert "errored" in captured.out
 
-    async def test_app_list_empty(self, root, capsys):
+    async def test_app_list_empty(self, root: Any, capsys: Any) -> None:
         # Mock the client.apps.list method to return no instances
         mock_cm = mock.AsyncMock()
         mock_cm.__aenter__.return_value.__aiter__.return_value = []
