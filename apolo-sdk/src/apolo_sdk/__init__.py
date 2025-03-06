@@ -23,7 +23,6 @@ from ._abc import (
     StorageProgressStart,
     StorageProgressStep,
 )
-from ._apps import AppInstance, Apps
 from ._admin import (
     _Admin,
     _Balance,
@@ -43,6 +42,7 @@ from ._admin import (
     _Quota,
     _UserInfo,
 )
+from ._apps import AppInstance, Apps
 from ._bucket_base import (
     BlobCommonPrefix,
     BlobObject,

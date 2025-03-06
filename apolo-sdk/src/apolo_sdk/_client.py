@@ -144,7 +144,7 @@ class Client(metaclass=NoPublicConstructor):
     @property
     def buckets(self) -> Buckets:
         return self._buckets
-        
+
     @property
     def apps(self) -> Apps:
         return self._apps

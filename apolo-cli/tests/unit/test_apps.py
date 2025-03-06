@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 
 from apolo_sdk import AppInstance
+
 from apolo_cli.apps import list as app_list
 
 
