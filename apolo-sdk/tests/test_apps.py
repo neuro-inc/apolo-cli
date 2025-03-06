@@ -1,11 +1,15 @@
+from typing import Any, Callable
+
 import pytest
 from aiohttp import web
 
-from apolo_sdk import AppInstance
+from apolo_sdk import AppInstance, Client
+
+from tests import _TestServerFactory
 
 
 @pytest.fixture
-def app_instance_payload() -> dict[str, object]:
+def app_instance_payload() -> dict[str, Any]:
     return {
         "items": [
             {
@@ -36,7 +40,11 @@ def app_instance_payload() -> dict[str, object]:
     }
 
 
-async def test_apps_list(aiohttp_server: object, make_client: object, app_instance_payload: dict[str, object]) -> None:
+async def test_apps_list(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_instance_payload: dict[str, Any],
+) -> None:
     async def handler(request: web.Request) -> web.Response:
         assert (
             request.path
