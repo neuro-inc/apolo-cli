@@ -214,7 +214,7 @@ def gen_summary(target_path, groups, ctx):
 
     out.append("* [Introduction](README.md)\n")
 
-    out.append("\n## Commands\n")
+    out.append("## Commands\n")
     for group in groups:
         out.append(f"* [{group.name}]({group.name}.md)")
 
