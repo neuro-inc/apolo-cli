@@ -1571,5 +1571,5 @@ def test_bucket_credential_autocomplete(run_autocomplete: _RunAC) -> None:
 def test_app_autocomplete(run_autocomplete: _RunAC) -> None:
     # Test app command completion
     zsh_out, bash_out = run_autocomplete(["app", ""])
-    assert "list" in bash_out
-    assert "list" in zsh_out
+    assert "ls" in bash_out
+    assert "ls" in zsh_out

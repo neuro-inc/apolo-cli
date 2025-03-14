@@ -53,7 +53,7 @@
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
-		* [apolo app list](#apolo-app-list)
+		* [apolo app ls](#apolo-app-ls)
 	* [apolo blob](#apolo-blob)
 		* [apolo blob cp](#apolo-blob-cp)
 		* [apolo blob du](#apolo-blob-du)
@@ -1406,19 +1406,19 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app list](#apolo-app-list)_| List all apps |
+| _[apolo app ls](#apolo-app-ls)_| List apps |
 
 
 
 
-### apolo app list
+### apolo app ls
 
-List all apps.
+List apps.
 
 **Usage:**
 
 ```bash
-apolo app list [OPTIONS] [CLUSTER] [ORG] [PROJECT]
+apolo app ls [OPTIONS]
 ```
 
 **Options:**
@@ -1426,6 +1426,9 @@ apolo app list [OPTIONS] [CLUSTER] [ORG] [PROJECT]
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 

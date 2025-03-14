@@ -13,26 +13,29 @@ Operations with applications.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_list_](app.md#list) | List all apps |
+| [_ls_](app.md#ls) | List apps |
 
 
-### list
+### ls
 
-List all apps
+List apps
 
 
 #### Usage
 
 ```bash
-apolo app list [OPTIONS] [CLUSTER] [ORG] [PROJECT]
+apolo app ls [OPTIONS]
 ```
 
-List all apps.
+List apps.
 
 #### Options
 
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
 
 
