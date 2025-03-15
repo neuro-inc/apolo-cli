@@ -1565,3 +1565,11 @@ def test_bucket_credential_autocomplete(run_autocomplete: _RunAC) -> None:
         )
         assert bash_out == "plain,bucket-credentials-4,"
         assert zsh_out == "plain\nbucket-credentials-4\ntest-credentials-4\n_"
+
+
+@skip_on_windows
+def test_app_autocomplete(run_autocomplete: _RunAC) -> None:
+    # Test app command completion
+    zsh_out, bash_out = run_autocomplete(["app", ""])
+    assert "ls" in bash_out
+    assert "ls" in zsh_out

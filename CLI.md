@@ -52,6 +52,8 @@
 		* [apolo admin update-project](#apolo-admin-update-project)
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
+	* [apolo app](#apolo-app)
+		* [apolo app ls](#apolo-app-ls)
 	* [apolo blob](#apolo-blob)
 		* [apolo blob cp](#apolo-blob-cp)
 		* [apolo blob du](#apolo-blob-du)
@@ -187,6 +189,7 @@ Name | Description|
 |---|---|
 | _[apolo acl](#apolo-acl)_| Access Control List management |
 | _[apolo admin](#apolo-admin)_| Cluster administration commands |
+| _[apolo app](#apolo-app)_| Operations with applications |
 | _[apolo blob](#apolo-blob)_| Blob storage operations |
 | _[apolo completion](#apolo-completion)_| Output shell completion code |
 | _[apolo config](#apolo-config)_| Client configuration |
@@ -1378,6 +1381,54 @@ Name | Description|
 |_\-p, --scheduler / -P, --no-scheduler_|Use round robin scheduler for jobs|
 |_\--tpu-sw-version VERSION_|TPU software version|
 |_\--tpu-type TYPE_|TPU type|
+
+
+
+
+## apolo app
+
+Operations with applications.
+
+**Usage:**
+
+```bash
+apolo app [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+
+
+**Commands:**
+
+|Usage|Description|
+|---|---|
+| _[apolo app ls](#apolo-app-ls)_| List apps |
+
+
+
+
+### apolo app ls
+
+List apps.
+
+**Usage:**
+
+```bash
+apolo app ls [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 

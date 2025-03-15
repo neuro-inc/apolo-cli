@@ -6,6 +6,7 @@
 
 * [acl](acl.md)
 * [admin](admin.md)
+* [app](app.md)
 * [blob](blob.md)
 * [completion](completion.md)
 * [config](config.md)
