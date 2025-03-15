@@ -70,3 +70,46 @@ class Apps(metaclass=NoPublicConstructor):
                     org_name=item["org_name"],
                     state=item["state"],
                 )
+
+    async def uninstall(
+        self,
+        app_id: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> None:
+        """Uninstall an application by its ID.
+
+        Args:
+            app_id: The ID of the application to uninstall
+            cluster_name: Optional cluster name (uses default if not specified)
+            org_name: Optional organization name (uses default if not specified)
+            project_name: Optional project name (uses default if not specified)
+        """
+        cluster_name = cluster_name or self._config.cluster_name
+        if org_name is None:
+            org_name = self._config.org_name
+            if org_name is None:
+                raise ValueError("Organization name is required")
+        if project_name is None:
+            project_name = self._config.project_name
+            if project_name is None:
+                raise ValueError("Project name is required")
+
+        # Get the base URL without the /api/v1 prefix
+        base_url = self._config.api_url.with_path("")
+        url = (
+            base_url
+            / "apis/apps/v1/cluster"
+            / cluster_name
+            / "org"
+            / org_name
+            / "project"
+            / project_name
+            / "instances"
+            / app_id
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("DELETE", url, auth=auth):
+            pass

@@ -1573,3 +1573,5 @@ def test_app_autocomplete(run_autocomplete: _RunAC) -> None:
     zsh_out, bash_out = run_autocomplete(["app", ""])
     assert "ls" in bash_out
     assert "ls" in zsh_out
+    assert "uninstall" in bash_out
+    assert "uninstall" in zsh_out

@@ -1,4 +1,5 @@
 from typing import Any, AsyncIterator, Generic, List, TypeVar
+from unittest.mock import AsyncMock
 
 import pytest
 from click.testing import CliRunner
@@ -132,3 +133,35 @@ class TestAppCommands:
         assert "app-123" in result.stdout, result.stdout
         assert "app-456" in result.stdout
         assert "Test App" not in result.stdout  # Display name should not be present
+
+    def test_uninstall_command(
+        self,
+        monkeypatch: Any,
+    ) -> None:
+        """Test the uninstall command."""
+
+        # Mock the Apps.uninstall method
+        mock_uninstall = AsyncMock()
+        monkeypatch.setattr(
+            "apolo_sdk._apps.Apps.uninstall",
+            mock_uninstall,
+        )
+
+        # Run the command
+        app_id = "app-123"
+        runner = CliRunner()
+        result = runner.invoke(cli, ["app", "uninstall", app_id])
+
+        # Check that the command was successful
+        assert result.exit_code == 0
+
+        # Check that the uninstall method was called with the correct arguments
+        mock_uninstall.assert_called_once_with(
+            app_id=app_id,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+        )
+
+        # Check the output
+        assert f"App {app_id} uninstalled" in result.stdout

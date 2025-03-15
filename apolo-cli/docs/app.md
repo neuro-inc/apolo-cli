@@ -14,6 +14,7 @@ Operations with applications.
 | Usage | Description |
 | :--- | :--- |
 | [_ls_](app.md#ls) | List apps |
+| [_uninstall_](app.md#uninstall) | Uninstall an app |
 
 
 ### ls
@@ -28,6 +29,32 @@ apolo app ls [OPTIONS]
 ```
 
 List apps.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### uninstall
+
+Uninstall an app
+
+
+#### Usage
+
+```bash
+apolo app uninstall [OPTIONS] APP_ID
+```
+
+Uninstall an app.
+
+`APP`_ID: ID of the app to uninstall
 
 #### Options
 

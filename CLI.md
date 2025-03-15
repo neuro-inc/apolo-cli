@@ -54,6 +54,7 @@
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
 		* [apolo app ls](#apolo-app-ls)
+		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo blob](#apolo-blob)
 		* [apolo blob cp](#apolo-blob-cp)
 		* [apolo blob du](#apolo-blob-du)
@@ -1407,6 +1408,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app ls](#apolo-app-ls)_| List apps |
+| _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
 
 
 
@@ -1419,6 +1421,28 @@ List apps.
 
 ```bash
 apolo app ls [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app uninstall
+
+Uninstall an app.<br/><br/>APP_ID: ID of the app to uninstall
+
+**Usage:**
+
+```bash
+apolo app uninstall [OPTIONS] APP_ID
 ```
 
 **Options:**
