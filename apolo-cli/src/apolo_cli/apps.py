@@ -88,14 +88,15 @@ async def uninstall(
 
     APP_ID: ID of the app to uninstall
     """
-    with root.status(f"Uninstalling app {app_id}"):
+    with root.status(f"Uninstalling app '{app_id}'"):
         await root.client.apps.uninstall(
             app_id=app_id,
             cluster_name=cluster,
             org_name=org,
             project_name=project,
         )
-    root.print(f"App {app_id} uninstalled")
+    if root.verbosity >= 0:
+        root.print(f"App '{app_id}' uninstalled")
 
 
 app.add_command(ls)
