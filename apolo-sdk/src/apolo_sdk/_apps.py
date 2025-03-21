@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import AsyncIterator, Optional
 
+from yarl import URL
+
 from ._config import Config
 from ._core import _Core
 from ._rewrite import rewrite_module
@@ -26,13 +28,12 @@ class Apps(metaclass=NoPublicConstructor):
         self._core = core
         self._config = config
 
-    @asyncgeneratorcontextmanager
-    async def list(
+    def _build_base_url(
         self,
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
-    ) -> AsyncIterator[App]:
+    ) -> URL:
         cluster_name = cluster_name or self._config.cluster_name
         if org_name is None:
             org_name = self._config.org_name
@@ -53,6 +54,22 @@ class Apps(metaclass=NoPublicConstructor):
             / org_name
             / "project"
             / project_name
+        )
+        return url
+
+    @asyncgeneratorcontextmanager
+    async def list(
+        self,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[App]:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
             / "instances"
         )
 
@@ -70,3 +87,24 @@ class Apps(metaclass=NoPublicConstructor):
                     org_name=item["org_name"],
                     state=item["state"],
                 )
+
+    async def uninstall(
+        self,
+        app_id: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> None:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "instances"
+            / app_id
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("DELETE", url, auth=auth):
+            pass

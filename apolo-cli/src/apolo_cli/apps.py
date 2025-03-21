@@ -3,7 +3,7 @@ from typing import Optional
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.apps import AppsFormatter, BaseAppsFormatter, SimpleAppsFormatter
 from .root import Root
-from .utils import command, group, option
+from .utils import argument, command, group, option
 
 
 @group()
@@ -59,4 +59,45 @@ async def ls(
             root.print("No apps found.")
 
 
+@command()
+@argument("app_id")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+async def uninstall(
+    root: Root,
+    app_id: str,
+    cluster: Optional[str],
+    org: Optional[str],
+    project: Optional[str],
+) -> None:
+    """
+    Uninstall an app.
+
+    APP_ID: ID of the app to uninstall
+    """
+    with root.status(f"Uninstalling app '{app_id}'"):
+        await root.client.apps.uninstall(
+            app_id=app_id,
+            cluster_name=cluster,
+            org_name=org,
+            project_name=project,
+        )
+    if root.verbosity >= 0:
+        root.print(f"App '{app_id}' uninstalled")
+
+
 app.add_command(ls)
+app.add_command(uninstall)
