@@ -169,7 +169,7 @@ class TestAppCommands:
         # Check that the install method was called with the correct arguments
         mock_install.assert_called_once_with(
             app_data={
-                "template_name": "test-template", 
+                "template_name": "test-template",
                 "template_version": 1.0,
                 "input": {},
             },
