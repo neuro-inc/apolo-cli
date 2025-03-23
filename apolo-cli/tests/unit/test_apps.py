@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, AsyncIterator, Generic, List, TypeVar
 from unittest.mock import AsyncMock
 
@@ -134,6 +135,52 @@ class TestAppCommands:
         assert "app-456" in result.stdout
         assert "Test App" not in result.stdout  # Display name should not be present
 
+    def test_install_command(
+        self,
+        monkeypatch: Any,
+        tmp_path: Path,
+    ) -> None:
+        """Test the install command."""
+
+        # Mock the Apps.install method
+        mock_install = AsyncMock()
+        monkeypatch.setattr(
+            "apolo_sdk._apps.Apps.install",
+            mock_install,
+        )
+
+        # Create a temporary app.yaml file
+        app_yaml = tmp_path / "app.yaml"
+        app_yaml.write_text(
+            """
+        template_name: test-template
+        template_version: 1.0
+        input: {}
+        """
+        )
+
+        # Run the command
+        runner = CliRunner()
+        result = runner.invoke(cli, ["app", "install", "-f", str(app_yaml)])
+
+        # Check that the command was successful
+        assert result.exit_code == 0
+
+        # Check that the install method was called with the correct arguments
+        mock_install.assert_called_once_with(
+            app_data={
+                "template_name": "test-template", 
+                "template_version": 1.0,
+                "input": {},
+            },
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+        )
+
+        # Check the output
+        assert "App installed from" in result.stdout
+
     def test_uninstall_command(
         self,
         monkeypatch: Any,
@@ -164,4 +211,4 @@ class TestAppCommands:
         )
 
         # Check the output
-        assert f"App {app_id} uninstalled" in result.stdout
+        assert f"App '{app_id}' uninstalled" in result.stdout
