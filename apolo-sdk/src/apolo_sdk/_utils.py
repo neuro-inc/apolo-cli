@@ -100,7 +100,7 @@ class _AsyncIteratorAndContextManager(
 # return an AsyncGenerator, but all of our generator functions are annotated
 # as returning an AsyncIterator.
 def asyncgeneratorcontextmanager(
-    func: Callable[..., AsyncIterator[_T_co]]
+    func: Callable[..., AsyncIterator[_T_co]],
 ) -> Callable[..., _AsyncIteratorAndContextManager[_T_co]]:
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> _AsyncIteratorAndContextManager[_T_co]:

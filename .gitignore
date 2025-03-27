@@ -2,6 +2,7 @@
 *.egg-info
 *.orig
 *.swo
+.DS_Store
 .coverage*
 .dmypy.json
 .eggs

@@ -266,8 +266,12 @@ def root_no_logged_in(tmp_path: Path) -> Iterator[Root]:
 
 @pytest.fixture()
 def run_cli(
-    nmrc_path: Path, capfd: Any, tmp_path: Path
+    nmrc_path: Path, capfd: Any, tmp_path: Path, monkeypatch: Any
 ) -> Callable[[List[str]], SysCapWithCode]:
+    monkeypatch.setattr(
+        "apolo_cli.file_logging.get_handler", lambda: logging.NullHandler()
+    )
+
     def _run_cli(arguments: List[str]) -> SysCapWithCode:
         log.info("Run 'apolo %s'", " ".join(arguments))
         capfd.readouterr()
