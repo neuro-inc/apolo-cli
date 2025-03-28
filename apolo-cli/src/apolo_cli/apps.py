@@ -93,15 +93,15 @@ async def uninstall(
 
     APP_ID: ID of the app to uninstall
     """
-    with root.status(f"Uninstalling app '{app_id}'"):
+    with root.status(f"Uninstalling app [bold]{app_id}[/bold]"):
         await root.client.apps.uninstall(
             app_id=app_id,
             cluster_name=cluster,
             org_name=org,
             project_name=project,
         )
-    if root.verbosity >= 0:
-        root.print(f"App '{app_id}' uninstalled")
+    if not root.quiet:
+        root.print(f"App [bold]{app_id}[/bold] uninstalled", markup=True)
 
 
 @command()
@@ -143,7 +143,7 @@ async def install(
         app_data = yaml.safe_load(file)
 
     try:
-        with root.status(f"Installing app from {file_path}"):
+        with root.status(f"Installing app from [bold]{file_path}[/bold]"):
             await root.client.apps.install(
                 app_data=app_data,
                 cluster_name=cluster,
@@ -152,16 +152,16 @@ async def install(
             )
     except IllegalArgumentError as e:
         if e.payload and e.payload.get("errors") and root.verbosity >= 0:
-            root.print("Input validation error:")
+            root.print("[red]Input validation error:[/red]", markup=True)
             for error in e.payload["errors"]:
                 path = ".".join(error.get("path", []))
                 msg = error.get("message", "")
-                root.print(f"  - {path}: {msg}")
+                root.print(f"  - [bold]{path}[/bold]: {msg}", markup=True)
             sys.exit(1)
         raise e
 
-    if root.verbosity >= 0:
-        root.print(f"App installed from {file_path}")
+    if not root.quiet:
+        root.print(f"App installed from [bold]{file_path}[/bold]", markup=True)
 
 
 app.add_command(ls)
