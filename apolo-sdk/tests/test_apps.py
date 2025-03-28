@@ -78,6 +78,38 @@ async def test_apps_list(
         assert apps[0].state == "errored"
 
 
+async def test_apps_install(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_data = {
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "input": {},
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "POST"
+        url = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
+        assert request.path == url
+        assert await request.json() == app_data
+        return web.Response(status=201)
+
+    web_app = web.Application()
+    web_app.router.add_post(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances", handler
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.install(
+            app_data=app_data,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+
 async def test_apps_uninstall(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],

@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from typing import List
 
 from rich.table import Table, box
 
@@ -39,13 +39,3 @@ class AppsFormatter(BaseAppsFormatter):
                 app.state,
             )
         return table
-
-    def _app_to_table_row(self, app: App) -> Sequence[str]:
-        return [
-            app.id,
-            app.name,
-            app.display_name,
-            app.template_name,
-            app.template_version,
-            app.state,
-        ]

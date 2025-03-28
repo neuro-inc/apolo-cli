@@ -53,6 +53,7 @@
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
+		* [apolo app install](#apolo-app-install)
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo blob](#apolo-blob)
@@ -1407,8 +1408,32 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
+| _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app ls](#apolo-app-ls)_| List apps |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
+
+
+
+
+### apolo app install
+
+Install an app from a YAML file.
+
+**Usage:**
+
+```bash
+apolo app install [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Specify the cluster \(the current cluster by default).|
+|_\-f, --file TEXT_|Path to the app YAML file.  \[required]|
+|_--org ORG_|Specify the org \(the current org by default).|
+|_--project PROJECT_|Specify the project \(the current project by default).|
 
 
 
