@@ -211,4 +211,4 @@ class TestAppCommands:
         )
 
         # Check the output
-        assert f"App '{app_id}' uninstalled" in result.stdout
+        assert f"App {app_id} uninstalled" in result.stdout
