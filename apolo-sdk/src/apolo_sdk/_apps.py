@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import AsyncIterator, Optional
+from typing import Any, AsyncIterator, Optional
 
 from yarl import URL
 
@@ -87,6 +87,26 @@ class Apps(metaclass=NoPublicConstructor):
                     org_name=item["org_name"],
                     state=item["state"],
                 )
+
+    async def install(
+        self,
+        app_data: dict[str, Any],
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> None:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "instances"
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("POST", url, json=app_data, auth=auth):
+            pass
 
     async def uninstall(
         self,

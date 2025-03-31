@@ -108,13 +108,15 @@ class _Core:
             payload = {}
         if "error" in payload:
             err_text = payload["error"]
-        else:
+        elif "errors" not in payload:
             payload = {}
         if status_code == 400 and "errno" in payload:
             os_errno: Any = payload["errno"]
             os_errno = errno.__dict__.get(os_errno, os_errno)
             raise OSError(os_errno, err_text)
         err_cls = self._exception_map.get(status_code, IllegalArgumentError)
+        if err_cls is IllegalArgumentError and payload:
+            raise err_cls(err_text, payload=payload)
         raise err_cls(err_text)
 
     @asynccontextmanager

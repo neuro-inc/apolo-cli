@@ -1,3 +1,5 @@
+from typing import Any
+
 from ._rewrite import rewrite_module
 
 
@@ -13,7 +15,9 @@ class ClientError(Exception):
 
 @rewrite_module
 class IllegalArgumentError(ValueError):
-    pass
+    def __init__(self, *args: object, payload: dict[str, Any] | None = None) -> None:
+        super().__init__(*args)
+        self.payload = payload
 
 
 @rewrite_module
