@@ -64,6 +64,7 @@ test-sdk: .update-deps .test-sdk ### Run unit tests
 
 .PHONY: .test
 .test-cli:
+	mkdir ~/.apolo
 	pytest \
 		-m "not e2e" \
 		--cov=apolo-cli \
