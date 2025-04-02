@@ -21,9 +21,6 @@ from apolo_sdk._parsing_utils import _get_url_authority, _ImageNameParser
 
 from tests import _TestServerFactory
 
-if sys.version_info < (3, 8):
-    pytest.skip("Async mocks require Python 3.8+", allow_module_level=True)
-
 _MakeClient = Callable[..., Client]
 
 
