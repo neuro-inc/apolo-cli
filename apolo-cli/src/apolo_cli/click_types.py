@@ -51,14 +51,14 @@ from .root import Root
 
 JOB_NAME_MIN_LENGTH = 3
 JOB_NAME_MAX_LENGTH = 40
-JOB_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+JOB_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-+[a-z0-9]+)*$"
 JOB_NAME_REGEX = re.compile(JOB_NAME_PATTERN)
 JOB_LIMIT_ENV = "NEURO_CLI_JOB_AUTOCOMPLETE_LIMIT"
 
 
 DISK_NAME_MIN_LENGTH = 3
 DISK_NAME_MAX_LENGTH = 40
-DISK_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+DISK_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-+[a-z0-9]+)*$"
 DISK_NAME_REGEX = re.compile(JOB_NAME_PATTERN)
 
 
