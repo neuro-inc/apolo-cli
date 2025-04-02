@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, Iterator, List
+from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
 
 from apolo_sdk import App
@@ -14,8 +14,8 @@ def mock_apps_list(apps: List[App]) -> Iterator[None]:
     with mock.patch.object(Apps, "list") as mocked:
 
         @asynccontextmanager
-        async def async_cm(**kwargs):
-            async def async_iterator():
+        async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[App]]:
+            async def async_iterator() -> AsyncIterator[App]:
                 for app in apps:
                     yield app
 
