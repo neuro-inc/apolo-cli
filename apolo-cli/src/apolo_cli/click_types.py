@@ -49,26 +49,22 @@ from .parse_utils import (
 )
 from .root import Root
 
-# NOTE: these job name defaults are taken from `platform_api` file `validators.py`
 JOB_NAME_MIN_LENGTH = 3
 JOB_NAME_MAX_LENGTH = 40
-JOB_NAME_PATTERN = "^[a-z](?:-?[a-z0-9])*$"
+JOB_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
 JOB_NAME_REGEX = re.compile(JOB_NAME_PATTERN)
 JOB_LIMIT_ENV = "NEURO_CLI_JOB_AUTOCOMPLETE_LIMIT"
 
 
-# NOTE: these disk name validation are taken from `platform_disk_api` file `schema.py`
 DISK_NAME_MIN_LENGTH = 3
 DISK_NAME_MAX_LENGTH = 40
-DISK_NAME_PATTERN = "^[a-z](?:-?[a-z0-9])*$"
+DISK_NAME_PATTERN = "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
 DISK_NAME_REGEX = re.compile(JOB_NAME_PATTERN)
 
 
-# NOTE: these bucket name validation are taken from
-# `platform_buckets_api` file `schema.py`
 BUCKET_NAME_MIN_LENGTH = 3
 BUCKET_NAME_MAX_LENGTH = 40
-BUCKET_NAME_PATTERN = "^[a-z](?:-?[a-z0-9_-])*$"
+BUCKET_NAME_PATTERN = "^[a-z][a-z0-9_]*(?:-+[a-z0-9_]+)*$"
 BUCKET_NAME_REGEX = re.compile(BUCKET_NAME_PATTERN)
 
 
