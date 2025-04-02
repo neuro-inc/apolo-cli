@@ -5,6 +5,16 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.4.1 (2025-04-02)
+
+### Features
+
+- Added new platform apps commands:
+  - `apolo app ls` - List installed platform applications
+  - `apolo app install` - Install platform application 
+  - `apolo app uninstall` - Uninstall platform application
+
+
 # Apolo SDK/CLI 24.12.3 (2024-12-19)
 
 ### Bugfixes
