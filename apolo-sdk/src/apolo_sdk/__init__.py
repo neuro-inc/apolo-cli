@@ -42,6 +42,7 @@ from ._admin import (
     _Quota,
     _UserInfo,
 )
+from ._apps import App, Apps
 from ._bucket_base import (
     BlobCommonPrefix,
     BlobObject,
@@ -153,6 +154,8 @@ __all__ = (
     "AbstractFileProgress",
     "AbstractRecursiveFileProgress",
     "Action",
+    "App",
+    "Apps",
     "AppsConfig",
     "AsyncFilterFunc",
     "AuthError",

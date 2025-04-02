@@ -305,6 +305,7 @@ CMD_MAP = {
     "secret": "apolo_cli.secrets:secret",
     "disk": "apolo_cli.disks:disk",
     "service-account": "apolo_cli.service_accounts:service_account",
+    "app": "apolo_cli.apps:app",
     # shortcuts
     "run": "apolo_cli.job:run",
     "ps": "apolo_cli.job:ls",
