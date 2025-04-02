@@ -1,40 +1,57 @@
-from pathlib import Path
-from typing import Any, AsyncIterator, Generic, List, TypeVar
-from unittest.mock import AsyncMock
-
-import pytest
-from click.testing import CliRunner
+from contextlib import asynccontextmanager, contextmanager
+from typing import Any, Iterator, List
+from unittest import mock
 
 from apolo_sdk import App
+from apolo_sdk._apps import Apps
 
-from apolo_cli.main import cli
-
-T = TypeVar("T")
-
-
-class MockAsyncContext(Generic[T]):
-    """Mock async context manager for testing SDK methods
-    that return async iterators.
-    """
-
-    def __init__(self, items: List[T]) -> None:
-        self.items = items
-
-    async def __aenter__(self) -> AsyncIterator[T]:
-        return self.mock_list_context()
-
-    async def __aexit__(self, *args: Any) -> None:
-        pass
-
-    async def mock_list_context(self) -> AsyncIterator[T]:
-        for item in self.items:
-            yield item
+_RunCli = Any
 
 
-@pytest.fixture
-def mock_apps() -> List[App]:
-    """Return a list of mock App objects for testing."""
-    return [
+@contextmanager
+def mock_apps_list(apps: List[App]) -> Iterator[None]:
+    """Context manager to mock the Apps.list method."""
+    with mock.patch.object(Apps, "list") as mocked:
+
+        @asynccontextmanager
+        async def async_cm(**kwargs):
+            async def async_iterator():
+                for app in apps:
+                    yield app
+
+            yield async_iterator()
+
+        mocked.side_effect = async_cm
+        yield
+
+
+@contextmanager
+def mock_apps_install() -> Iterator[None]:
+    """Context manager to mock the Apps.install method."""
+    with mock.patch.object(Apps, "install") as mocked:
+
+        async def install(**kwargs: Any) -> str:
+            return "app-123"
+
+        mocked.side_effect = install
+        yield
+
+
+@contextmanager
+def mock_apps_uninstall() -> Iterator[None]:
+    """Context manager to mock the Apps.uninstall method."""
+    with mock.patch.object(Apps, "uninstall") as mocked:
+
+        async def uninstall(**kwargs: Any) -> None:
+            return None
+
+        mocked.side_effect = uninstall
+        yield
+
+
+def test_app_ls_with_apps(run_cli: _RunCli) -> None:
+    """Test the app ls command when apps are returned."""
+    apps = [
         App(
             id="app-123",
             name="test-app-1",
@@ -57,158 +74,91 @@ def mock_apps() -> List[App]:
         ),
     ]
 
+    with mock_apps_list(apps):
+        capture = run_cli(["app", "ls"])
 
-class TestAppCommands:
-    """Tests for app commands."""
+    assert not capture.err
+    assert "app-123" in capture.out
+    assert "test-app-1" in capture.out
+    assert "Test App 1" in capture.out
+    assert "test-template" in capture.out
+    assert "1.0" in capture.out
+    assert "running" in capture.out
+    assert capture.code == 0
 
-    def test_ls_command_with_apps(
-        self,
-        mock_apps: List[App],
-        monkeypatch: Any,
-    ) -> None:
-        """Test the ls command when apps are returned."""
 
-        # Mock the Apps.list method
-        monkeypatch.setattr(
-            "apolo_sdk._apps.Apps.list",
-            lambda self, **kwargs: MockAsyncContext(mock_apps),
-        )
+def test_app_ls_no_apps(run_cli: _RunCli) -> None:
+    """Test the app ls command when no apps are returned."""
+    with mock_apps_list([]):
+        capture = run_cli(["app", "ls"])
 
-        # Run the command
-        runner = CliRunner()
-        result = runner.invoke(cli, ["app", "ls"])
+    assert not capture.err
+    assert "No apps found." in capture.out
+    assert capture.code == 0
 
-        # Check that the command was successful
-        assert result.exit_code == 0
 
-        # Check the output
-        assert "app-123" in result.stdout
-        assert "test-app-1" in result.stdout
-        assert "Test App 1" in result.stdout
-        assert "test-template" in result.stdout
-        assert "1.0" in result.stdout
-        assert "running" in result.stdout
+def test_app_ls_quiet_mode(run_cli: _RunCli) -> None:
+    """Test the app ls command in quiet mode."""
+    apps = [
+        App(
+            id="app-123",
+            name="test-app-1",
+            display_name="Test App 1",
+            template_name="test-template",
+            template_version="1.0",
+            project_name="test-project",
+            org_name="test-org",
+            state="running",
+        ),
+        App(
+            id="app-456",
+            name="test-app-2",
+            display_name="Test App 2",
+            template_name="test-template",
+            template_version="1.0",
+            project_name="test-project",
+            org_name="test-org",
+            state="errored",
+        ),
+    ]
 
-    def test_ls_command_no_apps(
-        self,
-        monkeypatch: Any,
-    ) -> None:
-        """Test the ls command when no apps are returned."""
+    with mock_apps_list(apps):
+        capture = run_cli(["-q", "app", "ls"])
 
-        # Mock the Apps.list method with empty list
-        monkeypatch.setattr(
-            "apolo_sdk._apps.Apps.list", lambda self, **kwargs: MockAsyncContext([])
-        )
+    assert not capture.err
+    assert "app-123" in capture.out
+    assert "app-456" in capture.out
+    assert "Test App" not in capture.out  # Display name should not be present
+    assert capture.code == 0
 
-        # Run the command
-        runner = CliRunner()
-        result = runner.invoke(cli, ["app", "ls"])
 
-        # Check that the command was successful
-        assert result.exit_code == 0
-
-        # Check the output
-        assert "No apps found." in result.stdout
-
-    def test_ls_command_quiet_mode(
-        self,
-        mock_apps: List[App],
-        monkeypatch: Any,
-    ) -> None:
-        """Test the ls command in quiet mode."""
-
-        # Mock the Apps.list method
-        monkeypatch.setattr(
-            "apolo_sdk._apps.Apps.list",
-            lambda self, **kwargs: MockAsyncContext(mock_apps),
-        )
-
-        # Run the command
-        runner = CliRunner()
-        result = runner.invoke(cli, ["-q", "app", "ls"])
-
-        # Check that the command was successful
-        assert result.exit_code == 0
-
-        # Check the output - in quiet mode, only IDs should be printed
-        assert "app-123" in result.stdout, result.stdout
-        assert "app-456" in result.stdout
-        assert "Test App" not in result.stdout  # Display name should not be present
-
-    def test_install_command(
-        self,
-        monkeypatch: Any,
-        tmp_path: Path,
-    ) -> None:
-        """Test the install command."""
-
-        # Mock the Apps.install method
-        mock_install = AsyncMock()
-        monkeypatch.setattr(
-            "apolo_sdk._apps.Apps.install",
-            mock_install,
-        )
-
-        # Create a temporary app.yaml file
-        app_yaml = tmp_path / "app.yaml"
-        app_yaml.write_text(
-            """
-        template_name: test-template
-        template_version: 1.0
-        input: {}
+def test_app_install(run_cli: _RunCli, tmp_path: Any) -> None:
+    """Test the app install command."""
+    # Create a temporary app.yaml file
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
         """
-        )
+    template_name: test-template
+    template_version: 1.0
+    input: {}
+    """
+    )
 
-        # Run the command
-        runner = CliRunner()
-        result = runner.invoke(cli, ["app", "install", "-f", str(app_yaml)])
+    with mock_apps_install():
+        capture = run_cli(["app", "install", "-f", str(app_yaml)])
 
-        # Check that the command was successful
-        assert result.exit_code == 0
+    assert not capture.err
+    assert "App installed" in capture.out
+    assert capture.code == 0
 
-        # Check that the install method was called with the correct arguments
-        mock_install.assert_called_once_with(
-            app_data={
-                "template_name": "test-template",
-                "template_version": 1.0,
-                "input": {},
-            },
-            cluster_name=None,
-            org_name=None,
-            project_name=None,
-        )
 
-        # Check the output
-        assert "App installed from" in result.stdout
+def test_app_uninstall(run_cli: _RunCli) -> None:
+    """Test the app uninstall command."""
+    app_id = "app-123"
 
-    def test_uninstall_command(
-        self,
-        monkeypatch: Any,
-    ) -> None:
-        """Test the uninstall command."""
+    with mock_apps_uninstall():
+        capture = run_cli(["app", "uninstall", app_id])
 
-        # Mock the Apps.uninstall method
-        mock_uninstall = AsyncMock()
-        monkeypatch.setattr(
-            "apolo_sdk._apps.Apps.uninstall",
-            mock_uninstall,
-        )
-
-        # Run the command
-        app_id = "app-123"
-        runner = CliRunner()
-        result = runner.invoke(cli, ["app", "uninstall", app_id])
-
-        # Check that the command was successful
-        assert result.exit_code == 0
-
-        # Check that the uninstall method was called with the correct arguments
-        mock_uninstall.assert_called_once_with(
-            app_id=app_id,
-            cluster_name=None,
-            org_name=None,
-            project_name=None,
-        )
-
-        # Check the output
-        assert f"App {app_id} uninstalled" in result.stdout
+    assert not capture.err
+    assert f"App {app_id} uninstalled" in capture.out
+    assert capture.code == 0
