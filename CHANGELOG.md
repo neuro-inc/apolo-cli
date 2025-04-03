@@ -5,7 +5,7 @@
 
 [comment]: # (towncrier release notes start)
 
-# Apolo SDK/CLI 25.4.3 (2025-04-03)
+# Apolo SDK/CLI 25.4.1 (2025-04-01)
 
 ### Features
 
