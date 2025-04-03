@@ -5,6 +5,19 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.4.1 (2025-04-01)
+
+### Features
+
+- Added new command: `apolo app ls` - list installed apps ([#3199](https://github.com/neuro-inc/neuro-cli/issues/3199))
+- Added new command: `apolo app uninstall` - uninstall app ([#3201](https://github.com/neuro-inc/neuro-cli/issues/3201))
+- Added new command: `apolo app install -f [yml_file]` - install app ([#3204](https://github.com/neuro-inc/neuro-cli/issues/3204))
+
+### Bugfixes
+
+- Eliminated backtracing in regexes for job, disk, and bucket name validators. ([#3217](https://github.com/neuro-inc/neuro-cli/issues/3217))
+
+
 # Apolo SDK/CLI 24.12.3 (2024-12-19)
 
 ### Bugfixes
