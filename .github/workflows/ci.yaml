@@ -280,7 +280,7 @@ jobs:
         mkdir dist
         cp apolo-sdk/dist/* dist/
         cp apolo-cli/dist/* dist/
-        
+
         # Create a temporary directory with just SDK files for analyzing the package
         mkdir dist-analysis
         cp apolo-sdk/dist/* dist-analysis/
