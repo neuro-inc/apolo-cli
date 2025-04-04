@@ -4,7 +4,8 @@
 * Switch to `master` branch (`git checkout master`).
 * Open `VERSION.txt`, increment the file content, e.g. `20.6.22`.
 * Run `make format`.
-* Run `towncrier` to update `CHANGELOG.md`.
+* Run `towncrier create <num>.(bugfix|feature|doc|removal|misc) --edit` to create a new changelog entry.
+* Run `towncrier` to update `CHANGELOG.md` from the changelog entries.
 * Open `CHANGELOG.md`, make sure that the generated file content looks good. Fix it if needed.
 * Commit changed `__init__.py`, `CHANGELOD.md` and deleted change pieces in `CHANGELOG.D`. Use `Release 1.2.3` commit message
 * Push commited changes on github using the master branch.
@@ -16,6 +17,5 @@
 * Open PyPI (https://pypi.org/project/apolo-sdk/ and https://pypi.org/project/apolo-cli/),
   make sure that a new release is published and all needed files are awailable for downloading
   (https://pypi.org/project/apolo-sdk/#files and https://pypi.org/project/apolo-cli/#files).
-* Merge created pull request for `platform-web` project to publish updated documentation on the web.
 * Increment version to next alpha, e.g. `__version__ = 20.6.23a0`. Commit this change to master and push on github.
-* Publish a new version announcement on `platform-development` and `platform-feedback` slack channels.
+* Publish a new version announcement on `product` slack channel.
