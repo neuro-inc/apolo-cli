@@ -1027,19 +1027,19 @@ def drop_old_test_images() -> Iterator[None]:
         subdir.mkdir()
         helper = Helper(nmrc_path=nmrc_path, tmp_path=subdir)
 
-        res: SysCap = helper.run_cli(["-q", "image", "ls", "--full-uri"])
-        for image_str in res.out.splitlines():
-            image_str = image_str.strip()
-            image_url = URL(image_str)
-            image_name = image_url.parts[-1]
-            try:
+        try:
+            res: SysCap = helper.run_cli(["-q", "image", "ls", "--full-uri"])
+            for image_str in res.out.splitlines():
+                image_str = image_str.strip()
+                image_url = URL(image_str)
+                image_name = image_url.parts[-1]
                 _, time_str, _ = image_name.split(IMAGE_DATETIME_SEP)
                 image_time = datetime.strptime(time_str, IMAGE_DATETIME_FORMAT)
                 if datetime.now() - image_time < timedelta(days=1):
                     continue
                 helper.run_cli(["image", "rm", image_str])
-            except Exception:
-                pass
+        except Exception as e:
+            logging.warning(f"Failed to clean up old images: {e}")
 
 
 @pytest.fixture()

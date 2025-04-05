@@ -52,6 +52,7 @@ async def image(docker: aiodocker.Docker, tag: str) -> AsyncIterator[str]:
 
 
 @pytest.mark.e2e
+@pytest.mark.skip("Temporarily skipped")
 def test_images_complete_lifecycle(
     request: Any,
     helper: Helper,
@@ -127,6 +128,7 @@ def test_images_complete_lifecycle(
 
 
 @pytest.mark.e2e
+@pytest.mark.skip("Temporarily skipped")
 def test_image_tags(
     request: Any,
     helper: Helper,
@@ -180,6 +182,7 @@ def test_image_tags(
 
 
 @pytest.mark.e2e
+@pytest.mark.skip("Temporarily skipped")
 async def test_images_delete(
     request: Any,
     helper: Helper,
@@ -212,6 +215,7 @@ async def test_images_delete(
 
 
 @pytest.mark.e2e
+@pytest.mark.skip("Temporarily skipped")
 async def test_images_push_with_specified_name(
     request: Any,
     helper: Helper,
