@@ -17,7 +17,7 @@ from functools import cached_property
 from hashlib import sha1
 from os.path import join
 from pathlib import Path
-from time import time, sleep
+from time import sleep, time
 from typing import (
     Any,
     AsyncIterator,
