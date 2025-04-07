@@ -17,7 +17,7 @@ from functools import cached_property
 from hashlib import sha1
 from os.path import join
 from pathlib import Path
-from time import time
+from time import time, sleep
 from typing import (
     Any,
     AsyncIterator,
@@ -1155,6 +1155,7 @@ def drop_old_test_images() -> Iterator[None]:
                 if datetime.now() - image_time < timedelta(days=1):
                     continue
                 helper.run_cli(["image", "rm", image_str])
+                sleep(1)
         except Exception as e:
             logging.warning(f"Failed to clean up old images: {e}")
 
