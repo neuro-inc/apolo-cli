@@ -437,7 +437,6 @@ def test_e2e_ssh_exec_no_cmd(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_e2e_ssh_exec_echo(helper: Helper) -> None:
     command = 'bash -c "sleep 15m; false"'
     job_id = helper.run_job_and_wait_state(UBUNTU_IMAGE_NAME, command)
@@ -524,7 +523,6 @@ def test_e2e_ssh_exec_dead_job(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_job_save(request: Any, helper: Helper, docker: aiodocker.Docker) -> None:
     job_name = f"test-job-save-{uuid4().hex[:6]}"
     image_no_tag = make_image_name()
@@ -808,7 +806,6 @@ def test_job_run_browse(helper: Helper, fakebrowser: Any) -> None:
 
 
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_job_run_share(helper: Helper, fakebrowser: Any) -> None:
     another_test_user = "test2"
     # Run a new job

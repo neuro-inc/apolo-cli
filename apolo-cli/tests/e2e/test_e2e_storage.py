@@ -467,7 +467,6 @@ def test_e2e_move_no_target_directory_extra_operand(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_e2e_glob(tmp_path: Path, helper: Helper) -> None:
     # Create files and directories and copy them to storage
     helper.mkdir("")
@@ -693,7 +692,6 @@ def test_tree(helper: Helper, data: _Data, tmp_path: Path) -> None:
     sys.platform == "win32", reason="Autocompletion is not supported on Windows"
 )
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_storage_autocomplete_remote(helper: Helper, tmp_path: Path) -> None:
     folder = tmp_path / "folder"
     folder.mkdir()
@@ -734,7 +732,6 @@ def test_storage_autocomplete_remote(helper: Helper, tmp_path: Path) -> None:
     sys.platform == "win32", reason="Autocompletion is not supported on Windows"
 )
 @pytest.mark.e2e
-@pytest.mark.skip("Temporarily skipped")
 def test_storage_autocomplete_local(helper: Helper, tmp_path: Path) -> None:
     folder = tmp_path / "folder"
     folder.mkdir()
