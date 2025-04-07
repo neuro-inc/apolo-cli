@@ -867,7 +867,7 @@ def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
     if e2e_test_token:
         nmrc_path = tmp_path / "conftest.nmrc"
 
-        async def _do():
+        async def _do() -> None:
             await login_with_token(
                 e2e_test_token,
                 url=URL("https://api.dev.apolo.us/api/v1"),
