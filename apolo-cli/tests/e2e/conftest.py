@@ -855,7 +855,6 @@ def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
     else:
         token_env = "E2E_USER_TOKEN"
         refresh_token_env = "E2E_USER_REFRESH_TOKEN"
-        refresh_token_env = "E2E_REFRESH_TOKEN"
 
     e2e_test_token = os.environ.get(token_env)
     e2e_refresh_token = os.environ.get(refresh_token_env)

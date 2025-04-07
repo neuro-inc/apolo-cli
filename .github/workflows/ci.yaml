@@ -193,6 +193,8 @@ jobs:
         env:
           E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
           E2E_USER_TOKEN: ${{ secrets.E2E_USER_TOKEN }}
+          E2E_REFRESH_TOKEN: ${{ secrets.E2E_REFRESH_TOKEN }}
+          E2E_USER_REFRESH_TOKEN: ${{ secrets.E2E_REFRESH_TOKEN }}
           E2E_PRESET: cpu-micro
           PYTEST_XDIST_NUM_THREADS: 16
           COLOR: yes
