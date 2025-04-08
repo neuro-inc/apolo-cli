@@ -861,7 +861,6 @@ def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
 
     if e2e_refresh_token:
         e2e_test_token = asyncio.run(_get_refresh_token(e2e_refresh_token))
-        print("###", e2e_test_token)
 
     if e2e_test_token:
         nmrc_path = tmp_path / "conftest.nmrc"
@@ -874,26 +873,12 @@ def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
                 timeout=CLIENT_TIMEOUT,
             )
             async with api_get(timeout=CLIENT_TIMEOUT, path=nmrc_path) as client:
-                # await client._admin.create_project(
-                #     cluster_name=client.config.cluster_name,
-                #     org_name=client.config.org_name,
-                #     name="e2e-test-project",
-                #     # default=True,
-                # )
                 org_name = "e2e-integration-tests"
                 project_name = "e2e-integration-project"
                 await client.config.switch_org(org_name)
                 await client.config.switch_project(project_name)
 
         asyncio.run(_do())
-        # asyncio.run(
-        #     login_with_token(
-        #         e2e_test_token,
-        #         url=URL("https://api.dev.apolo.us/api/v1"),
-        #         path=nmrc_path,
-        #         timeout=CLIENT_TIMEOUT,
-        #     )
-        # )
         # Setup user config
         local_conf = nmrc_path / ".apolo.toml"
         local_conf.write_text(toml.dumps({"job": {"life-span": "10m"}}))
