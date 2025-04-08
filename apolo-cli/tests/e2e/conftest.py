@@ -1074,56 +1074,6 @@ def make_image_name() -> str:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_test_project_and_org() -> Iterator[None]:
-    logging.warning("Setting up test organization and project for e2e tests")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir_path = Path(tmpdir)
-        nmrc_path = _get_nmrc_path(tmpdir_path, True)  # Use admin token
-        subdir = tmpdir_path / "tmp"
-        subdir.mkdir()
-        helper = Helper(nmrc_path=nmrc_path, tmp_path=subdir)
-
-        # Create a unique org name for this test run
-        # org_name = f"e2e-test-org-{secrets.token_hex(4)}"
-        # project_name = "e2e-test-project"
-        org_name = "e2e-integration-tests"
-        project_name = "e2e-integration-project"
-
-        try:
-            # Try to create organization
-            # try:
-            #     helper.run_cli(["admin", "add-org", org_name])
-            #     logging.warning(f"Created test organization: {org_name}")
-            # except subprocess.CalledProcessError:
-            #     logging.warning(f"Organization {org_name} may already exist")
-
-            # Switch to the organization
-            helper.run_cli(["config", "switch-org", org_name])
-
-            # # Try to create project
-            # try:
-            #     helper.run_cli(["admin", "add-project", org_name, project_name])
-            #     logging.warning(f"Created test project: {project_name}")
-            # except subprocess.CalledProcessError:
-            #     logging.warning(f"Project {project_name} may already exist")
-
-            # Switch to the project
-            helper.run_cli(["config", "switch-project", project_name])
-            logging.warning(
-                f"Using organization {org_name} and project {project_name} for tests"
-            )
-
-            # Continue with the tests
-            yield
-        except Exception as e:
-            logging.error(f"Failed to set up test environment: {e}")
-            raise
-        finally:
-            # Clean up not needed - orgs and projects are managed separately
-            pass
-
-
-@pytest.fixture(scope="session", autouse=True)
 def drop_old_test_images() -> Iterator[None]:
     yield
     logging.warning("Cleaning up old images")
