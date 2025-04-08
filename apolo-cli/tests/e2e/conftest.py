@@ -979,7 +979,12 @@ def _tmp_bucket_create(
 
     try:
         helper.drop_stale_buckets("apolo-e2e-")
-        bucket = helper.create_bucket(tmpbucketname, wait=True)
+        try:
+            bucket = helper.create_bucket(tmpbucketname, wait=True)
+        except IllegalArgumentError as exc:
+            if "HttpError 429" in str(exc) and "quota has been reached" in str(exc):
+                pytest.skip(f"Rate limit or quota exceeded: {exc}")
+            raise
     except AuthorizationError:
         pytest.skip("No permission to create bucket for user E2E_TOKEN")
     yield bucket, helper
