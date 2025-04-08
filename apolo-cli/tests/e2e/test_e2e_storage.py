@@ -467,7 +467,9 @@ def test_e2e_move_no_target_directory_extra_operand(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-@pytest.mark.skip(reason="ERROR: AssertionError: Paths don't match between test and integration environments")
+@pytest.mark.skip(
+    reason="ERROR: AssertionError: Paths don't match between test and integration environments"
+)
 def test_e2e_glob(tmp_path: Path, helper: Helper) -> None:
     # Create files and directories and copy them to storage
     helper.mkdir("")
