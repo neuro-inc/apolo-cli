@@ -78,8 +78,10 @@ def test_e2e_blob_storage_copy_file_explicit_directory(
     file_name = str(PurePath(srcfile).name)
     key = f"folder/{file_name}"
 
-    # Upload local file to existing directory with explocit -t param
-    helper.run_cli(["blob", "cp", "-t", f"blob:{tmp_bucket}/folder", srcfile])
+    # Upload local file to existing directory with explicit -t param
+    helper.run_cli(
+        ["blob", "cp", "-t", f"blob:{tmp_bucket}/folder", srcfile]
+    )
 
     # Ensure file is there
     helper.check_blob_size(tmp_bucket, key, FILE_SIZE_B)
@@ -101,7 +103,9 @@ def test_e2e_blob_storage_copy_file_to_folder_key(
 
     # Second will succeed, but upload the file `under` the `folder`,
     # as it's a folder key
-    helper.run_cli(["blob", "cp", srcfile, folder_uri])
+    helper.run_cli(
+        ["blob", "cp", srcfile, folder_uri]
+    )
     helper.check_blob_size(tmp_bucket, stub_key, FILE_SIZE_B)
     helper.check_blob_size(tmp_bucket, key, FILE_SIZE_B)
 
