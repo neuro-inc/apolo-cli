@@ -51,7 +51,10 @@ def test_e2e_blob_storage_ls_blobs_empty_bucket(
 
 @pytest.mark.e2e
 @pytest.mark.skip(
-    reason="ERROR: apolo_sdk.IllegalArgumentError: Unexpected exception: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC]"
+    reason=(
+        "ERROR: apolo_sdk.IllegalArgumentError: Unexpected exception: "
+        "[SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC]"
+    )
 )
 def test_e2e_blob_storage_copy_file_implicit_directory(
     helper: Helper, data: _Data, tmp_bucket: str
@@ -69,7 +72,10 @@ def test_e2e_blob_storage_copy_file_implicit_directory(
 
 @pytest.mark.e2e
 @pytest.mark.skip(
-    reason="ERROR: apolo_sdk.IllegalArgumentError: Unexpected exception: Remote end closed connection without response"
+    reason=(
+        "ERROR: apolo_sdk.IllegalArgumentError: Unexpected exception: "
+        "Remote end closed connection without response"
+    )
 )
 def test_e2e_blob_storage_copy_file_explicit_directory(
     helper: Helper, data: _Data, tmp_bucket: str

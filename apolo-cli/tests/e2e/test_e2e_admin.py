@@ -224,7 +224,10 @@ def test_cluster_level_defaults(
 
 @pytest.mark.e2e
 @pytest.mark.skip(
-    reason="ERROR: Command returned non-zero exit status 2: Failed to add cluster user with custom quota"
+    reason=(
+        "ERROR: Command returned non-zero exit status 2: "
+        "Failed to add cluster user with custom quota"
+    )
 )
 def test_cluster_user_set_quota_during_add(
     helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
@@ -268,7 +271,10 @@ def test_cluster_user_default_set_balance_and_quota(
 
 @pytest.mark.e2e
 @pytest.mark.skip(
-    reason="ERROR: Command returned non-zero exit status 2: Failed to add cluster user with custom quota"
+    reason=(
+        "ERROR: Command returned non-zero exit status 2: "
+        "Failed to add cluster user with custom quota"
+    )
 )
 def test_cluster_user_default_set_balance_and_quota_to_unlimited(
     helper: Helper, tmp_test_cluster: str, test_user_names: List[str]

@@ -527,7 +527,10 @@ def test_e2e_ssh_exec_dead_job(helper: Helper) -> None:
 
 @pytest.mark.e2e
 @pytest.mark.skip(
-    reason="ERROR: Command returned non-zero exit status 76: Unable to save job in current configuration"
+    reason=(
+        "ERROR: Command returned non-zero exit status 76: "
+        "Unable to save job in current configuration"
+    )
 )
 def test_job_save(request: Any, helper: Helper, docker: aiodocker.Docker) -> None:
     job_name = f"test-job-save-{uuid4().hex[:6]}"
