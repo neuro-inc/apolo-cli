@@ -34,13 +34,13 @@ jobs:
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|py3.12|${{ hashFiles('.pre-commit-config.yaml') }}
-      - name: Cache PyPI
-        uses: actions/cache@v4
-        with:
-          key: pip-lint-${{ hashFiles('requirements/*.txt') }}
-          path: ~/.cache/pip
-          restore-keys: |
-            pip-lint-
+      # - name: Cache PyPI
+      #   uses: actions/cache@v4
+      #   with:
+      #     key: pip-lint-${{ hashFiles('requirements/*.txt') }}
+      #     path: ~/.cache/pip
+      #     restore-keys: |
+      #       pip-lint-
       - name: Install dependencies
         uses: py-actions/py-dependency-install@v4
         with:
