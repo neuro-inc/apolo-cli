@@ -139,3 +139,63 @@ async def test_apps_uninstall(
             org_name="superorg",
             project_name="test3",
         )
+
+
+@pytest.fixture
+def app_templates_payload() -> list[dict[str, Any]]:
+    return [
+        {
+            "name": "stable-diffusion",
+            "version": "master",
+            "title": "Stable Diffusion",
+            "short_description": "AI image generation model",
+            "tags": ["ai", "image-generation"],
+        },
+        {
+            "name": "jupyter-notebook",
+            "version": "1.0.0",
+            "title": "Jupyter Notebook",
+            "short_description": "Interactive computing environment",
+            "tags": ["development", "data-science"],
+        },
+    ]
+
+
+async def test_apps_list_templates(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_templates_payload: list[dict[str, Any]],
+) -> None:
+    async def handler(request: web.Request) -> web.Response:
+        assert (
+            request.path
+            == "/apis/apps/v1/cluster/default/org/superorg/project/test3/templates"
+        )
+        return web.json_response(app_templates_payload)
+
+    web_app = web.Application()
+    web_app.router.add_get(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/templates", handler
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        templates = []
+        async with client.apps.list_templates(
+            cluster_name="default", org_name="superorg", project_name="test3"
+        ) as it:
+            async for template in it:
+                templates.append(template)
+
+        assert len(templates) == 2
+        assert templates[0].name == "stable-diffusion"
+        assert templates[0].version == "master"
+        assert templates[0].title == "Stable Diffusion"
+        assert templates[0].short_description == "AI image generation model"
+        assert templates[0].tags == ["ai", "image-generation"]
+
+        assert templates[1].name == "jupyter-notebook"
+        assert templates[1].version == "1.0.0"
+        assert templates[1].title == "Jupyter Notebook"
+        assert templates[1].short_description == "Interactive computing environment"
+        assert templates[1].tags == ["development", "data-science"]
