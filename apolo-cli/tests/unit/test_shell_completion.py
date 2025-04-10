@@ -1575,3 +1575,11 @@ def test_app_autocomplete(run_autocomplete: _RunAC) -> None:
     assert "ls" in zsh_out
     assert "uninstall" in bash_out
     assert "uninstall" in zsh_out
+
+
+@skip_on_windows
+def test_app_template_autocomplete(run_autocomplete: _RunAC) -> None:
+    # Test app-template command completion
+    zsh_out, bash_out = run_autocomplete(["app-template", ""])
+    assert "ls" in bash_out
+    assert "ls" in zsh_out

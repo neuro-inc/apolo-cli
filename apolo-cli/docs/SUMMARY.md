@@ -7,6 +7,7 @@
 * [acl](acl.md)
 * [admin](admin.md)
 * [app](app.md)
+* [app-template](app-template.md)
 * [blob](blob.md)
 * [completion](completion.md)
 * [config](config.md)
