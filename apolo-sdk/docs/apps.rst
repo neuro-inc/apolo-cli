@@ -22,12 +22,24 @@ Apps
       :param str org_name: org to list applications. Default is current org.
       :param str project_name: project to list applications. Default is current project.
 
-   .. method:: list_templates(cluster_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppTemplate]]
+   .. method:: list_templates(cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppTemplate]]
       :async:
 
       List available application templates, async iterator. Yields :class:`AppTemplate` instances.
 
       :param str cluster_name: cluster to list templates. Default is current cluster.
+      :param str org_name: org to list templates. Default is current org.
+      :param str project_name: project to list templates. Default is current project.
+
+   .. method:: list_template_versions(name: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppTemplate]]
+      :async:
+
+      List all available versions for a specific app template, async iterator. Yields :class:`AppTemplate` instances.
+
+      :param str name: The name of the app template.
+      :param str cluster_name: cluster to list template versions. Default is current cluster.
+      :param str org_name: org to list template versions. Default is current org.
+      :param str project_name: project to list template versions. Default is current project.
 
 ===
 
