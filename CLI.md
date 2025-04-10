@@ -58,6 +58,7 @@
 		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo app-template](#apolo-app-template)
 		* [apolo app-template ls](#apolo-app-template-ls)
+		* [apolo app-template ls-versions](#apolo-app-template-ls-versions)
 	* [apolo blob](#apolo-blob)
 		* [apolo blob cp](#apolo-blob-cp)
 		* [apolo blob du](#apolo-blob-du)
@@ -1506,6 +1507,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app-template ls](#apolo-app-template-ls)_| List available application templates |
+| _[apolo app\-template ls-versions](#apolo-app-template-ls-versions)_| List app template versions |
 
 
 
@@ -1518,6 +1520,28 @@ List available application templates.
 
 ```bash
 apolo app-template ls [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app-template ls-versions
+
+List app template versions.
+
+**Usage:**
+
+```bash
+apolo app-template ls-versions [OPTIONS] NAME
 ```
 
 **Options:**
