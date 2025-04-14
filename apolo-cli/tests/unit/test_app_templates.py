@@ -163,35 +163,40 @@ def test_app_template_ls_versions_with_cluster_option(run_cli: _RunCli) -> None:
     """Test the app_template ls-versions command with cluster option."""
     versions = ["1.0.0"]
 
-    with mock.patch.object(Apps, "list_template_versions") as mocked:
+    with mock.patch("apolo_cli.click_types.CLUSTER.convert") as convert_mock:
+        convert_mock.return_value = "test-cluster"
 
-        @asynccontextmanager
-        async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[AppTemplate]]:
-            assert kwargs["cluster_name"] == "test-cluster"
-            assert kwargs["name"] == "stable-diffusion"
+        with mock.patch.object(Apps, "list_template_versions") as mocked:
 
-            async def async_iterator() -> AsyncIterator[AppTemplate]:
-                for version in versions:
-                    yield AppTemplate(
-                        name="stable-diffusion",
-                        version=version,
-                        title=f"Stable Diffusion {version}",
-                        short_description="AI image generation model",
-                        tags=[],
-                    )
+            @asynccontextmanager
+            async def async_cm(
+                **kwargs: Any,
+            ) -> AsyncIterator[AsyncIterator[AppTemplate]]:
+                assert kwargs["cluster_name"] == "test-cluster"
+                assert kwargs["name"] == "stable-diffusion"
 
-            yield async_iterator()
+                async def async_iterator() -> AsyncIterator[AppTemplate]:
+                    for version in versions:
+                        yield AppTemplate(
+                            name="stable-diffusion",
+                            version=version,
+                            title=f"Stable Diffusion {version}",
+                            short_description="AI image generation model",
+                            tags=[],
+                        )
 
-        mocked.side_effect = async_cm
-        capture = run_cli(
-            [
-                "app-template",
-                "ls-versions",
-                "stable-diffusion",
-                "--cluster",
-                "test-cluster",
-            ]
-        )
+                yield async_iterator()
+
+            mocked.side_effect = async_cm
+            capture = run_cli(
+                [
+                    "app-template",
+                    "list-versions",
+                    "stable-diffusion",
+                    "--cluster",
+                    "test-cluster",
+                ]
+            )
 
     assert not capture.err
     assert "1.0.0" in capture.out
