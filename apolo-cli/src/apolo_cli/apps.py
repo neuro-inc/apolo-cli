@@ -8,7 +8,7 @@ from apolo_sdk import IllegalArgumentError
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.apps import AppsFormatter, BaseAppsFormatter, SimpleAppsFormatter
 from .root import Root
-from .utils import argument, command, group, option
+from .utils import alias, argument, command, group, option
 
 
 @group()
@@ -165,5 +165,6 @@ async def install(
 
 
 app.add_command(ls)
+app.add_command(alias(ls, "list", help=ls.help, deprecated=False))
 app.add_command(install)
 app.add_command(uninstall)

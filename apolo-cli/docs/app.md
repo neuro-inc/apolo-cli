@@ -14,6 +14,7 @@ Operations with applications.
 | Usage | Description |
 | :--- | :--- |
 | [_install_](app.md#install) | Install an app from a YAML file |
+| [_list_](app.md#list) | Alias for ls |
 | [_ls_](app.md#ls) | List apps |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
 
@@ -40,6 +41,30 @@ Install an app from a `YAML` file.
 | _-f, --file TEXT_ | Path to the app YAML file.  _\[required\]_ |
 | _--org ORG_ | Specify the org \(the current org by default\). |
 | _--project PROJECT_ | Specify the project \(the current project by default\). |
+
+
+
+### list
+
+Alias for ls
+
+
+#### Usage
+
+```bash
+apolo app list [OPTIONS]
+```
+
+Alias for ls.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
 
 
 
