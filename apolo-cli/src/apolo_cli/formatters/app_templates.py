@@ -11,11 +11,19 @@ class BaseAppTemplatesFormatter:
 
 
 class SimpleAppTemplatesFormatter(BaseAppTemplatesFormatter):
+    def __init__(self, is_version_list: bool = False) -> None:
+        self.is_version_list = is_version_list
+
     def __call__(self, templates: List[AppTemplate]) -> Table:
         table = Table.grid()
         table.add_column("")
         for template in templates:
-            table.add_row(template.name)
+            if self.is_version_list:
+                # When listing versions, only show version
+                table.add_row(template.version)
+            else:
+                # When listing templates, only show name
+                table.add_row(template.name)
         return table
 
 

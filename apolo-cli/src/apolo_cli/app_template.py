@@ -33,7 +33,7 @@ def app_template() -> None:
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
-async def ls(
+async def list(
     root: Root,
     cluster: Optional[str],
     org: Optional[str],
@@ -81,7 +81,7 @@ async def ls(
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
-async def ls_versions(
+async def list_versions(
     root: Root,
     name: str,
     cluster: Optional[str],
@@ -92,7 +92,9 @@ async def ls_versions(
     List app template versions.
     """
     if root.quiet:
-        templates_fmtr: BaseAppTemplatesFormatter = SimpleAppTemplatesFormatter()
+        templates_fmtr: BaseAppTemplatesFormatter = SimpleAppTemplatesFormatter(
+            is_version_list=True
+        )
     else:
         templates_fmtr = AppTemplatesFormatter()
 
@@ -110,13 +112,13 @@ async def ls_versions(
             root.print(templates_fmtr(templates))
         else:
             if not root.quiet:
-                root.print(f"No versions found for app template '{name}'")
+                root.print(f"No versions found for app template '{name}'.")
 
 
 # Register commands with the app_template group
-app_template.add_command(ls)
-app_template.add_command(alias(ls, "list", help=ls.help, deprecated=False))
-app_template.add_command(ls_versions)
+app_template.add_command(list)
+app_template.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
+app_template.add_command(list_versions)
 app_template.add_command(
-    alias(ls_versions, "list-versions", help=ls_versions.help, deprecated=False)
+    alias(list_versions, "ls-versions", help="Alias to list-versions", deprecated=False)
 )
