@@ -141,7 +141,7 @@ def test_app_template_ls_versions_no_versions(run_cli: _RunCli) -> None:
         capture = run_cli(["app-template", "ls-versions", "stable-diffusion"])
 
     assert not capture.err
-    assert "No versions found for app template 'stable-diffusion'." in capture.out
+    assert "No versions found for app template 'stable-diffusion'" in capture.out
     assert capture.code == 0
 
 
@@ -153,7 +153,9 @@ def test_app_template_ls_versions_quiet_mode(run_cli: _RunCli) -> None:
         capture = run_cli(["-q", "app-template", "ls-versions", "stable-diffusion"])
 
     assert not capture.err
-    assert "1.0.0" in capture.out
+    # In quiet mode with is_version_list=True, we should expect only version numbers
+    assert "stable-diffusion" not in capture.out  # Template name should not be in output
+    assert "1.0.0" in capture.out 
     assert "2.0.0" in capture.out
     assert "latest" in capture.out
     assert capture.code == 0
@@ -163,6 +165,7 @@ def test_app_template_ls_versions_with_cluster_option(run_cli: _RunCli) -> None:
     """Test the app_template ls-versions command with cluster option."""
     versions = ["1.0.0"]
 
+    # Need to patch the cluster validation first
     with mock.patch("apolo_cli.click_types.CLUSTER.convert") as convert_mock:
         convert_mock.return_value = "test-cluster"
 
@@ -191,7 +194,7 @@ def test_app_template_ls_versions_with_cluster_option(run_cli: _RunCli) -> None:
             capture = run_cli(
                 [
                     "app-template",
-                    "list-versions",
+                    "ls-versions",
                     "stable-diffusion",
                     "--cluster",
                     "test-cluster",

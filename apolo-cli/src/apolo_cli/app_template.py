@@ -114,7 +114,7 @@ async def list_versions(
             if not root.quiet:
                 root.print(
                     f"No versions found for app template '{name}'."
-                )  # Added period to match test
+                )
 
 
 # Register commands with the app_template group
