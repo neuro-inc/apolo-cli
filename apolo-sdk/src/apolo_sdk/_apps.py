@@ -167,3 +167,45 @@ class Apps(metaclass=NoPublicConstructor):
                     short_description=item.get("short_description", ""),
                     tags=item.get("tags", []),
                 )
+
+    @asyncgeneratorcontextmanager
+    async def list_template_versions(
+        self,
+        name: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[AppTemplate]:
+        """List all available versions for a specific app template.
+
+        Args:
+            name: The name of the app template
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            An async iterator of AppTemplate objects
+        """
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "templates"
+            / name
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            data = await resp.json()
+            for item in data:
+                # Return AppTemplate objects with the same name but different versions
+                yield AppTemplate(
+                    name=name,
+                    version=item.get("version", ""),
+                    title=item.get("title", ""),
+                    short_description=item.get("short_description", ""),
+                    tags=item.get("tags", []),
+                )
