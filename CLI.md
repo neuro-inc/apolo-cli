@@ -54,8 +54,14 @@
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
 		* [apolo app install](#apolo-app-install)
+		* [apolo app list](#apolo-app-list)
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
+	* [apolo app-template](#apolo-app-template)
+		* [apolo app-template list](#apolo-app-template-list)
+		* [apolo app-template list-versions](#apolo-app-template-list-versions)
+		* [apolo app-template ls](#apolo-app-template-ls)
+		* [apolo app-template ls-versions](#apolo-app-template-ls-versions)
 	* [apolo blob](#apolo-blob)
 		* [apolo blob cp](#apolo-blob-cp)
 		* [apolo blob du](#apolo-blob-du)
@@ -192,6 +198,7 @@ Name | Description|
 | _[apolo acl](#apolo-acl)_| Access Control List management |
 | _[apolo admin](#apolo-admin)_| Cluster administration commands |
 | _[apolo app](#apolo-app)_| Operations with applications |
+| _[apolo app-template](#apolo-app-template)_| Application Templates operations |
 | _[apolo blob](#apolo-blob)_| Blob storage operations |
 | _[apolo completion](#apolo-completion)_| Output shell completion code |
 | _[apolo config](#apolo-config)_| Client configuration |
@@ -1408,6 +1415,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
+| _[apolo app list](#apolo-app-list)_| Alias for ls |
 | _[apolo app ls](#apolo-app-ls)_| List apps |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
 
@@ -1433,6 +1441,28 @@ Name | Description|
 |_\-f, --file TEXT_|Path to the app YAML file.  \[required]|
 |_--org ORG_|Specify the org \(the current org by default).|
 |_--project PROJECT_|Specify the project \(the current project by default).|
+
+
+
+
+### apolo app list
+
+Alias for ls.
+
+**Usage:**
+
+```bash
+apolo app list [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 
@@ -1467,6 +1497,123 @@ Uninstall an app.<br/><br/>APP_ID: ID of the app to uninstall
 
 ```bash
 apolo app uninstall [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+## apolo app-template
+
+Application Templates operations.
+
+**Usage:**
+
+```bash
+apolo app-template [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+
+
+**Commands:**
+
+|Usage|Description|
+|---|---|
+| _[apolo app-template list](#apolo-app-template-list)_| Alias for ls |
+| _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| Alias for ls-versions |
+| _[apolo app-template ls](#apolo-app-template-ls)_| List available application templates |
+| _[apolo app\-template ls-versions](#apolo-app-template-ls-versions)_| List app template versions |
+
+
+
+
+### apolo app-template list
+
+Alias for ls.
+
+**Usage:**
+
+```bash
+apolo app-template list [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app-template list-versions
+
+Alias for ls-versions.
+
+**Usage:**
+
+```bash
+apolo app-template list-versions [OPTIONS] NAME
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app-template ls
+
+List available application templates.
+
+**Usage:**
+
+```bash
+apolo app-template ls [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app-template ls-versions
+
+List app template versions.
+
+**Usage:**
+
+```bash
+apolo app-template ls-versions [OPTIONS] NAME
 ```
 
 **Options:**

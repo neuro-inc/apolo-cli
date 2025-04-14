@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Any, AsyncIterator, Optional
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, List, Optional
 
 from yarl import URL
 
@@ -7,6 +7,16 @@ from ._config import Config
 from ._core import _Core
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class AppTemplate:
+    name: str
+    title: str
+    version: str
+    short_description: str = ""
+    tags: List[str] = field(default_factory=list)
 
 
 @rewrite_module
@@ -128,3 +138,74 @@ class Apps(metaclass=NoPublicConstructor):
         auth = await self._config._api_auth()
         async with self._core.request("DELETE", url, auth=auth):
             pass
+
+    @asyncgeneratorcontextmanager
+    async def list_templates(
+        self,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[AppTemplate]:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "templates"
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            data = await resp.json()
+            for item in data:
+                # Create the AppTemplate object with only the required fields
+                yield AppTemplate(
+                    name=item.get("name", ""),
+                    version=item.get("version", ""),
+                    title=item.get("title", ""),
+                    short_description=item.get("short_description", ""),
+                    tags=item.get("tags", []),
+                )
+
+    @asyncgeneratorcontextmanager
+    async def list_template_versions(
+        self,
+        name: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[AppTemplate]:
+        """List all available versions for a specific app template.
+
+        Args:
+            name: The name of the app template
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            An async iterator of AppTemplate objects
+        """
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "templates"
+            / name
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            data = await resp.json()
+            for item in data:
+                # Return AppTemplate objects with the same name but different versions
+                yield AppTemplate(
+                    name=name,
+                    version=item.get("version", ""),
+                    title=item.get("title", ""),
+                    short_description=item.get("short_description", ""),
+                    tags=item.get("tags", []),
+                )
