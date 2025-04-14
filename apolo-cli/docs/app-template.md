@@ -1,47 +1,22 @@
-# app
+# app-template
 
-Operations with applications
+Application Templates operations
 
 ## Usage
 
 ```bash
-apolo app [OPTIONS] COMMAND [ARGS]...
+apolo app-template [OPTIONS] COMMAND [ARGS]...
 ```
 
-Operations with applications.
+Application Templates operations.
 
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_install_](app.md#install) | Install an app from a YAML file |
-| [_list_](app.md#list) | Alias for ls |
-| [_ls_](app.md#ls) | List apps |
-| [_uninstall_](app.md#uninstall) | Uninstall an app |
-
-
-### install
-
-Install an app from a YAML file
-
-
-#### Usage
-
-```bash
-apolo app install [OPTIONS]
-```
-
-Install an app from a `YAML` file.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--cluster CLUSTER_ | Specify the cluster \(the current cluster by default\). |
-| _-f, --file TEXT_ | Path to the app YAML file.  _\[required\]_ |
-| _--org ORG_ | Specify the org \(the current org by default\). |
-| _--project PROJECT_ | Specify the project \(the current project by default\). |
-
+| [_list_](app-template.md#list) | Alias for ls |
+| [_list-versions_](app-template.md#list-versions) | Alias for ls-versions |
+| [_ls_](app-template.md#ls) | List available application templates |
+| [_ls-versions_](app-template.md#ls-versions) | List app template versions |
 
 
 ### list
@@ -52,7 +27,7 @@ Alias for ls
 #### Usage
 
 ```bash
-apolo app list [OPTIONS]
+apolo app-template list [OPTIONS]
 ```
 
 Alias for ls.
@@ -68,18 +43,18 @@ Alias for ls.
 
 
 
-### ls
+### list-versions
 
-List apps
+Alias for ls-versions
 
 
 #### Usage
 
 ```bash
-apolo app ls [OPTIONS]
+apolo app-template list-versions [OPTIONS] NAME
 ```
 
-List apps.
+Alias for ls-versions.
 
 #### Options
 
@@ -92,20 +67,42 @@ List apps.
 
 
 
-### uninstall
+### ls
 
-Uninstall an app
+List available application templates
 
 
 #### Usage
 
 ```bash
-apolo app uninstall [OPTIONS] APP_ID
+apolo app-template ls [OPTIONS]
 ```
 
-Uninstall an app.
+List available application templates.
 
-`APP`_ID: ID of the app to uninstall
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### ls-versions
+
+List app template versions
+
+
+#### Usage
+
+```bash
+apolo app-template ls-versions [OPTIONS] NAME
+```
+
+List app template versions.
 
 #### Options
 

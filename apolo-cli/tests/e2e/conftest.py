@@ -17,7 +17,7 @@ from functools import cached_property
 from hashlib import sha1
 from os.path import join
 from pathlib import Path
-from time import time
+from time import sleep, time
 from typing import (
     Any,
     AsyncIterator,
@@ -32,6 +32,7 @@ from typing import (
     Tuple,
     Union,
 )
+from urllib.parse import urlencode
 from uuid import uuid4 as uuid
 
 import aiodocker
@@ -811,22 +812,73 @@ def nmrc_path(tmp_path_factory: Any, request: Any) -> Optional[Path]:
         return _nmrc_path_user
 
 
+async def _get_refresh_token(
+    refresh_token: str,
+    token_url: str = "https://auth.dev.apolo.us/oauth/token",
+    client_id: str = "q3I0OzzGnTDkhRmpeJ7WWgaTCucmVxTL",
+) -> str:
+    """
+    Get a new access token using a refresh token.
+
+    Args:
+        refresh_token: The refresh token string
+        token_url: The authentication token endpoint URL
+        client_id: The OAuth client ID
+
+    Returns:
+        str: access_token
+    """
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            token_url,
+            headers={
+                "accept": "application/json",
+                "content-type": "application/x-www-form-urlencoded",
+            },
+            data=urlencode(payload),
+        ) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+            return data["access_token"]
+
+
 def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
     if require_admin:
         token_env = "E2E_TOKEN"
+        refresh_token_env = "E2E_REFRESH_TOKEN"
     else:
         token_env = "E2E_USER_TOKEN"
+        refresh_token_env = "E2E_USER_REFRESH_TOKEN"
+
     e2e_test_token = os.environ.get(token_env)
+    e2e_refresh_token = os.environ.get(refresh_token_env)
+
+    if e2e_refresh_token:
+        e2e_test_token = asyncio.run(_get_refresh_token(e2e_refresh_token))
+
     if e2e_test_token:
         nmrc_path = tmp_path / "conftest.nmrc"
-        asyncio.run(
-            login_with_token(
+
+        async def _do() -> None:
+            await login_with_token(
                 e2e_test_token,
                 url=URL("https://api.dev.apolo.us/api/v1"),
                 path=nmrc_path,
                 timeout=CLIENT_TIMEOUT,
             )
-        )
+            async with api_get(timeout=CLIENT_TIMEOUT, path=nmrc_path) as client:
+                org_name = "e2e-integration-tests"
+                project_name = "e2e-integration-project"
+                await client.config.switch_org(org_name)
+                await client.config.switch_project(project_name)
+
+        asyncio.run(_do())
         # Setup user config
         local_conf = nmrc_path / ".apolo.toml"
         local_conf.write_text(toml.dumps({"job": {"life-span": "10m"}}))
@@ -912,7 +964,12 @@ def _tmp_bucket_create(
 
     try:
         helper.drop_stale_buckets("apolo-e2e-")
-        bucket = helper.create_bucket(tmpbucketname, wait=True)
+        try:
+            bucket = helper.create_bucket(tmpbucketname, wait=True)
+        except IllegalArgumentError as exc:
+            if "HttpError 429" in str(exc) and "quota has been reached" in str(exc):
+                pytest.skip(f"Rate limit or quota exceeded: {exc}")
+            raise
     except AuthorizationError:
         pytest.skip("No permission to create bucket for user E2E_TOKEN")
     yield bucket, helper
@@ -1027,19 +1084,20 @@ def drop_old_test_images() -> Iterator[None]:
         subdir.mkdir()
         helper = Helper(nmrc_path=nmrc_path, tmp_path=subdir)
 
-        res: SysCap = helper.run_cli(["-q", "image", "ls", "--full-uri"])
-        for image_str in res.out.splitlines():
-            image_str = image_str.strip()
-            image_url = URL(image_str)
-            image_name = image_url.parts[-1]
-            try:
+        try:
+            res: SysCap = helper.run_cli(["-q", "image", "ls", "--full-uri"])
+            for image_str in res.out.splitlines():
+                image_str = image_str.strip()
+                image_url = URL(image_str)
+                image_name = image_url.parts[-1]
                 _, time_str, _ = image_name.split(IMAGE_DATETIME_SEP)
                 image_time = datetime.strptime(time_str, IMAGE_DATETIME_FORMAT)
                 if datetime.now() - image_time < timedelta(days=1):
                     continue
                 helper.run_cli(["image", "rm", image_str])
-            except Exception:
-                pass
+                sleep(1)
+        except Exception as e:
+            logging.warning(f"Failed to clean up old images: {e}")
 
 
 @pytest.fixture()

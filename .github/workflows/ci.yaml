@@ -9,48 +9,47 @@ on:
   pull_request_target:
     branches: [master]
   schedule:
-  - cron: 0 4 * * *
+    - cron: 0 4 * * *
 concurrency:
   group: ci-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
-
   lint:
     name: Linter
     runs-on: ubuntu-latest
     # 5 mins for the linter run, possibly 10 min for pre-commit env reinitialization
     timeout-minutes: 15
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-    - name: Setup Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-    - name: Cache pre-commit hooks
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pre-commit
-        key: pre-commit|py3.12|${{ hashFiles('.pre-commit-config.yaml') }}
-    - name: Cache PyPI
-      uses: actions/cache@v4
-      with:
-        key: pip-lint-${{ hashFiles('requirements/*.txt') }}
-        path: ~/.cache/pip
-        restore-keys: |
-          pip-lint-
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: requirements/mypy.txt
-    - name: Run linters
-      run: |
-        make lint
-      env:
-        CI_LINT_RUN: 1
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|py3.12|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Cache PyPI
+        uses: actions/cache@v4
+        with:
+          key: pip-lint-${{ hashFiles('requirements/*.txt') }}
+          path: ~/.cache/pip
+          restore-keys: |
+            pip-lint-
+      - name: Install dependencies
+        uses: py-actions/py-dependency-install@v4
+        with:
+          path: requirements/mypy.txt
+      - name: Run linters
+        run: |
+          make lint
+        env:
+          CI_LINT_RUN: 1
     # https://github.com/neuro-inc/neuro-cli/issues/2904
     #- name: Install spell checker
     #  run: |
@@ -65,21 +64,21 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         continue-on-error: [false]
         cmd: [sdk, cli]
         # temporarily disable windows tests
-        os: [ubuntu, macos]  # windows
+        os: [ubuntu, macos] # windows
         exclude:
-        - python-version: '3.10'
-          os: macos
-          continue-on-error: false
-        - python-version: '3.11'
-          os: macos
-          continue-on-error: false
-        - python-version: '3.12'
-          os: macos
-          continue-on-error: false
+          - python-version: "3.10"
+            os: macos
+            continue-on-error: false
+          - python-version: "3.11"
+            os: macos
+            continue-on-error: false
+          - python-version: "3.12"
+            os: macos
+            continue-on-error: false
         # os: [ubuntu, macos, windows]
         # exclude:
         # - python-version: '3.10'
@@ -102,117 +101,106 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 15
-    continue-on-error:  ${{ matrix.continue-on-error }}
+    continue-on-error: ${{ matrix.continue-on-error }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT    # - name: Cache
-      shell: bash
-    - name: Cache PyPI
-      uses: actions/cache@v4
-      with:
-        key: pip-ci-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements/*.txt')
-          }}
-        path: ${{ steps.pip-cache.outputs.dir }}
-        restore-keys: |
-          pip-ci-${{ runner.os }}-${{ matrix.python-version }}-
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: requirements/ci.txt
-    - name: Run unittests
-      env:
-        COLOR: yes
-      run: |
-        make .test-${{ matrix.cmd }} PYTEST_ARGS=-vvv
-    - name: Upload coverage artifact
-      uses: aio-libs/prepare-coverage@v24.9.2
-      if: matrix.os == 'ubuntu'
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT    # - name: Cache
+        shell: bash
+      - name: Cache PyPI
+        uses: actions/cache@v4
+        with:
+          key:
+            pip-ci-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements/*.txt')
+            }}
+          path: ${{ steps.pip-cache.outputs.dir }}
+          restore-keys: |
+            pip-ci-${{ runner.os }}-${{ matrix.python-version }}-
+      - name: Install dependencies
+        uses: py-actions/py-dependency-install@v4
+        with:
+          path: requirements/ci.txt
+      - name: Run unittests
+        env:
+          COLOR: yes
+        run: |
+          make .test-${{ matrix.cmd }} PYTEST_ARGS=-vvv
+      - name: Upload coverage artifact
+        uses: aio-libs/prepare-coverage@v24.9.2
+        if: matrix.os == 'ubuntu'
 
   e2e:
     name: E2E
     needs: unit
-    if: |
-      (github.event_name != 'pull_request_target' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
-        os: [ubuntu, macos, windows]
-        exclude:
-        - python-version: '3.10'
-          os: macos
-        - python-version: '3.10'
-          os: windows
-        - python-version: '3.11'
-          os: macos
-        - python-version: '3.11'
-          os: windows
-        - python-version: '3.12'
-          os: macos
-        - python-version: '3.12'
-          os: windows
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu]
       fail-fast: false
+      max-parallel: 1
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 90
     continue-on-error: true
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT   # - name: Cache
-      shell: bash
-    - name: Cache PyPI
-      uses: actions/cache@v4
-      with:
-        key: pip-ci-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements/*.txt')
-          }}
-        path: ${{ steps.pip-cache.outputs.dir }}
-        restore-keys: |
-          pip-ci-${{ runner.os }}-${{ matrix.python-version }}-
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: requirements/ci.txt
-    - name: Run E2E tests
-      timeout-minutes: 75
-      env:
-        E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
-        E2E_USER_TOKEN: ${{ secrets.E2E_USER_TOKEN }}
-        E2E_PRESET: cpu-micro
-        PYTEST_XDIST_NUM_THREADS: 16
-        COLOR: yes
-      run: |
-        make .e2e
-    - name: Upload coverage artifact
-      uses: neuro-inc/prepare-coverage@v24.9.2
-      if: matrix.os == 'ubuntu'
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT   # - name: Cache
+        shell: bash
+      - name: Cache PyPI
+        uses: actions/cache@v4
+        with:
+          key:
+            pip-ci-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements/*.txt')
+            }}
+          path: ${{ steps.pip-cache.outputs.dir }}
+          restore-keys: |
+            pip-ci-${{ runner.os }}-${{ matrix.python-version }}-
+      - name: Install dependencies
+        uses: py-actions/py-dependency-install@v4
+        with:
+          path: requirements/ci.txt
+      - name: Run E2E tests
+        timeout-minutes: 75
+        env:
+          E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
+          E2E_USER_TOKEN: ${{ secrets.E2E_USER_TOKEN }}
+          E2E_REFRESH_TOKEN: ${{ secrets.E2E_REFRESH_TOKEN }}
+          E2E_USER_REFRESH_TOKEN: ${{ secrets.E2E_REFRESH_TOKEN }}
+          E2E_PRESET: cpu-micro
+          PYTEST_XDIST_NUM_THREADS: 16
+          COLOR: yes
+        run: |
+          make .e2e
+      - name: Upload coverage artifact
+        uses: neuro-inc/prepare-coverage@v24.9.2
+        if: matrix.os == 'ubuntu'
 
   upload-cov:
     name: Upload coverage
     needs: [unit, e2e]
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.sha }}
-    #Temporarily disable, the fresh codecov requires TOKEN passed
-    - name: Upload coverage
-      uses: aio-libs/upload-coverage@v24.10.1
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      #Temporarily disable, the fresh codecov requires TOKEN passed
+      - name: Upload coverage
+        uses: aio-libs/upload-coverage@v24.10.1
 
   deploy:
     name: Deploy
@@ -222,73 +210,74 @@ jobs:
     # Run only on pushing a tag
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-    - name: Install dependencies
-      run: |
-        make setup
-        python -m pip install twine build
-    - name: Make SDK dists
-      run: |
-        cd apolo-sdk
-        python -m build
-        sed -i 's/name = apolo-sdk/name = neuro-sdk/g' setup.cfg
-        python -m build -o dist-neuro
-    - name: Make CLI dists
-      run: |
-        cd apolo-cli
-        python -m build
-        sed -i 's/name = apolo-cli/name = neuro-cli/g' setup.cfg
-        python -m build -o dist-neuro
-    - name: PyPI upload SDK
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_SDK }}
-        TWINE_NON_INTERACTIVE: 1
-      run: |
-        twine upload apolo-sdk/dist/*
-    - name: PyPI upload CLI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_CLI }}
-        TWINE_NON_INTERACTIVE: 1
-      run: |
-        twine upload apolo-cli/dist/*
-    - name: PyPI upload neuro SDK
-      # for backward compatibility
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_SDK_NEURO }}
-        TWINE_NON_INTERACTIVE: 1
-      run: |
-        twine upload apolo-sdk/dist-neuro/*
-    - name: PyPI upload neuro CLI
-      # for backward compatibility
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_CLI_NEURO }}
-        TWINE_NON_INTERACTIVE: 1
-      run: |
-        twine upload apolo-cli/dist-neuro/*
-    - name: Merge dists for GitHub Release
-      run: |
-        mkdir dist
-        cp apolo-sdk/dist/* dist/
-        cp apolo-cli/dist/* dist/
-    - name: GitHub Release
-      uses: aio-libs/create-release@v1.6.6
-      with:
-        changes_file: CHANGELOG.md
-        name: Apolo SDK/CLI
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        pypi_token: ""
-        version_file: apolo-sdk/src/apolo_sdk/__init__.py   # CLI has the same version
-        start_line: "[comment]: # (towncrier release notes start)"
-        head_line: "Apolo SDK/CLI {version}\\s+\\({date}\\)\n====+\n?"
-        fix_issue_regex: "\\(\\[#(\\d+)\\]\\(https://github.com/neuro-inc/platform-client-python/issues/\\\
-          1\\)\\)"
-        fix_issue_repl: "(#\\1)"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          make setup
+          python -m pip install twine build
+      - name: Make SDK dists
+        run: |
+          cd apolo-sdk
+          python -m build
+          sed -i 's/name = apolo-sdk/name = neuro-sdk/g' setup.cfg
+          python -m build -o dist-neuro
+      - name: Make CLI dists
+        run: |
+          cd apolo-cli
+          python -m build
+          sed -i 's/name = apolo-cli/name = neuro-cli/g' setup.cfg
+          python -m build -o dist-neuro
+      - name: PyPI upload SDK
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_SDK }}
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload apolo-sdk/dist/*
+      - name: PyPI upload CLI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_CLI }}
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload apolo-cli/dist/*
+      - name: PyPI upload neuro SDK
+        # for backward compatibility
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_SDK_NEURO }}
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload apolo-sdk/dist-neuro/*
+      - name: PyPI upload neuro CLI
+        # for backward compatibility
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_CLI_NEURO }}
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload apolo-cli/dist-neuro/*
+      - name: Merge dists for GitHub Release
+        run: |
+          mkdir dist
+          cp apolo-sdk/dist/* dist/
+          cp apolo-cli/dist/* dist/
+      - name: GitHub Release
+        uses: aio-libs/create-release@v1.6.6
+        with:
+          changes_file: CHANGELOG.md
+          name: Apolo SDK/CLI
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pypi_token: ""
+          version_file: apolo-sdk/src/apolo_sdk/__init__.py # CLI has the same version
+          start_line: "[comment]: # (towncrier release notes start)"
+          head_line: "Apolo SDK/CLI {version}\\s+\\({date}\\)\n====+\n?"
+          fix_issue_regex:
+            "\\(\\[#(\\d+)\\]\\(https://github.com/neuro-inc/platform-client-python/issues/\\\
+            1\\)\\)"
+          fix_issue_repl: "(#\\1)"
