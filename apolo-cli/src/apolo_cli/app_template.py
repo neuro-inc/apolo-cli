@@ -7,7 +7,7 @@ from .formatters.app_templates import (
     SimpleAppTemplatesFormatter,
 )
 from .root import Root
-from .utils import argument, command, group, option
+from .utils import alias, argument, command, group, option
 
 
 @group()
@@ -115,4 +115,8 @@ async def ls_versions(
 
 # Register commands with the app_template group
 app_template.add_command(ls)
+app_template.add_command(alias(ls, "list", help=ls.help, deprecated=False))
 app_template.add_command(ls_versions)
+app_template.add_command(
+    alias(ls_versions, "list-versions", help=ls_versions.help, deprecated=False)
+)
