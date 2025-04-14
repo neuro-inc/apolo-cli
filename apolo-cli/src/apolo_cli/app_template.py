@@ -92,7 +92,9 @@ async def list_versions(
     List app template versions.
     """
     if root.quiet:
-        templates_fmtr: BaseAppTemplatesFormatter = SimpleAppTemplatesFormatter()
+        templates_fmtr: BaseAppTemplatesFormatter = SimpleAppTemplatesFormatter(
+            is_version_list=True
+        )
     else:
         templates_fmtr = AppTemplatesFormatter()
 
