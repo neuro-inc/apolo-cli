@@ -42,7 +42,7 @@ from ._admin import (
     _Quota,
     _UserInfo,
 )
-from ._apps import App, Apps, AppTemplate
+from ._apps import App, Apps, AppTemplate, AppValue
 from ._bucket_base import (
     BlobCommonPrefix,
     BlobObject,
@@ -156,6 +156,7 @@ __all__ = (
     "Action",
     "App",
     "AppTemplate",
+    "AppValue",
     "Apps",
     "AppsConfig",
     "AsyncFilterFunc",

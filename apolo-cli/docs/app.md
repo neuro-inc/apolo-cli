@@ -13,10 +13,39 @@ Operations with applications.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
+| [_get-values_](app.md#get-values) | Get application values |
 | [_install_](app.md#install) | Install an app from a YAML file |
 | [_list_](app.md#list) | List apps |
 | [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
+
+
+### get-values
+
+Get application values
+
+
+#### Usage
+
+```bash
+apolo app get-values [OPTIONS] [APP_ID]
+```
+
+Get application values.
+
+`APP`_ID: Optional ID of the app to get values for.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _-o, --output TEXT_ | Output format \(default: table\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-t, --type TEXT_ | Filter by value type. |
+
 
 
 ### install

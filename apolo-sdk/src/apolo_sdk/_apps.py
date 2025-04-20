@@ -21,6 +21,15 @@ class AppTemplate:
 
 @rewrite_module
 @dataclass(frozen=True)
+class AppValue:
+    app_instance_id: str
+    type: str
+    path: str
+    value: Any = None
+
+
+@rewrite_module
+@dataclass(frozen=True)
 class App:
     id: str
     name: str
@@ -138,6 +147,53 @@ class Apps(metaclass=NoPublicConstructor):
         auth = await self._config._api_auth()
         async with self._core.request("DELETE", url, auth=auth):
             pass
+
+    @asyncgeneratorcontextmanager
+    async def get_values(
+        self,
+        app_id: Optional[str] = None,
+        value_type: Optional[str] = None,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[AppValue]:
+        """Get values from app instances.
+
+        Args:
+            app_id: Optional app instance ID to filter values
+            value_type: Optional value type to filter
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            An async iterator of AppValue objects
+        """
+        base_url = self._build_base_url(
+            cluster_name=cluster_name,
+            org_name=org_name,
+            project_name=project_name,
+        )
+
+        if app_id is not None:
+            url = base_url / "instances" / app_id / "values"
+        else:
+            url = base_url / "instances" / "values"
+
+        params = {}
+        if value_type is not None:
+            params["type"] = value_type
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, params=params, auth=auth) as resp:
+            data = await resp.json()
+            for item in data["items"]:
+                yield AppValue(
+                    app_instance_id=item["app_instance_id"],
+                    type=item["type"],
+                    path=item["path"],
+                    value=item.get("value"),
+                )
 
     @asyncgeneratorcontextmanager
     async def list_templates(

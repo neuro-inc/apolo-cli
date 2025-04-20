@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
 
-from apolo_sdk import App
+from apolo_sdk import App, AppValue
 from apolo_sdk._apps import Apps
 
 _RunCli = Any
@@ -161,4 +161,129 @@ def test_app_uninstall(run_cli: _RunCli) -> None:
 
     assert not capture.err
     assert f"App {app_id} uninstalled" in capture.out
+    assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_get_values(values: List[AppValue]) -> Iterator[None]:
+    """Context manager to mock the Apps.get_values method."""
+    with mock.patch.object(Apps, "get_values") as mocked:
+
+        @asynccontextmanager
+        async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[AppValue]]:
+            async def async_iterator() -> AsyncIterator[AppValue]:
+                for value in values:
+                    yield value
+
+            yield async_iterator()
+
+        mocked.side_effect = async_cm
+        yield
+
+
+def test_app_get_values_with_values(run_cli: _RunCli) -> None:
+    """Test the app get-values command when values are returned."""
+    values = [
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_internal_api",
+            value={"url": "http://internal-api:8080"},
+        ),
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_external_api",
+            value={"url": "https://api.example.com"},
+        ),
+    ]
+
+    with mock_apps_get_values(values):
+        capture = run_cli(["app", "get-values"])
+
+    assert not capture.err
+    assert "1d9a7843-75f6-4624-973d-6bdd57b1f628" in capture.out
+    assert "dict" in capture.out
+    assert "chat_internal_api" in capture.out
+    assert "chat_external_api" in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_values_with_app_id(run_cli: _RunCli) -> None:
+    """Test the app get-values command with app ID filter."""
+    values = [
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_internal_api",
+            value={"url": "http://internal-api:8080"},
+        ),
+    ]
+
+    with mock_apps_get_values(values):
+        capture = run_cli(["app", "get-values", "1d9a7843-75f6-4624-973d-6bdd57b1f628"])
+
+    assert not capture.err
+    assert "1d9a7843-75f6-4624-973d-6bdd57b1f628" in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_values_with_type_filter(run_cli: _RunCli) -> None:
+    """Test the app get-values command with type filter."""
+    values = [
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_internal_api",
+            value={"url": "http://internal-api:8080"},
+        ),
+    ]
+
+    with mock_apps_get_values(values):
+        capture = run_cli(["app", "get-values", "-t", "dict"])
+
+    assert not capture.err
+    assert "1d9a7843-75f6-4624-973d-6bdd57b1f628" in capture.out
+    assert "dict" in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_values_no_values(run_cli: _RunCli) -> None:
+    """Test the app get-values command when no values are returned."""
+    with mock_apps_get_values([]):
+        capture = run_cli(["app", "get-values"])
+
+    assert not capture.err
+    assert "No app values found." in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_values_quiet_mode(run_cli: _RunCli) -> None:
+    """Test the app get-values command in quiet mode."""
+    values = [
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_internal_api",
+            value={"url": "http://internal-api:8080"},
+        ),
+        AppValue(
+            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            type="dict",
+            path="chat_external_api",
+            value={"url": "https://api.example.com"},
+        ),
+    ]
+
+    with mock_apps_get_values(values):
+        capture = run_cli(["-q", "app", "get-values"])
+
+    assert not capture.err
+    internal_api_value = "1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_internal_api:"
+    internal_api_value += "{'url': 'http://internal-api:8080'}"
+    assert internal_api_value in capture.out
+
+    external_api_value = "1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_external_api:"
+    external_api_value += "{'url': 'https://api.example.com'}"
+    assert external_api_value in capture.out
     assert capture.code == 0
