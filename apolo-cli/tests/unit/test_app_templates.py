@@ -174,7 +174,6 @@ def test_app_template_ls_versions_quiet_mode(run_cli: _RunCli) -> None:
 
 
 def test_app_template_ls_versions_quiet_mode_no_versions(run_cli: _RunCli) -> None:
-    """Test the app_template ls-versions command in quiet mode when no versions are returned."""
     with mock_apps_list_template_versions("stable-diffusion", []):
         capture = run_cli(["-q", "app-template", "ls-versions", "stable-diffusion"])
 
