@@ -280,10 +280,10 @@ def test_app_get_values_quiet_mode(run_cli: _RunCli) -> None:
 
     assert not capture.err
     internal_api_value = "1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_internal_api:"
-    internal_api_value += "{'url': 'http://internal-api:8080'}"
+    internal_api_value += '{"url": "http://internal-api:8080"}'
     assert internal_api_value in capture.out
 
     external_api_value = "1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_external_api:"
-    external_api_value += "{'url': 'https://api.example.com'}"
+    external_api_value += '{"url": "https://api.example.com"}'
     assert external_api_value in capture.out
     assert capture.code == 0

@@ -5,9 +5,7 @@ on:
     branches: [master]
     tags: [v*]
   pull_request:
-    branches: [master]
   pull_request_target:
-    branches: [master]
   schedule:
     - cron: 0 4 * * *
 concurrency:
