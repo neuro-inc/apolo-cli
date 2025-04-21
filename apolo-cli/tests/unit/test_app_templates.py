@@ -120,6 +120,16 @@ def test_app_template_ls_quiet_mode(run_cli: _RunCli) -> None:
     assert capture.code == 0
 
 
+def test_app_template_ls_quiet_mode_no_templates(run_cli: _RunCli) -> None:
+    """Test the app_template ls command in quiet mode when no templates are returned."""
+    with mock_apps_list_templates([]):
+        capture = run_cli(["-q", "app-template", "ls"])
+
+    assert not capture.err
+    assert capture.out.strip() == ""
+    assert capture.code == 0
+
+
 def test_app_template_ls_versions_with_versions(run_cli: _RunCli) -> None:
     """Test the app_template ls-versions command when versions are returned."""
     versions = ["1.0.0", "1.1.0", "2.0.0"]
@@ -160,6 +170,16 @@ def test_app_template_ls_versions_quiet_mode(run_cli: _RunCli) -> None:
     assert "1.0.0" in capture.out
     assert "2.0.0" in capture.out
     assert "latest" in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_ls_versions_quiet_mode_no_versions(run_cli: _RunCli) -> None:
+    """Test the app_template ls-versions command in quiet mode when no versions are returned."""
+    with mock_apps_list_template_versions("stable-diffusion", []):
+        capture = run_cli(["-q", "app-template", "ls-versions", "stable-diffusion"])
+
+    assert not capture.err
+    assert capture.out.strip() == ""
     assert capture.code == 0
 
 
