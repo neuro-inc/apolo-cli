@@ -13,7 +13,7 @@ contextlib2==21.6.0
 humanize==4.12.2
 importlib-metadata==8.6.1; python_version<"3.10"
 multidict<7.0
-packaging==24.2
+packaging==25.0
 python-dateutil==2.9.0.post0
 python-jose==3.4.0
 pyyaml==6.0.2
