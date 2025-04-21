@@ -7,7 +7,9 @@ from apolo_sdk import AppTemplate
 
 class BaseAppTemplatesFormatter:
     def __call__(self, templates: List[AppTemplate]) -> Table:
-        raise NotImplementedError("Subclasses must implement __call__")  # pragma: no cover
+        raise NotImplementedError(
+            "Subclasses must implement __call__"
+        )  # pragma: no cover
 
 
 class SimpleAppTemplatesFormatter(BaseAppTemplatesFormatter):
