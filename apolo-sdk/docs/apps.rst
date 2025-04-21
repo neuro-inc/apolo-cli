@@ -41,6 +41,17 @@ Apps
       :param str org_name: org to list template versions. Default is current org.
       :param str project_name: project to list template versions. Default is current project.
 
+   .. method:: get_values(app_id: Optional[str] = None, value_type: Optional[str] = None, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppValue]]
+      :async:
+
+      Get values from app instances, async iterator. Yields :class:`AppValue` instances.
+
+      :param str app_id: Optional app instance ID to filter values.
+      :param str value_type: Optional value type to filter.
+      :param str cluster_name: cluster to get values from. Default is current cluster.
+      :param str org_name: org to get values from. Default is current org.
+      :param str project_name: project to get values from. Default is current project.
+
 ===
 
 .. class:: App
@@ -100,3 +111,25 @@ Apps
    .. attribute:: tags
 
       List of template tags, :class:`list` of :class:`str`.
+
+===
+
+.. class:: AppValue
+
+   *Read-only* :class:`~dataclasses.dataclass` for describing an application value.
+
+   .. attribute:: app_instance_id
+
+      The application instance ID, :class:`str`.
+
+   .. attribute:: type
+
+      The value type, :class:`str`.
+
+   .. attribute:: path
+
+      The value path, :class:`str`.
+
+   .. attribute:: value
+
+      The actual value, can be any type.

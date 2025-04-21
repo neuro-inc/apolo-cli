@@ -1575,6 +1575,8 @@ def test_app_autocomplete(run_autocomplete: _RunAC) -> None:
     assert "ls" in zsh_out
     assert "uninstall" in bash_out
     assert "uninstall" in zsh_out
+    assert "get-values" in bash_out
+    assert "get-values" in zsh_out
 
 
 @skip_on_windows
