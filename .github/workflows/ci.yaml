@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -105,8 +105,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -153,8 +151,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -201,7 +197,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       #Temporarily disable, the fresh codecov requires TOKEN passed
       - name: Upload coverage
         uses: aio-libs/upload-coverage@v24.10.1
@@ -216,8 +212,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -284,6 +278,6 @@ jobs:
           start_line: "[comment]: # (towncrier release notes start)"
           head_line: "Apolo SDK/CLI {version}\\s+\\({date}\\)\n====+\n?"
           fix_issue_regex:
-            "\\(\\[#(\\d+)\\]\\(https://github.com/neuro-inc/platform-client-python/issues/\\
+            "\\(\\[#(\\d+)\\]\\(https://github.com/neuro-inc/platform-client-python/issues/\\\
             1\\)\\)"
           fix_issue_repl: "(#\\1)"
