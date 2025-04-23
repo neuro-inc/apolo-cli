@@ -1,61 +1,60 @@
-# app
+# app-template
 
-Operations with applications
+Application Templates operations
 
 ## Usage
 
 ```bash
-apolo app [OPTIONS] COMMAND [ARGS]...
+apolo app-template [OPTIONS] COMMAND [ARGS]...
 ```
 
-Operations with applications.
+Application Templates operations.
 
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_install_](app.md#install) | Install an app from a YAML file |
-| [_list_](app.md#list) | List apps |
-| [_ls_](app.md#ls) | Alias to list |
-| [_uninstall_](app.md#uninstall) | Uninstall an app |
+| [_list_](app-template.md#list) | List available application templates |
+| [_list-versions_](app-template.md#list-versions) | List app template versions |
+| [_ls_](app-template.md#ls) | Alias to list |
+| [_ls-versions_](app-template.md#ls-versions) | Alias to list-versions |
 
 
-### install
+### list
 
-Install an app from a YAML file
+List available application templates
 
 
 #### Usage
 
 ```bash
-apolo app install [OPTIONS]
+apolo app-template list [OPTIONS]
 ```
 
-Install an app from a `YAML` file.
+List available application templates.
 
 #### Options
 
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
-| _--cluster CLUSTER_ | Specify the cluster \(the current cluster by default\). |
-| _-f, --file TEXT_ | Path to the app YAML file.  _\[required\]_ |
-| _--org ORG_ | Specify the org \(the current org by default\). |
-| _--project PROJECT_ | Specify the project \(the current project by default\). |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
 
 
 
-### list
+### list-versions
 
-List apps
+List app template versions
 
 
 #### Usage
 
 ```bash
-apolo app list [OPTIONS]
+apolo app-template list-versions [OPTIONS] NAME
 ```
 
-List apps.
+List app template versions.
 
 #### Options
 
@@ -76,7 +75,7 @@ Alias to list
 #### Usage
 
 ```bash
-apolo app ls [OPTIONS]
+apolo app-template ls [OPTIONS]
 ```
 
 Alias to list
@@ -92,20 +91,18 @@ Alias to list
 
 
 
-### uninstall
+### ls-versions
 
-Uninstall an app
+Alias to list-versions
 
 
 #### Usage
 
 ```bash
-apolo app uninstall [OPTIONS] APP_ID
+apolo app-template ls-versions [OPTIONS] NAME
 ```
 
-Uninstall an app.
-
-`APP`_ID: ID of the app to uninstall
+Alias to list-versions
 
 #### Options
 
