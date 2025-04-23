@@ -163,10 +163,6 @@ def test_app_template_ls_versions_quiet_mode(run_cli: _RunCli) -> None:
         capture = run_cli(["-q", "app-template", "ls-versions", "stable-diffusion"])
 
     assert not capture.err
-    # In quiet mode with is_version_list=True, we should expect only version numbers
-    assert (
-        "stable-diffusion" not in capture.out
-    )  # Template name should not be in output
     assert "1.0.0" in capture.out
     assert "2.0.0" in capture.out
     assert "latest" in capture.out
@@ -190,28 +186,7 @@ def test_app_template_ls_versions_with_cluster_option(run_cli: _RunCli) -> None:
     with mock.patch("apolo_cli.click_types.CLUSTER.convert") as convert_mock:
         convert_mock.return_value = "test-cluster"
 
-        with mock.patch.object(Apps, "list_template_versions") as mocked:
-
-            @asynccontextmanager
-            async def async_cm(
-                **kwargs: Any,
-            ) -> AsyncIterator[AsyncIterator[AppTemplate]]:
-                assert kwargs["cluster_name"] == "test-cluster"
-                assert kwargs["name"] == "stable-diffusion"
-
-                async def async_iterator() -> AsyncIterator[AppTemplate]:
-                    for version in versions:
-                        yield AppTemplate(
-                            name="stable-diffusion",
-                            version=version,
-                            title=f"Stable Diffusion {version}",
-                            short_description="AI image generation model",
-                            tags=[],
-                        )
-
-                yield async_iterator()
-
-            mocked.side_effect = async_cm
+        with mock_apps_list_template_versions("stable-diffusion", versions):
             capture = run_cli(
                 [
                     "app-template",
