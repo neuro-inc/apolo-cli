@@ -1415,8 +1415,8 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
-| _[apolo app list](#apolo-app-list)_| Alias for ls |
-| _[apolo app ls](#apolo-app-ls)_| List apps |
+| _[apolo app list](#apolo-app-list)_| List apps |
+| _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
 
 
@@ -1447,7 +1447,7 @@ Name | Description|
 
 ### apolo app list
 
-Alias for ls.
+List apps.
 
 **Usage:**
 
@@ -1469,7 +1469,7 @@ Name | Description|
 
 ### apolo app ls
 
-List apps.
+Alias to list
 
 **Usage:**
 
@@ -1532,17 +1532,17 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app-template list](#apolo-app-template-list)_| Alias for ls |
-| _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| Alias for ls-versions |
-| _[apolo app-template ls](#apolo-app-template-ls)_| List available application templates |
-| _[apolo app\-template ls-versions](#apolo-app-template-ls-versions)_| List app template versions |
+| _[apolo app-template list](#apolo-app-template-list)_| List available application templates |
+| _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| List app template versions |
+| _[apolo app-template ls](#apolo-app-template-ls)_| Alias to list |
+| _[apolo app\-template ls-versions](#apolo-app-template-ls-versions)_| Alias to list-versions |
 
 
 
 
 ### apolo app-template list
 
-Alias for ls.
+List available application templates.
 
 **Usage:**
 
@@ -1564,7 +1564,7 @@ Name | Description|
 
 ### apolo app-template list-versions
 
-Alias for ls-versions.
+List app template versions.
 
 **Usage:**
 
@@ -1586,7 +1586,7 @@ Name | Description|
 
 ### apolo app-template ls
 
-List available application templates.
+Alias to list
 
 **Usage:**
 
@@ -1608,7 +1608,7 @@ Name | Description|
 
 ### apolo app-template ls-versions
 
-List app template versions.
+Alias to list-versions
 
 **Usage:**
 
