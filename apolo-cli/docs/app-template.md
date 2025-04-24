@@ -13,61 +13,13 @@ Application Templates operations.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_list_](app-template.md#list) | Alias for ls |
-| [_list-versions_](app-template.md#list-versions) | Alias for ls-versions |
-| [_ls_](app-template.md#ls) | List available application templates |
-| [_ls-versions_](app-template.md#ls-versions) | List app template versions |
+| [_list_](app-template.md#list) | List available application templates |
+| [_list-versions_](app-template.md#list-versions) | List app template versions |
+| [_ls_](app-template.md#ls) | Alias to list |
+| [_ls-versions_](app-template.md#ls-versions) | Alias to list-versions |
 
 
 ### list
-
-Alias for ls
-
-
-#### Usage
-
-```bash
-apolo app-template list [OPTIONS]
-```
-
-Alias for ls.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
-| _--org ORG_ | Look on a specified org \(the current org by default\). |
-| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
-
-
-
-### list-versions
-
-Alias for ls-versions
-
-
-#### Usage
-
-```bash
-apolo app-template list-versions [OPTIONS] NAME
-```
-
-Alias for ls-versions.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
-| _--org ORG_ | Look on a specified org \(the current org by default\). |
-| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
-
-
-
-### ls
 
 List available application templates
 
@@ -75,7 +27,7 @@ List available application templates
 #### Usage
 
 ```bash
-apolo app-template ls [OPTIONS]
+apolo app-template list [OPTIONS]
 ```
 
 List available application templates.
@@ -91,9 +43,57 @@ List available application templates.
 
 
 
-### ls-versions
+### list-versions
 
 List app template versions
+
+
+#### Usage
+
+```bash
+apolo app-template list-versions [OPTIONS] NAME
+```
+
+List app template versions.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### ls
+
+Alias to list
+
+
+#### Usage
+
+```bash
+apolo app-template ls [OPTIONS]
+```
+
+Alias to list
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### ls-versions
+
+Alias to list-versions
 
 
 #### Usage
@@ -102,7 +102,7 @@ List app template versions
 apolo app-template ls-versions [OPTIONS] NAME
 ```
 
-List app template versions.
+Alias to list-versions
 
 #### Options
 
