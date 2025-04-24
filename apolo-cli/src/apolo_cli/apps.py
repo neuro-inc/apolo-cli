@@ -34,7 +34,7 @@ def app() -> None:
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
-async def ls(
+async def list(
     root: Root,
     cluster: Optional[str],
     org: Optional[str],
@@ -164,7 +164,7 @@ async def install(
         root.print(f"App installed from [bold]{file_path}[/bold]", markup=True)
 
 
-app.add_command(ls)
-app.add_command(alias(ls, "list", help=ls.help, deprecated=False))
+app.add_command(list)
+app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
 app.add_command(uninstall)

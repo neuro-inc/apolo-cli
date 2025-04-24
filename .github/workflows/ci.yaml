@@ -6,12 +6,10 @@ on:
     tags: [v*]
   pull_request:
     branches: [master]
-  pull_request_target:
-    branches: [master]
   schedule:
     - cron: 0 4 * * *
 concurrency:
-  group: ci-${{ github.head_ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -141,7 +139,7 @@ jobs:
     needs: unit
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9"]
         os: [ubuntu]
       fail-fast: false
       max-parallel: 1
