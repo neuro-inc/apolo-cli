@@ -14,8 +14,8 @@ Operations with applications.
 | Usage | Description |
 | :--- | :--- |
 | [_install_](app.md#install) | Install an app from a YAML file |
-| [_list_](app.md#list) | Alias for ls |
-| [_ls_](app.md#ls) | List apps |
+| [_list_](app.md#list) | List apps |
+| [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
 
 
@@ -46,7 +46,7 @@ Install an app from a `YAML` file.
 
 ### list
 
-Alias for ls
+List apps
 
 
 #### Usage
@@ -55,7 +55,7 @@ Alias for ls
 apolo app list [OPTIONS]
 ```
 
-Alias for ls.
+List apps.
 
 #### Options
 
@@ -70,7 +70,7 @@ Alias for ls.
 
 ### ls
 
-List apps
+Alias to list
 
 
 #### Usage
@@ -79,7 +79,7 @@ List apps
 apolo app ls [OPTIONS]
 ```
 
-List apps.
+Alias to list
 
 #### Options
 
