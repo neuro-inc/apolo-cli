@@ -8,7 +8,7 @@ from apolo_sdk import AppValue
 
 class BaseAppValuesFormatter:
     def __call__(self, values: List[AppValue]) -> Table:
-        raise NotImplementedError("Subclasses must implement __call__")
+        raise NotImplementedError("Subclasses must implement __call__")  # pragma: no cover
 
 
 class SimpleAppValuesFormatter(BaseAppValuesFormatter):

@@ -25,7 +25,7 @@ class AppValue:
     app_instance_id: str
     type: str
     path: str
-    value: Any = None
+    value: Any
 
 
 @rewrite_module
