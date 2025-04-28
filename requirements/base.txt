@@ -6,12 +6,12 @@ aiohttp==3.11.18
 azure-core==1.33.0
 azure-storage-blob==12.25.1
 # upgrade setup.py after pinning certtifi to new version
-certifi==2025.1.31
+certifi==2025.4.26
 click==8.1.8
 ConfigUpdater==3.2
 contextlib2==21.6.0
 humanize==4.12.2
-importlib-metadata==8.6.1; python_version<"3.10"
+importlib-metadata==8.7.0; python_version<"3.10"
 multidict<7.0
 packaging==25.0
 python-dateutil==2.9.0.post0
