@@ -319,36 +319,45 @@ async def test_apps_get_values(
 ) -> None:
     async def handler(request: web.Request) -> web.Response:
         base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
-        
+
         # Test URL structure based on parameters
         if request.path == f"{base_path}/values":
             # No app_id provided
-            assert not request.path.endswith("/704285b2-aab1-4b0a-b8ff-bfbeb37f89e4/values")
+            assert not request.path.endswith(
+                "/704285b2-aab1-4b0a-b8ff-bfbeb37f89e4/values"
+            )
             # Optional value_type parameter
             if request.query.get("type"):
                 assert request.query.get("type") == "password"
                 filtered_payload = {
-                    "items": [item for item in app_values_payload["items"] if item["type"] == "password"]
+                    "items": [
+                        item
+                        for item in app_values_payload["items"]
+                        if item["type"] == "password"
+                    ]
                 }
                 return web.json_response(filtered_payload)
         elif request.path == f"{base_path}/704285b2-aab1-4b0a-b8ff-bfbeb37f89e4/values":
             # Specific app_id provided
             filtered_payload = {
                 "items": [
-                    item for item in app_values_payload["items"] 
+                    item
+                    for item in app_values_payload["items"]
                     if item["app_instance_id"] == "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
                 ]
             }
             return web.json_response(filtered_payload)
-            
+
         return web.json_response(app_values_payload)
 
     web_app = web.Application()
     base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
     # Add routes for different combinations of parameters
     web_app.router.add_get(f"{base_path}/values", handler)
-    web_app.router.add_get(f"{base_path}/704285b2-aab1-4b0a-b8ff-bfbeb37f89e4/values", handler)
-    
+    web_app.router.add_get(
+        f"{base_path}/704285b2-aab1-4b0a-b8ff-bfbeb37f89e4/values", handler
+    )
+
     srv = await aiohttp_server(web_app)
 
     async with make_client(srv.make_url("/")) as client:
@@ -365,12 +374,12 @@ async def test_apps_get_values(
         assert values[0].type == "password"
         assert values[0].path == "/credentials/admin"
         assert values[0].value == "admin123"
-        
+
         assert values[1].app_instance_id == "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
         assert values[1].type == "url"
         assert values[1].path == "/app/url"
         assert values[1].value == "https://example.com/app"
-        
+
         assert values[2].app_instance_id == "a4723404-f5e2-48b5-b709-629754b5056f"
         assert values[2].type == "secret"
         assert values[2].path == "/credentials/token"
@@ -380,9 +389,9 @@ async def test_apps_get_values(
         values = []
         async with client.apps.get_values(
             app_id="704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
-            cluster_name="default", 
-            org_name="superorg", 
-            project_name="test3"
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
         ) as it:
             async for value in it:
                 values.append(value)
@@ -390,14 +399,14 @@ async def test_apps_get_values(
         assert len(values) == 2
         for value in values:
             assert value.app_instance_id == "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
-        
+
         # Test 3: Filter by value_type
         values = []
         async with client.apps.get_values(
             value_type="password",
-            cluster_name="default", 
-            org_name="superorg", 
-            project_name="test3"
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
         ) as it:
             async for value in it:
                 values.append(value)
