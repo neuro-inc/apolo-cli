@@ -1,14 +1,19 @@
 import sys
-from typing import Optional
+from typing import List, Optional
 
 import yaml
 
-from apolo_sdk import IllegalArgumentError
+from apolo_sdk import AppValue, IllegalArgumentError
 
 from .click_types import CLUSTER, ORG, PROJECT
+from .formatters.app_values import (
+    AppValuesFormatter,
+    BaseAppValuesFormatter,
+    SimpleAppValuesFormatter,
+)
 from .formatters.apps import AppsFormatter, BaseAppsFormatter, SimpleAppsFormatter
 from .root import Root
-from .utils import argument, command, group, option
+from .utils import alias, argument, command, group, option
 
 
 @group()
@@ -34,7 +39,7 @@ def app() -> None:
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
-async def ls(
+async def list(
     root: Root,
     cluster: Optional[str],
     org: Optional[str],
@@ -164,6 +169,77 @@ async def install(
         root.print(f"App installed from [bold]{file_path}[/bold]", markup=True)
 
 
-app.add_command(ls)
+@command()
+@argument("app_id", required=False)
+@option(
+    "-t",
+    "--type",
+    "value_type",
+    help="Filter by value type.",
+)
+@option(
+    "-o",
+    "--output",
+    "output_format",
+    type=str,
+    help="Output format (default: table).",
+)
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+async def get_values(
+    root: Root,
+    app_id: Optional[str],
+    value_type: Optional[str],
+    output_format: Optional[str],
+    cluster: Optional[str],
+    org: Optional[str],
+    project: Optional[str],
+) -> None:
+    """
+    Get application values.
+
+    APP_ID: Optional ID of the app to get values for.
+    """
+    if root.quiet:
+        values_fmtr: BaseAppValuesFormatter = SimpleAppValuesFormatter()
+    else:
+        values_fmtr = AppValuesFormatter()
+
+    values: List[AppValue] = []
+    with root.status("Fetching app values") as status:
+        async with root.client.apps.get_values(
+            app_id=app_id,
+            value_type=value_type,
+            cluster_name=cluster,
+            org_name=org,
+            project_name=project,
+        ) as it:
+            async for value in it:
+                values.append(value)
+                status.update(f"Fetching app values ({len(values)} loaded)")
+
+    with root.pager():
+        if values:
+            root.print(values_fmtr(values))
+        else:
+            root.print("No app values found.")
+
+
+app.add_command(list)
+app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
 app.add_command(uninstall)
+app.add_command(get_values)
