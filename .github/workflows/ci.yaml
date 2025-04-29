@@ -263,7 +263,6 @@ jobs:
       - name: Merge dists for GitHub Release
         run: |
           mkdir dist
-          cp apolo-sdk/dist/* dist/
           cp apolo-cli/dist/* dist/
       - name: GitHub Release
         uses: aio-libs/create-release@v1.6.6
@@ -272,7 +271,7 @@ jobs:
           name: Apolo SDK/CLI
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pypi_token: ""
-          version_file: apolo-sdk/src/apolo_sdk/__init__.py # CLI has the same version
+          version_file: apolo-cli/src/apolo_cli/__init__.py # CLI has the same version
           start_line: "[comment]: # (towncrier release notes start)"
           head_line: "Apolo SDK/CLI {version}\\s+\\({date}\\)\n====+\n?"
           fix_issue_regex:
