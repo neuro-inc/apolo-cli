@@ -163,6 +163,10 @@ def test_app_template_ls_versions_quiet_mode(run_cli: _RunCli) -> None:
         capture = run_cli(["-q", "app-template", "ls-versions", "stable-diffusion"])
 
     assert not capture.err
+    # In quiet mode with is_version_list=True, we should expect only version numbers
+    assert (
+        "stable-diffusion" not in capture.out
+    )  # Template name should not be in output
     assert "1.0.0" in capture.out
     assert "2.0.0" in capture.out
     assert "latest" in capture.out

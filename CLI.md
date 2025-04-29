@@ -53,6 +53,7 @@
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
+		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
 		* [apolo app ls](#apolo-app-ls)
@@ -1414,10 +1415,35 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
+| _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
+
+
+
+
+### apolo app get-values
+
+Get application values.<br/><br/>APP_ID: Optional ID of the app to get values for.
+
+**Usage:**
+
+```bash
+apolo app get-values [OPTIONS] [APP_ID]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_\-o, --output TEXT_|Output format \(default: table).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_\-t, --type TEXT_|Filter by value type.|
 
 
 

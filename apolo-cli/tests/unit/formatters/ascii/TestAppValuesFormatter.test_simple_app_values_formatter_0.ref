@@ -1,0 +1,3 @@
+1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_internal_api:{"url": "http://internal-api:8080"}
+1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_external_api:{"url": "https://api.example.com"} 
+a4723404-f5e2-48b5-b709-629754b5056f:string:api_endpoint:https://api.example.org/v1
