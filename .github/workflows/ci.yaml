@@ -273,7 +273,7 @@ jobs:
           pypi_token: ""
           version_file: apolo-cli/src/apolo_cli/__init__.py # CLI has the same version
           start_line: "[comment]: # (towncrier release notes start)"
-          head_line: "Apolo SDK/CLI {version}\\s+\\({date}\\)\n====+\n?"
+          head_line: "# Apolo SDK/CLI {version} \\(\\d+-\\d+-\\d+\\)"
           fix_issue_regex:
             "\\(\\[#(\\d+)\\]\\(https://github.com/neuro-inc/platform-client-python/issues/\\\
             1\\)\\)"
