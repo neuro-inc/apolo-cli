@@ -5,6 +5,16 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.4.2 (2025-04-30)
+
+### Features
+
+- Added new command `apolo app-template ls` - list available app templates for installation ([#3227](https://github.com/neuro-inc/neuro-cli/issues/3227))
+- Added new command `apolo app-template ls-versions` - list available app templates for specific versions ([#3228](https://github.com/neuro-inc/neuro-cli/issues/3228))
+- Added new aliases for: `apolo app list|ls`, `apolo app-template list|ls`, `apolo app-template list-versions|ls-versions` ([#3233](https://github.com/neuro-inc/neuro-cli/issues/3233))
+- Added new command `apolo app get-values` - list available values that can be reused for installation ([#3236](https://github.com/neuro-inc/neuro-cli/issues/3236))
+
+
 # Apolo SDK/CLI 25.4.1 (2025-04-01)
 
 ### Features
