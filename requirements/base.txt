@@ -10,7 +10,7 @@ certifi==2025.4.26
 click==8.1.8
 ConfigUpdater==3.2
 contextlib2==21.6.0
-humanize==4.12.2
+humanize==4.12.3
 importlib-metadata==8.7.0; python_version<"3.10"
 multidict<7.0
 packaging==25.0
