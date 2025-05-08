@@ -289,7 +289,7 @@ async def logs(
         cluster_name=cluster,
         org_name=org,
         project_name=project,
-        since=_parse_date(since),
+        since=_parse_date(since) if since else None,
         timestamps=timestamps,
         separator=separator,
         debug=root.verbosity >= 2,
