@@ -285,8 +285,6 @@ class Apps(metaclass=NoPublicConstructor):
         project_name: Optional[str] = None,
         since: Optional[datetime] = None,
         timestamps: bool = False,
-        separator: Optional[str] = None,
-        debug: bool = False,
     ) -> AsyncIterator[bytes]:
         """Get logs for an app instance.
 
@@ -297,8 +295,6 @@ class Apps(metaclass=NoPublicConstructor):
             project_name: Optional project name override
             since: Optional timestamp to start logs from
             timestamps: Include timestamps in the logs output
-            separator: Optional separator for live logs
-            debug: Include debug information in the logs
 
         Returns:
             An async iterator of log chunks as bytes
@@ -313,10 +309,6 @@ class Apps(metaclass=NoPublicConstructor):
             url = url.update_query(since=since.isoformat())
         if timestamps:
             url = url.update_query(timestamps="true")
-        if separator is not None:
-            url = url.update_query(separator=separator)
-        if debug:
-            url = url.update_query(debug="true")
 
         auth = await self._config._api_auth()
         async with self._core.ws_connect(
