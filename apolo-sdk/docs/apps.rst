@@ -52,6 +52,20 @@ Apps
       :param str org_name: org to get values from. Default is current org.
       :param str project_name: project to get values from. Default is current project.
 
+   .. method:: logs(app_id: str, *, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None, since: Optional[datetime] = None, timestamps: bool = False, separator: Optional[str] = None, debug: bool = False) -> AsyncContextManager[AsyncIterator[bytes]]
+      :async:
+
+      Get logs for an app instance, async iterator. Yields chunks of logs as :class:`bytes`.
+
+      :param str app_id: The ID of the app instance.
+      :param str cluster_name: Cluster where the app is deployed. Default is current cluster.
+      :param str org_name: Organization where the app is deployed. Default is current org.
+      :param str project_name: Project where the app is deployed. Default is current project.
+      :param datetime since: Optional timestamp to start logs from.
+      :param bool timestamps: Include timestamps in the logs output.
+      :param str separator: Optional separator for live logs.
+      :param bool debug: Include debug information in the logs.
+
 ===
 
 .. class:: App

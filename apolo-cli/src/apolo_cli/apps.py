@@ -1,12 +1,10 @@
 import sys
-from datetime import datetime
 from typing import List, Optional
 
 import yaml
 
 from apolo_sdk import AppValue, IllegalArgumentError
 
-from .ael import process_logs
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.app_values import (
     AppValuesFormatter,

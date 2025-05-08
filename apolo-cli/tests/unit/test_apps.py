@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager, contextmanager
-from datetime import datetime
-from typing import Any, AsyncIterator, Iterator, List, Optional
+from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
 
 from apolo_sdk import App, AppValue

@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, AsyncIterator, List, Optional
 
-import aiohttp
 from aiohttp import WSMsgType
 from yarl import URL
 
@@ -327,10 +326,10 @@ class Apps(metaclass=NoPublicConstructor):
             heartbeat=30,
         ) as ws:
             async for msg in ws:
-                if msg.type == aiohttp.WSMsgType.BINARY:
+                if msg.type == WSMsgType.BINARY:
                     if msg.data:
                         yield msg.data
-                elif msg.type == aiohttp.WSMsgType.ERROR:
+                elif msg.type == WSMsgType.ERROR:
                     raise ws.exception()
                 else:
                     raise RuntimeError(f"Incorrect WebSocket message: {msg!r}")

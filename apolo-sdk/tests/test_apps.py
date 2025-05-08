@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 import pytest
 from aiohttp import web
+from aiohttp.web_ws import WebSocketResponse
 
 from apolo_sdk import App, Client
 
@@ -414,3 +416,69 @@ async def test_apps_get_values(
         assert len(values) == 1
         assert values[0].type == "password"
         assert values[0].path == "/credentials/admin"
+
+
+async def test_apps_logs(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+    test_log_messages = [
+        b"Starting app...\n",
+        b"App initialized\n",
+        b"App is now running\n",
+    ]
+
+    async def ws_handler(request: web.Request) -> WebSocketResponse:
+        assert request.path == f"/api/v1/apps/{app_id}/log_ws"
+
+        # Verify query parameters
+        qs = request.query
+        if "since" in qs:
+            assert qs["since"] == "2025-05-07T11:00:00+00:00"
+        if "timestamps" in qs:
+            assert qs["timestamps"] == "true"
+        if "separator" in qs:
+            assert qs["separator"] == "<===separator===>"
+        if "debug" in qs:
+            assert qs["debug"] == "true"
+
+        ws = WebSocketResponse()
+        await ws.prepare(request)
+
+        for msg in test_log_messages:
+            await ws.send_bytes(msg)
+
+        await ws.close()
+        return ws
+
+    web_app = web.Application()
+    web_app.router.add_get(f"/api/v1/apps/{app_id}/log_ws", ws_handler)
+
+    srv = await aiohttp_server(web_app)
+    url = srv.make_url("/")
+
+    # Setup monitoring URL - needed for the logs endpoint
+    async with make_client(url, monitoring_url=url) as client:
+        # Test 1: Basic logs retrieval
+        logs = []
+        async with client.apps.logs(app_id) as it:
+            async for chunk in it:
+                logs.append(chunk)
+
+        assert logs == test_log_messages
+
+        # Test 2: Logs with parameters
+        logs = []
+        test_datetime = datetime(2025, 5, 7, 11, 0, 0, tzinfo=timezone.utc)
+        async with client.apps.logs(
+            app_id,
+            since=test_datetime,
+            timestamps=True,
+            separator="<===separator===>",
+            debug=True,
+        ) as it:
+            async for chunk in it:
+                logs.append(chunk)
+
+        assert logs == test_log_messages
