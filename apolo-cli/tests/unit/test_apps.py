@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncIterator, Iterator, List
+from datetime import datetime
+from typing import Any, AsyncIterator, Iterator, List, Optional
 from unittest import mock
 
 from apolo_sdk import App, AppValue
@@ -286,4 +287,64 @@ def test_app_get_values_quiet_mode(run_cli: _RunCli) -> None:
     external_api_value = "1d9a7843-75f6-4624-973d-6bdd57b1f628:dict:chat_external_api:"
     external_api_value += '{"url": "https://api.example.com"}'
     assert external_api_value in capture.out
+    assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_logs() -> Iterator[None]:
+    """Context manager to mock the Apps.logs method."""
+    with mock.patch.object(Apps, "logs") as mocked:
+
+        @asynccontextmanager
+        async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[bytes]]:
+            async def async_iterator() -> AsyncIterator[bytes]:
+                logs = [
+                    b"Starting app...\n",
+                    b"App initialized\n",
+                    b"App ready\n",
+                ]
+                for log in logs:
+                    yield log
+
+            yield async_iterator()
+
+        mocked.side_effect = async_cm
+        yield
+
+
+def test_app_logs(run_cli: _RunCli) -> None:
+    """Test the app logs command."""
+    app_id = "app-123"
+
+    with mock_apps_logs():
+        capture = run_cli(["app", "logs", app_id])
+
+    assert not capture.err
+    assert "Starting app..." in capture.out
+    assert "App initialized" in capture.out
+    assert "App ready" in capture.out
+    assert capture.code == 0
+
+
+def test_app_logs_with_since(run_cli: _RunCli) -> None:
+    """Test the app logs command with since parameter."""
+    app_id = "app-123"
+
+    with mock_apps_logs():
+        capture = run_cli(["app", "logs", app_id, "--since", "1h"])
+
+    assert not capture.err
+    assert "Starting app..." in capture.out
+    assert capture.code == 0
+
+
+def test_app_logs_with_timestamps(run_cli: _RunCli) -> None:
+    """Test the app logs command with timestamps."""
+    app_id = "app-123"
+
+    with mock_apps_logs():
+        capture = run_cli(["app", "logs", app_id, "--timestamps"])
+
+    assert not capture.err
+    assert "Starting app..." in capture.out
     assert capture.code == 0

@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, AsyncIterator, List, Optional
 
+import aiohttp
+from aiohttp import WSMsgType
 from yarl import URL
 
 from ._config import Config
@@ -75,6 +78,13 @@ class Apps(metaclass=NoPublicConstructor):
             / project_name
         )
         return url
+
+    def _get_monitoring_url(self, cluster_name: Optional[str]) -> URL:
+        if cluster_name is None:
+            cluster_name = self._config.cluster_name
+        return self._config.get_cluster(cluster_name).monitoring_url.with_path(
+            "/api/v1"
+        )
 
     @asyncgeneratorcontextmanager
     async def list(
@@ -265,3 +275,62 @@ class Apps(metaclass=NoPublicConstructor):
                     short_description=item.get("short_description", ""),
                     tags=item.get("tags", []),
                 )
+
+    @asyncgeneratorcontextmanager
+    async def logs(
+        self,
+        app_id: str,
+        *,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+        since: Optional[datetime] = None,
+        timestamps: bool = False,
+        separator: Optional[str] = None,
+        debug: bool = False,
+    ) -> AsyncIterator[bytes]:
+        """Get logs for an app instance.
+
+        Args:
+            app_id: The ID of the app instance
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+            since: Optional timestamp to start logs from
+            timestamps: Include timestamps in the logs output
+            separator: Optional separator for live logs
+            debug: Include debug information in the logs
+
+        Returns:
+            An async iterator of log chunks as bytes
+        """
+        url = self._get_monitoring_url(cluster_name) / "apps" / app_id / "log_ws"
+        url = url.with_scheme("wss")
+
+        if since is not None:
+            if since.tzinfo is None:
+                # Interpret naive datetime object as local time.
+                since = since.astimezone()
+            url = url.update_query(since=since.isoformat())
+        if timestamps:
+            url = url.update_query(timestamps="true")
+        if separator is not None:
+            url = url.update_query(separator=separator)
+        if debug:
+            url = url.update_query(debug="true")
+
+        auth = await self._config._api_auth()
+        async with self._core.ws_connect(
+            url,
+            auth=auth,
+            timeout=None,
+            heartbeat=30,
+        ) as ws:
+            async for msg in ws:
+                if msg.type == aiohttp.WSMsgType.BINARY:
+                    if msg.data:
+                        yield msg.data
+                elif msg.type == aiohttp.WSMsgType.ERROR:
+                    raise ws.exception()
+                else:
+                    raise RuntimeError(f"Incorrect WebSocket message: {msg!r}")
