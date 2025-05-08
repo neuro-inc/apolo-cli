@@ -330,6 +330,6 @@ class Apps(metaclass=NoPublicConstructor):
                     if msg.data:
                         yield msg.data
                 elif msg.type == WSMsgType.ERROR:
-                    raise ws.exception()
+                    raise ws.exception()  # type: ignore
                 else:
                     raise RuntimeError(f"Incorrect WebSocket message: {msg!r}")
