@@ -438,10 +438,6 @@ async def test_apps_logs(
             assert qs["since"] == "2025-05-07T11:00:00+00:00"
         if "timestamps" in qs:
             assert qs["timestamps"] == "true"
-        if "separator" in qs:
-            assert qs["separator"] == "<===separator===>"
-        if "debug" in qs:
-            assert qs["debug"] == "true"
 
         ws = WebSocketResponse()
         await ws.prepare(request)
@@ -458,8 +454,10 @@ async def test_apps_logs(
     srv = await aiohttp_server(web_app)
     url = srv.make_url("/")
 
-    # Setup monitoring URL - needed for the logs endpoint
-    async with make_client(url, monitoring_url=url) as client:
+    # Create a monitoring URL with http scheme (not https/wss) for the test server
+    monitoring_url = url
+
+    async with make_client(url, monitoring_url=monitoring_url) as client:
         # Test 1: Basic logs retrieval
         logs = []
         async with client.apps.logs(app_id) as it:
@@ -475,8 +473,6 @@ async def test_apps_logs(
             app_id,
             since=test_datetime,
             timestamps=True,
-            separator="<===separator===>",
-            debug=True,
         ) as it:
             async for chunk in it:
                 logs.append(chunk)

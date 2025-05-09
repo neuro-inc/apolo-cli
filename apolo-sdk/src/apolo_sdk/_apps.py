@@ -300,7 +300,11 @@ class Apps(metaclass=NoPublicConstructor):
             An async iterator of log chunks as bytes
         """
         url = self._get_monitoring_url(cluster_name) / "apps" / app_id / "log_ws"
-        url = url.with_scheme("wss")
+
+        if url.scheme == "https":
+            url = url.with_scheme("wss")
+        else:
+            url = url.with_scheme("ws")
 
         if since is not None:
             if since.tzinfo is None:
