@@ -16,6 +16,7 @@ Operations with applications.
 | [_get-values_](app.md#get-values) | Get application values |
 | [_install_](app.md#install) | Install an app from a YAML file |
 | [_list_](app.md#list) | List apps |
+| [_logs_](app.md#logs) | Print the logs for an app |
 | [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
 
@@ -94,6 +95,32 @@ List apps.
 | _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### logs
+
+Print the logs for an app
+
+
+#### Usage
+
+```bash
+apolo app logs [OPTIONS] APP_ID
+```
+
+Print the logs for an app.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _--since DATE\_OR\_TIMEDELTA_ | Only return logs after a specific date \(including\). Use value of format '1d2h3m4s' to specify moment in past relatively to current time. |
+| _--timestamps_ | Include timestamps on each line in the log output. |
 
 
 
