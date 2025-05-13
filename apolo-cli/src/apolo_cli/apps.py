@@ -282,7 +282,6 @@ async def logs(
     """
     codec_info = __import__("codecs").lookup("utf8")
     decoder = codec_info.incrementaldecoder("replace")
-    separator = "<================ Live logs ==============>"
 
     async with root.client.apps.logs(
         app_id=app_id,
@@ -291,8 +290,6 @@ async def logs(
         project_name=project,
         since=_parse_date(since) if since else None,
         timestamps=timestamps,
-        separator=separator,
-        debug=root.verbosity >= 2,
     ) as it:
         async for chunk in it:
             if not chunk:
