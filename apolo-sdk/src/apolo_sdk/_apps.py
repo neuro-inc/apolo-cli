@@ -301,7 +301,7 @@ class Apps(metaclass=NoPublicConstructor):
         """
         url = self._get_monitoring_url(cluster_name) / "apps" / app_id / "log_ws"
 
-        if url.scheme == "https":
+        if url.scheme == "https":  # pragma: no cover
             url = url.with_scheme("wss")
         else:
             url = url.with_scheme("ws")
@@ -309,7 +309,7 @@ class Apps(metaclass=NoPublicConstructor):
         if since is not None:
             if since.tzinfo is None:
                 # Interpret naive datetime object as local time.
-                since = since.astimezone()
+                since = since.astimezone()  # pragma: no cover
             url = url.update_query(since=since.isoformat())
         if timestamps:
             url = url.update_query(timestamps="true")
