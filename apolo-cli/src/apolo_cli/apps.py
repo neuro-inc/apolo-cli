@@ -1,3 +1,4 @@
+import codecs
 import sys
 from typing import List, Optional
 
@@ -280,8 +281,7 @@ async def logs(
     """
     Print the logs for an app.
     """
-    codec_info = __import__("codecs").lookup("utf8")
-    decoder = codec_info.incrementaldecoder("replace")
+    decoder = codecs.lookup("utf8").incrementaldecoder("replace")
 
     async with root.client.apps.logs(
         app_id=app_id,
