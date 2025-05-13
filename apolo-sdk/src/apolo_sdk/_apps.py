@@ -325,7 +325,7 @@ class Apps(metaclass=NoPublicConstructor):
                 if msg.type == WSMsgType.BINARY:
                     if msg.data:
                         yield msg.data
-                elif msg.type == WSMsgType.ERROR:
+                elif msg.type == WSMsgType.ERROR:  # pragma: no cover
                     raise ws.exception()  # type: ignore
-                else:
+                else:  # pragma: no cover
                     raise RuntimeError(f"Incorrect WebSocket message: {msg!r}")
