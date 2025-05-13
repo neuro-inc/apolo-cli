@@ -292,7 +292,7 @@ async def logs(
         timestamps=timestamps,
     ) as it:
         async for chunk in it:
-            if not chunk:
+            if not chunk:  # pragma: no cover
                 txt = decoder.decode(b"", final=True)
                 if not txt:
                     break
