@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.5.0 (2025-05-15)
+
+### Features
+
+- Added new command `apolo app logs [id]` - view logs from a running app ([#3249](https://github.com/neuro-inc/neuro-cli/issues/3249))
+
+
 # Apolo SDK/CLI 25.4.2 (2025-04-30)
 
 ### Features
