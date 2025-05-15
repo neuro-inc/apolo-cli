@@ -1,3 +1,4 @@
+import codecs
 import sys
 from typing import List, Optional
 
@@ -12,6 +13,7 @@ from .formatters.app_values import (
     SimpleAppValuesFormatter,
 )
 from .formatters.apps import AppsFormatter, BaseAppsFormatter, SimpleAppsFormatter
+from .job import _parse_date
 from .root import Root
 from .utils import alias, argument, command, group, option
 
@@ -238,8 +240,71 @@ async def get_values(
             root.print("No app values found.")
 
 
+@command()
+@argument("app_id")
+@option(
+    "--since",
+    metavar="DATE_OR_TIMEDELTA",
+    help="Only return logs after a specific date (including). "
+    "Use value of format '1d2h3m4s' to specify moment in "
+    "past relatively to current time.",
+)
+@option(
+    "--timestamps",
+    is_flag=True,
+    help="Include timestamps on each line in the log output.",
+)
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+async def logs(
+    root: Root,
+    app_id: str,
+    since: Optional[str],
+    timestamps: bool,
+    cluster: Optional[str],
+    org: Optional[str],
+    project: Optional[str],
+) -> None:
+    """
+    Print the logs for an app.
+    """
+    decoder = codecs.lookup("utf8").incrementaldecoder("replace")
+
+    async with root.client.apps.logs(
+        app_id=app_id,
+        cluster_name=cluster,
+        org_name=org,
+        project_name=project,
+        since=_parse_date(since) if since else None,
+        timestamps=timestamps,
+    ) as it:
+        async for chunk in it:
+            if not chunk:  # pragma: no cover
+                txt = decoder.decode(b"", final=True)
+                if not txt:
+                    break
+            else:
+                txt = decoder.decode(chunk)
+            sys.stdout.write(txt)
+            sys.stdout.flush()
+
+
 app.add_command(list)
 app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
 app.add_command(uninstall)
 app.add_command(get_values)
+app.add_command(logs)

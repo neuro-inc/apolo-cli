@@ -56,6 +56,7 @@
 		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
+		* [apolo app logs](#apolo-app-logs)
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo app-template](#apolo-app-template)
@@ -1418,6 +1419,7 @@ Name | Description|
 | _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
+| _[apolo app logs](#apolo-app-logs)_| Print the logs for an app |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
 
@@ -1489,6 +1491,30 @@ Name | Description|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app logs
+
+Print the logs for an app.
+
+**Usage:**
+
+```bash
+apolo app logs [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_--since DATE\_OR_TIMEDELTA_|Only return logs after a specific date \(including). Use value of format '1d2h3m4s' to specify moment in past relatively to current time.|
+|_--timestamps_|Include timestamps on each line in the log output.|
 
 
 
