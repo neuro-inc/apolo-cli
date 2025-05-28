@@ -1,12 +1,68 @@
-requires = ["setuptools>=51", "wheel>=0.36"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "apolo-cli"
+version = "25.5.0"
+description = "Apolo Platform client"
+authors = [
+    {name = "Apolo Team", email = "dev@apolo.us"}
+]
+license = {text = "Apache-2.0"}
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: Apache Software License"
+]
+dependencies = [
+    "python-jose>=3.0.0",
+    "python-dateutil>=2.7.0",
+    "click>=8.0",
+    "humanize>=3.3",
+    "certifi",
+    "wcwidth>=0.1.7",
+    "prompt-toolkit>=3.0.13",
+    "rich>=11.0.0",
+    "jedi>=0.16",
+    "async-timeout>=4.0.0; python_version<'3.11'"
+]
 
-[tool.black]
-exclude = '''
-/(
-      \.git
-    | venv
-    | __pycache__
-    | \.tox
-)/
-'''
+[project.urls]
+Homepage = "https://github.com/neuro-inc/platform-client-python"
+Repository = "https://github.com/neuro-inc/platform-client-python"
+Documentation = "https://github.com/neuro-inc/platform-client-python"
+
+[project.scripts]
+apolo = "apolo_cli.main:main"
+neuro = "apolo_cli.main:main"
+docker-credential-apolo = "apolo_cli.docker_credential_helper:main"
+docker-credential-neuro = "apolo_cli.docker_credential_helper:main"
+
+[project.entry-points."apolo_api"]
+apolo-cli = "apolo_cli.plugin:setup"
+
+[tool.poetry]
+name = "apolo-cli"
+version = "25.5.0"
+description = "Apolo Platform client"
+packages = [{include = "apolo_cli", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+apolo-sdk = {path = "../apolo-sdk", develop = true}
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

@@ -13,8 +13,8 @@ help:
 	@grep -hE '^[a-zA-Z_-]+:[^#]*?### .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: setup init
-setup init: _init-cli-help update-deps ### Setup the project
-	pip install -U pip
+setup init: _init-cli-help ### Setup the project
+	poetry install --with dev,ci,doc
 	rm -rf .mypy_cache
 	pre-commit install
 
@@ -23,16 +23,16 @@ _init-cli-help:
 
 .PHONY: update-deps
 update-deps: ### Update dependencies
-	pip install -r requirements/dev.txt
+	poetry update
 	touch .update-deps
 
-.update-deps: $(shell find requirements -type f)
-	pip install -r requirements/dev.txt
+.update-deps: pyproject.toml poetry.lock
+	poetry install --with dev,ci,doc
 	touch .update-deps
 
 .PHONY: .e2e
 .e2e:
-	COLUMNS=160 LINES=75 pytest \
+	COLUMNS=160 LINES=75 poetry run pytest \
 		-n ${PYTEST_XDIST_NUM_THREADS} \
 		--dist loadgroup \
 		-m "e2e" \
@@ -50,7 +50,7 @@ e2e: .update-deps .e2e ### Run end-to-end tests
 
 .PHONY: .test
 .test-sdk:
-	pytest \
+	poetry run pytest \
 		-m "not e2e" \
 		--cov=apolo-sdk \
 		--cov-report term-missing:skip-covered \
@@ -64,7 +64,7 @@ test-sdk: .update-deps .test-sdk ### Run unit tests
 
 .PHONY: .test
 .test-cli:
-	pytest \
+	poetry run pytest \
 		-m "not e2e" \
 		--cov=apolo-cli \
 		--cov-report term-missing:skip-covered \
@@ -78,7 +78,7 @@ test-cli: .update-deps .test-cli ### Run unit tests
 
 .PHONY: test-all
 test-all: .update-deps ### Run all tests
-	pytest \
+	poetry run pytest \
 		--cov=apolo-sdk/apolo_sdk --cov=apolo-cli/apolo_cli \
 		--cov-report term-missing:skip-covered \
 		--cov-report xml:coverage.xml \
@@ -88,20 +88,21 @@ test-all: .update-deps ### Run all tests
 .PHONY: format fmt
 format fmt: ### Reformat source files and run linters
 ifdef CI_LINT_RUN
-	pre-commit run --all-files --show-diff-on-failure
+	poetry run pre-commit run --all-files --show-diff-on-failure
 else
-	pre-commit run --all-files
+	poetry run pre-commit run --all-files
 endif
 
 
 .PHONY: lint
 lint: fmt ### Reformat files, run linters and mypy checks
-	mypy apolo-sdk --show-error-codes
-	mypy apolo-cli --show-error-codes
+	poetry run mypy apolo-sdk --show-error-codes
+	poetry run mypy apolo-cli --show-error-codes
 
 .PHONY: publish-lint
 publish-lint: ### Check for publishing safety
-	twine check dist/*
+	poetry check -C apolo-sdk
+	poetry check -C apolo-cli
 
 
 .PHONY: clean
@@ -113,9 +114,9 @@ clean: ### Cleanup temporary files
 
 .PHONY: docs
 docs: ### Generate CLI docs
-	build-tools/cli-help-generator.py CLI.in.md CLI.md
+	poetry run python build-tools/cli-help-generator.py CLI.in.md CLI.md
 	markdown-toc -t github -h 6 CLI.md
-	build-tools/site-help-generator.py
+	poetry run python build-tools/site-help-generator.py
 
 
 .PHONY: api-doc
@@ -127,3 +128,19 @@ api-doc: ### Generate API docs
 api-doc-spelling: ### Spell check API docs
 	make -C apolo-sdk/docs spelling SPHINXOPTS="-W -E"
 	@echo "open file://`pwd`/apolo-sdk/docs/_build/html/index.html"
+
+.PHONY: build
+build: ### Build distribution packages
+	rm -rf dist/
+	poetry build -C apolo-sdk
+	poetry build -C apolo-cli
+
+.PHONY: publish
+publish: build publish-lint ### Publish to PyPI
+	poetry publish -C apolo-sdk
+	poetry publish -C apolo-cli
+
+.PHONY: publish-test
+publish-test: build publish-lint ### Publish to Test PyPI
+	poetry publish -C apolo-sdk -r testpypi
+	poetry publish -C apolo-cli -r testpypi

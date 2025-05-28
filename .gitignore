@@ -27,3 +27,9 @@ apolo-sdk/docs/_build
 coverage.xml
 pip-wheel-metadata
 venv
+
+# Poetry
+poetry.lock
+apolo-sdk/poetry.lock
+apolo-cli/poetry.lock
+dist/
