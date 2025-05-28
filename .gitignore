@@ -1,3 +1,4 @@
+# Poetry
 **/__pycache__
 *.egg-info
 *.orig
@@ -20,16 +21,14 @@
 apolo-cli/build
 apolo-cli/dist
 apolo-cli/dist-neuro
+apolo-cli/poetry.lock
 apolo-sdk/build
 apolo-sdk/dist
 apolo-sdk/dist-neuro
 apolo-sdk/docs/_build
-coverage.xml
-pip-wheel-metadata
-venv
-
-# Poetry
-poetry.lock
 apolo-sdk/poetry.lock
-apolo-cli/poetry.lock
+coverage.xml
 dist/
+pip-wheel-metadata
+poetry.lock
+venv
