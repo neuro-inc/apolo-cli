@@ -252,6 +252,7 @@ class JobDescription:
     privileged: bool = False
     priority: JobPriority = JobPriority.NORMAL
     energy_schedule_name: Optional[str] = None
+    namespace: Optional[str] = None
     _internal: JobDescriptionInternal = JobDescriptionInternal()
 
 
@@ -1091,6 +1092,7 @@ def _job_description_from_api(res: Dict[str, Any], parse: Parser) -> JobDescript
         priority=priority,
         energy_schedule_name=res.get("energy_schedule_name"),
         project_name=res.get("project_name", owner),
+        namespace=res.get("namespace"),
         _internal=JobDescriptionInternal(
             materialized=res.get("materialized", False),
             being_dropped=res.get("being_dropped", False),
