@@ -615,6 +615,7 @@ def make_job(
         project_name=project_name,
         cluster_name=cluster_name,
         org_name=org_name or "NO_ORG",
+        namespace="",
         id=job_id,
         name=name,
         uri=URL(f"job://{cluster_name}/{owner}/{job_id}"),
