@@ -5,6 +5,14 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.6.0 (2025-06-02)
+
+### Misc
+
+- [#3262](https://github.com/neuro-inc/apolo-cli/issues/3262)
+- Extend a `JobDescription` object with the job `namespace` property
+
+
 # Apolo SDK/CLI 25.5.0 (2025-05-15)
 
 ### Features
