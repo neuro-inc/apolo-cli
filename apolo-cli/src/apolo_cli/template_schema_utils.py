@@ -22,10 +22,10 @@ def _resolve_ref(
 def _generate_example_value(
     prop_schema: Dict[str, Any],
     prop_name: str,
-    root_schema: Dict[str, Any] = None,
-    parent_map: CommentedMap = None,
+    root_schema: Optional[Dict[str, Any]] = None,
+    parent_map: Optional[CommentedMap] = None,
     indent_level: int = 0,
-    _visited_refs: Optional[set] = None,
+    _visited_refs: Optional[set[str]] = None,
 ) -> Any:
     """Generate example values from JSON schema with comments."""
     if _visited_refs is None:
@@ -261,7 +261,7 @@ def _generate_sample_from_schema(
 
     # Otherwise, process properties if they exist
     if with_comments:
-        result = CommentedMap()
+        result: CommentedMap = CommentedMap()
     else:
         result = {}
 
@@ -271,7 +271,7 @@ def _generate_sample_from_schema(
                 prop_schema,
                 prop_name,
                 schema,
-                result if with_comments else None,
+                result if with_comments and isinstance(result, CommentedMap) else None,
                 indent_level,
             )
 
