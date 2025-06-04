@@ -1,5 +1,5 @@
 import io
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
@@ -256,10 +256,11 @@ def _generate_sample_from_schema(
         return _generate_example_value(schema, "root", schema, None, indent_level)
 
     # Otherwise, process properties if they exist
+    result: Union[CommentedMap, Dict[str, Any]]
     if with_comments:
-        result: CommentedMap = CommentedMap()
+        result = CommentedMap()
     else:
-        result: Dict[str, Any] = {}
+        result = {}
 
     if "properties" in schema:
         for prop_name, prop_schema in schema["properties"].items():
