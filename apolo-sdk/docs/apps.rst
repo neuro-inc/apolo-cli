@@ -41,6 +41,17 @@ Apps
       :param str org_name: org to list template versions. Default is current org.
       :param str project_name: project to list template versions. Default is current project.
 
+   .. method:: get_template(name: str, version: Optional[str] = None, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AppTemplate
+      :async:
+
+      Get complete metadata for a specific app template.
+
+      :param str name: The name of the app template.
+      :param str version: The version of the app template. Default is "latest".
+      :param str cluster_name: cluster to get template from. Default is current cluster.
+      :param str org_name: org to get template from. Default is current org.
+      :param str project_name: project to get template from. Default is current project.
+
    .. method:: get_values(app_id: Optional[str] = None, value_type: Optional[str] = None, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppValue]]
       :async:
 

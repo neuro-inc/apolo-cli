@@ -13,7 +13,7 @@ Application Templates operations.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_get_](app-template.md#get) | Get complete metadata for an app template |
+| [_get_](app-template.md#get) | Generate payload for 'app install' with... |
 | [_list_](app-template.md#list) | List available application templates |
 | [_list-versions_](app-template.md#list-versions) | List app template versions |
 | [_ls_](app-template.md#ls) | Alias to list |
@@ -22,7 +22,7 @@ Application Templates operations.
 
 ### get
 
-Get complete metadata for an app template
+Generate payload for 'app install' with...
 
 
 #### Usage
@@ -31,12 +31,7 @@ Get complete metadata for an app template
 apolo app-template get [OPTIONS] NAME
 ```
 
-Get complete metadata for an app template.
-
-When used with -o yaml and -f
-options, creates a configuration file
-that can be edited and used with 'apolo
-app install'.
+Generate payload for 'app install' with sample data.
 
 #### Options
 

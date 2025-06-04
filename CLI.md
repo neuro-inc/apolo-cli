@@ -1585,7 +1585,7 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app-template get](#apolo-app-template-get)_| Get complete metadata for an app template |
+| _[apolo app-template get](#apolo-app-template-get)_| Generate payload for 'app install' with sample data |
 | _[apolo app-template list](#apolo-app-template-list)_| List available application templates |
 | _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| List app template versions |
 | _[apolo app-template ls](#apolo-app-template-ls)_| Alias to list |
@@ -1596,7 +1596,7 @@ Name | Description|
 
 ### apolo app-template get
 
-Get complete metadata for an app template.<br/><br/>When used with \-o yaml and -f options, creates a configuration file that can<br/>be edited and used with 'apolo app install'.
+Generate payload for 'app install' with sample data.
 
 **Usage:**
 

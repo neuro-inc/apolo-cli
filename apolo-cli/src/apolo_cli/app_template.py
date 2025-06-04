@@ -168,10 +168,7 @@ async def get(
     project: Optional[str],
 ) -> None:
     """
-    Get complete metadata for an app template.
-
-    When used with -o yaml and -f options, creates a configuration file
-    that can be edited and used with 'apolo app install'.
+    Generate payload for 'app install' with sample data.
     """
     with root.status(f"Fetching app template '{name}'"):
         template = await root.client.apps.get_template(
