@@ -358,9 +358,9 @@ def test_app_template_get_json_format(run_cli: _RunCli) -> None:
         capture = run_cli(["app-template", "get", "stable-diffusion", "-o", "json"])
 
     assert not capture.err
-    assert '"name": "stable-diffusion"' in capture.out
-    assert '"version": "master"' in capture.out
-    assert '"title": "Stable Diffusion"' in capture.out
+    assert '"template_name": "stable-diffusion"' in capture.out
+    assert '"template_version": "master"' in capture.out
+    assert '"input":' in capture.out
     assert capture.code == 0
 
 
