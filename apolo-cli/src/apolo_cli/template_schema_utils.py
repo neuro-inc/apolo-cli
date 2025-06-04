@@ -307,9 +307,9 @@ def _generate_yaml_from_schema(schema: Dict[str, Any], name: str, version: str) 
     stream.write("# Fill in the values below to configure your application.\n")
     stream.write("# To use values from another app, use the following format:\n")
     stream.write("# my_param:\n")
-    stream.write("#   type: \"app-instance-ref\"\n")
-    stream.write("#   instance_id: \"<app-instance-id>\"\n")
-    stream.write("#   param_name: \"<param-name-from-other-app>\"\n")
+    stream.write('#   type: "app-instance-ref"\n')
+    stream.write('#   instance_id: "<app-instance-id>"\n')
+    stream.write('#   param_name: "<param-name-from-other-app>"\n')
     stream.write("\n")
 
     # Dump the YAML
