@@ -253,17 +253,13 @@ def _generate_sample_from_schema(
     """Generate sample data from JSON schema, optionally with comments."""
     # If the schema itself defines an object type, process it directly
     if schema.get("type") == "object":
-        if with_comments:
-            result = CommentedMap()
-            return _generate_example_value(schema, "root", schema, None, indent_level)
-        else:
-            return _generate_example_value(schema, "root", schema, None, indent_level)
+        return _generate_example_value(schema, "root", schema, None, indent_level)
 
     # Otherwise, process properties if they exist
     if with_comments:
         result: CommentedMap = CommentedMap()
     else:
-        result = {}
+        result: Dict[str, Any] = {}
 
     if "properties" in schema:
         for prop_name, prop_schema in schema["properties"].items():
