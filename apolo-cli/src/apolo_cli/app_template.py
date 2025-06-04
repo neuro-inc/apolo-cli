@@ -168,7 +168,7 @@ async def get(
     project: Optional[str],
 ) -> None:
     """
-    Generate payload for 'app install' with sample data.
+    Generate payload for 'app install'.
     """
     with root.status(f"Fetching app template '{name}'"):
         template = await root.client.apps.get_template(
@@ -179,30 +179,27 @@ async def get(
             project_name=project,
         )
 
-    sample_input = {}
+    basic_template = {
+        "template_name": template.name,
+        "template_version": template.version,
+        "input": {},
+    }
+
     if output_format.lower() == "yaml":
         if template.input:
             content = _generate_yaml_from_schema(
                 template.input, template.name, template.version
             )
         else:
-            basic_template = {
-                "template_name": template.name,
-                "template_version": template.version,
-                "input": {},
-            }
             content = yaml.dump(basic_template, default_flow_style=False)
     elif output_format.lower() == "json":
-        template_dict = {
-            "name": template.name,
-            "title": template.title,
-            "version": template.version,
-            "short_description": template.short_description,
-            "description": template.description,
-            "tags": template.tags,
-            "input": sample_input,
-        }
-        content = json.dumps(template_dict, indent=2)
+        if template.input:
+            yaml_content = _generate_yaml_from_schema(
+                template.input, template.name, template.version
+            )
+            content = json.dumps(yaml.safe_load(yaml_content), indent=2)
+        else:
+            content = json.dumps(basic_template, indent=2)
     else:
         root.print(f"Unknown output format: {output_format}")
         exit(1)

@@ -1585,7 +1585,7 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app-template get](#apolo-app-template-get)_| Generate payload for 'app install' with sample data |
+| _[apolo app-template get](#apolo-app-template-get)_| Generate payload for 'app install' |
 | _[apolo app-template list](#apolo-app-template-list)_| List available application templates |
 | _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| List app template versions |
 | _[apolo app-template ls](#apolo-app-template-ls)_| Alias to list |
@@ -1596,7 +1596,7 @@ Name | Description|
 
 ### apolo app-template get
 
-Generate payload for 'app install' with sample data.
+Generate payload for 'app install'.
 
 **Usage:**
 

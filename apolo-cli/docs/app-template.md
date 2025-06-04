@@ -13,7 +13,7 @@ Application Templates operations.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
-| [_get_](app-template.md#get) | Generate payload for 'app install' with... |
+| [_get_](app-template.md#get) | Generate payload for 'app install' |
 | [_list_](app-template.md#list) | List available application templates |
 | [_list-versions_](app-template.md#list-versions) | List app template versions |
 | [_ls_](app-template.md#ls) | Alias to list |
@@ -22,7 +22,7 @@ Application Templates operations.
 
 ### get
 
-Generate payload for 'app install' with...
+Generate payload for 'app install'
 
 
 #### Usage
@@ -31,7 +31,7 @@ Generate payload for 'app install' with...
 apolo app-template get [OPTIONS] NAME
 ```
 
-Generate payload for 'app install' with sample data.
+Generate payload for 'app install'.
 
 #### Options
 
