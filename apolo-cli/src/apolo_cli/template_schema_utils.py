@@ -303,7 +303,6 @@ def _generate_yaml_from_schema(schema: Dict[str, Any], name: str, version: str) 
 
     # Add header comments
     stream.write(f"# Application template configuration for: {name}\n")
-    stream.write(f"# Version: {version}\n")
     stream.write("# Fill in the values below to configure your application.\n")
     stream.write("# To use values from another app, use the following format:\n")
     stream.write("# my_param:\n")
