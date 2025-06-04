@@ -60,6 +60,7 @@
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo app-template](#apolo-app-template)
+		* [apolo app-template get](#apolo-app-template-get)
 		* [apolo app-template list](#apolo-app-template-list)
 		* [apolo app-template list-versions](#apolo-app-template-list-versions)
 		* [apolo app-template ls](#apolo-app-template-ls)
@@ -1584,10 +1585,36 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
+| _[apolo app-template get](#apolo-app-template-get)_| Get complete metadata for an app template |
 | _[apolo app-template list](#apolo-app-template-list)_| List available application templates |
 | _[apolo app\-template list-versions](#apolo-app-template-list-versions)_| List app template versions |
 | _[apolo app-template ls](#apolo-app-template-ls)_| Alias to list |
 | _[apolo app\-template ls-versions](#apolo-app-template-ls-versions)_| Alias to list-versions |
+
+
+
+
+### apolo app-template get
+
+Get complete metadata for an app template.<br/><br/>When used with \-o yaml and -f options, creates a configuration file that can<br/>be edited and used with 'apolo app install'.
+
+**Usage:**
+
+```bash
+apolo app-template get [OPTIONS] NAME
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_\-f, --file TEXT_|Save output to a file instead of displaying it.|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_\-o, --output TEXT_|Output format \(yaml, json). Default is yaml.|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_\-V, --version TEXT_|Specify the version of the app template \(latest if not specified).|
 
 
 

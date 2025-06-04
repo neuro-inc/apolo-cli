@@ -478,3 +478,90 @@ async def test_apps_logs(
                 logs.append(chunk)
 
         assert logs == test_log_messages
+
+
+@pytest.fixture
+def app_template_details_payload() -> dict[str, Any]:
+    return {
+        "name": "stable-diffusion",
+        "title": "Stable Diffusion",
+        "version": "master",
+        "short_description": "AI image generation model",
+        "description": (
+            "A detailed description of the Stable Diffusion application template"
+        ),
+        "tags": ["ai", "image-generation"],
+        "input": {
+            "type": "object",
+            "properties": {
+                "http": {
+                    "type": "object",
+                    "properties": {
+                        "port": {"type": "integer", "default": 8080},
+                        "host": {"type": "string", "default": "localhost"},
+                    },
+                },
+                "name": {"type": "string"},
+            },
+        },
+    }
+
+
+async def test_apps_get_template(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_template_details_payload: dict[str, Any],
+) -> None:
+    template_name = "stable-diffusion"
+
+    async def handler(request: web.Request) -> web.Response:
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        # Check if version is specified in path
+        if request.path.endswith("/1.0.0"):
+            template_path = f"{base_path}/templates/{template_name}/1.0.0"
+        else:
+            template_path = f"{base_path}/templates/{template_name}/latest"
+        assert request.path == template_path
+
+        return web.json_response(app_template_details_payload)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    # Add routes for both latest and specific version
+    web_app.router.add_get(f"{base_path}/templates/{template_name}/latest", handler)
+    web_app.router.add_get(f"{base_path}/templates/{template_name}/1.0.0", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        # Test without version
+        template = await client.apps.get_template(
+            name=template_name,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert template.name == "stable-diffusion"
+        assert template.title == "Stable Diffusion"
+        assert template.version == "master"
+        assert template.short_description == "AI image generation model"
+        assert (
+            template.description
+            == "A detailed description of the Stable Diffusion application template"
+        )
+        assert template.tags == ["ai", "image-generation"]
+        assert template.input is not None
+        assert template.input["type"] == "object"
+        assert "properties" in template.input
+
+        # Test with version
+        template = await client.apps.get_template(
+            name=template_name,
+            version="1.0.0",
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert template.name == "stable-diffusion"
+        assert template.version == "master"

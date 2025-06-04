@@ -13,10 +13,43 @@ Application Templates operations.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
+| [_get_](app-template.md#get) | Get complete metadata for an app template |
 | [_list_](app-template.md#list) | List available application templates |
 | [_list-versions_](app-template.md#list-versions) | List app template versions |
 | [_ls_](app-template.md#ls) | Alias to list |
 | [_ls-versions_](app-template.md#ls-versions) | Alias to list-versions |
+
+
+### get
+
+Get complete metadata for an app template
+
+
+#### Usage
+
+```bash
+apolo app-template get [OPTIONS] NAME
+```
+
+Get complete metadata for an app template.
+
+When used with -o yaml and -f
+options, creates a configuration file
+that can be edited and used with 'apolo
+app install'.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _-f, --file TEXT_ | Save output to a file instead of displaying it. |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _-o, --output TEXT_ | Output format \(yaml, json\). Default is yaml. |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-V, --version TEXT_ | Specify the version of the app template \(latest if not specified\). |
+
 
 
 ### list
