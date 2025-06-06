@@ -170,7 +170,7 @@ async def get(
     """
     Generate payload for 'app install'.
     """
-    with root.status(f"Fetching app template '{name}'"):
+    with root.status(f"Fetching app template [bold]{name}[/bold]"):
         template = await root.client.apps.get_template(
             name=name,
             version=version,
