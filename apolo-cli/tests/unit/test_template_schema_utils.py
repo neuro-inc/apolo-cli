@@ -16,7 +16,10 @@ class TestResolveRef:
             "definitions": {
                 "person": {
                     "type": "object",
-                    "properties": {"name": {"type": "string"}, "age": {"type": "integer"}},
+                    "properties": {
+                        "name": {"type": "string"},
+                        "age": {"type": "integer"},
+                    },
                 }
             }
         }
@@ -110,7 +113,10 @@ class TestGenerateExampleValue:
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {"name": {"type": "string"}, "value": {"type": "integer"}},
+                "properties": {
+                    "name": {"type": "string"},
+                    "value": {"type": "integer"},
+                },
             },
         }
         result = _generate_example_value(prop_schema, "test_prop")
@@ -360,8 +366,8 @@ class TestGenerateYamlFromSchema:
 
         assert "# Application template configuration for: comment-test" in result
         assert "# Fill in the values below to configure your application." in result
-        assert '# To use values from another app, use the following format:' in result
-        assert '# my_param:' in result
+        assert "# To use values from another app, use the following format:" in result
+        assert "# my_param:" in result
         assert '#   type: "app-instance-ref"' in result
         assert '#   instance_id: "<app-instance-id>"' in result
         assert '#   param_name: "<param-name-from-other-app>"' in result

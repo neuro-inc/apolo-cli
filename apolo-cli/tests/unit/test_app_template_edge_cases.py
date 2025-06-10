@@ -118,12 +118,16 @@ def test_app_template_get_quiet_mode_with_file(run_cli: _RunCli) -> None:
         input={"type": "object", "properties": {"name": {"type": "string"}}},
     )
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as tmp_file:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".yaml"
+    ) as tmp_file:
         temp_path = tmp_file.name
 
     try:
         with mock_apps_get_template(template):
-            capture = run_cli(["-q", "app-template", "get", "test-app", "-f", temp_path])
+            capture = run_cli(
+                ["-q", "app-template", "get", "test-app", "-f", temp_path]
+            )
 
         assert not capture.err
         # In quiet mode, should not see the "Template saved to" message
@@ -143,10 +147,11 @@ def test_app_template_get_quiet_mode_with_file(run_cli: _RunCli) -> None:
 
 def test_app_template_ls_with_cluster_option(run_cli: _RunCli) -> None:
     """Test the app_template ls command with cluster option."""
-    from apolo_sdk import AppTemplate
-    from apolo_sdk._apps import Apps
     from contextlib import asynccontextmanager
     from typing import AsyncIterator
+
+    from apolo_sdk import AppTemplate
+    from apolo_sdk._apps import Apps
 
     templates = [
         AppTemplate(
@@ -184,10 +189,11 @@ def test_app_template_ls_with_cluster_option(run_cli: _RunCli) -> None:
 
 def test_app_template_ls_with_org_and_project_options(run_cli: _RunCli) -> None:
     """Test the app_template ls command with org and project options."""
-    from apolo_sdk import AppTemplate
-    from apolo_sdk._apps import Apps
     from contextlib import asynccontextmanager
     from typing import AsyncIterator
+
+    from apolo_sdk import AppTemplate
+    from apolo_sdk._apps import Apps
 
     templates = [
         AppTemplate(
@@ -216,11 +222,20 @@ def test_app_template_ls_with_org_and_project_options(run_cli: _RunCli) -> None:
         with mock.patch("apolo_cli.click_types.ORG.convert") as org_convert_mock:
             org_convert_mock.return_value = "test-org"
 
-            with mock.patch("apolo_cli.click_types.PROJECT.convert") as proj_convert_mock:
+            with mock.patch(
+                "apolo_cli.click_types.PROJECT.convert"
+            ) as proj_convert_mock:
                 proj_convert_mock.return_value = "test-project"
 
                 capture = run_cli(
-                    ["app-template", "ls", "--org", "test-org", "--project", "test-project"]
+                    [
+                        "app-template",
+                        "ls",
+                        "--org",
+                        "test-org",
+                        "--project",
+                        "test-project",
+                    ]
                 )
 
     assert not capture.err
@@ -243,7 +258,9 @@ def test_app_template_get_with_all_options(run_cli: _RunCli) -> None:
         },
     )
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as tmp_file:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".json"
+    ) as tmp_file:
         temp_path = tmp_file.name
 
     try:
@@ -254,7 +271,9 @@ def test_app_template_get_with_all_options(run_cli: _RunCli) -> None:
                 with mock.patch("apolo_cli.click_types.ORG.convert") as org_mock:
                     org_mock.return_value = "test-org"
 
-                    with mock.patch("apolo_cli.click_types.PROJECT.convert") as proj_mock:
+                    with mock.patch(
+                        "apolo_cli.click_types.PROJECT.convert"
+                    ) as proj_mock:
                         proj_mock.return_value = "test-project"
 
                         capture = run_cli(
