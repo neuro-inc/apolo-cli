@@ -19,6 +19,8 @@ class AppTemplate:
     version: str
     short_description: str = ""
     tags: List[str] = field(default_factory=list)
+    input: Optional[dict[str, Any]] = None
+    description: str = ""
 
 
 @rewrite_module
@@ -231,6 +233,8 @@ class Apps(metaclass=NoPublicConstructor):
                     title=item.get("title", ""),
                     short_description=item.get("short_description", ""),
                     tags=item.get("tags", []),
+                    input=None,
+                    description="",
                 )
 
     @asyncgeneratorcontextmanager
@@ -273,7 +277,57 @@ class Apps(metaclass=NoPublicConstructor):
                     title=item.get("title", ""),
                     short_description=item.get("short_description", ""),
                     tags=item.get("tags", []),
+                    input=None,
+                    description="",
                 )
+
+    async def get_template(
+        self,
+        name: str,
+        version: Optional[str] = None,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AppTemplate:
+        """Get detailed information for a specific app template.
+
+        Args:
+            name: The name of the app template
+            version: Optional version of the template (latest if not specified)
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            An AppTemplate object with complete template information
+        """
+        if version is None:
+            version = "latest"
+
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "templates"
+            / name
+            / version
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            data = await resp.json()
+
+            return AppTemplate(
+                name=data.get("name", name),
+                title=data.get("title", ""),
+                version=data.get("version", ""),
+                short_description=data.get("short_description", ""),
+                tags=data.get("tags", []),
+                input=data.get("input"),
+                description=data.get("description", ""),
+            )
 
     @asyncgeneratorcontextmanager
     async def logs(

@@ -197,9 +197,10 @@ def test_file_autocomplete_root(run_autocomplete: _RunAC) -> None:
 
 @skip_on_windows
 def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
-    with mock.patch.object(Storage, "stat") as mocked_stat, mock.patch.object(
-        Storage, "list"
-    ) as mocked_list:
+    with (
+        mock.patch.object(Storage, "stat") as mocked_stat,
+        mock.patch.object(Storage, "list") as mocked_list,
+    ):
         tree = {
             URL("storage://default/"): ["test-user", "other-user"],
             URL("storage://default/NO_ORG"): ["test-user", "other-user"],
@@ -316,11 +317,11 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
 
 @skip_on_windows
 def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
-    with mock.patch.object(Buckets, "list") as mocked_list, mock.patch.object(
-        Buckets, "blob_is_dir"
-    ) as mocked_blob_is_dir, mock.patch.object(
-        Buckets, "list_blobs"
-    ) as mocked_list_blobs:
+    with (
+        mock.patch.object(Buckets, "list") as mocked_list,
+        mock.patch.object(Buckets, "blob_is_dir") as mocked_blob_is_dir,
+        mock.patch.object(Buckets, "list_blobs") as mocked_list_blobs,
+    ):
 
         @asyncgeneratorcontextmanager
         async def list(cluster_name: str) -> AsyncIterator[Bucket]:
@@ -1124,9 +1125,10 @@ def test_nonascii_image_autocomplete(run_autocomplete: _RunAC) -> None:
 
 @skip_on_windows
 def test_image_tag_autocomplete(run_autocomplete: _RunAC) -> None:
-    with mock.patch.object(Images, "list") as mocked_list, mock.patch.object(
-        Images, "tags"
-    ) as mocked_tags:
+    with (
+        mock.patch.object(Images, "list") as mocked_list,
+        mock.patch.object(Images, "tags") as mocked_tags,
+    ):
         image = RemoteImage.new_platform_image(
             name="library/bananas",
             registry="registry-api.dev.apolo.us",
@@ -1588,3 +1590,5 @@ def test_app_template_autocomplete(run_autocomplete: _RunAC) -> None:
     zsh_out, bash_out = run_autocomplete(["app-template", ""])
     assert "ls" in bash_out
     assert "ls" in zsh_out
+    assert "get" in bash_out
+    assert "get" in zsh_out

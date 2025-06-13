@@ -1,3 +1,4 @@
+import tempfile
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
@@ -25,6 +26,8 @@ def mock_apps_list_template_versions(
                         title=f"{template_name} {version}",
                         short_description=f"Version {version} of {template_name}",
                         tags=[],
+                        input=None,
+                        description="",
                     )
 
             yield async_iterator()
@@ -50,6 +53,18 @@ def mock_apps_list_templates(templates: List[AppTemplate]) -> Iterator[None]:
         yield
 
 
+@contextmanager
+def mock_apps_get_template(template: AppTemplate) -> Iterator[None]:
+    """Context manager to mock the Apps.get_template method."""
+    with mock.patch.object(Apps, "get_template") as mocked:
+
+        async def async_func(**kwargs: Any) -> AppTemplate:
+            return template
+
+        mocked.side_effect = async_func
+        yield
+
+
 def test_app_template_ls_with_templates(run_cli: _RunCli) -> None:
     """Test the app_template ls command when templates are returned."""
     templates = [
@@ -59,6 +74,8 @@ def test_app_template_ls_with_templates(run_cli: _RunCli) -> None:
             version="master",
             short_description="AI image generation model",
             tags=["ai", "image", "generation"],
+            input=None,
+            description="",
         ),
         AppTemplate(
             name="jupyter-notebook",
@@ -66,6 +83,8 @@ def test_app_template_ls_with_templates(run_cli: _RunCli) -> None:
             version="1.0.0",
             short_description="Interactive computing environment",
             tags=["jupyter", "notebook", "python"],
+            input=None,
+            description="",
         ),
     ]
 
@@ -100,6 +119,8 @@ def test_app_template_ls_quiet_mode(run_cli: _RunCli) -> None:
             version="master",
             short_description="AI image generation model",
             tags=["ai", "image", "generation"],
+            input=None,
+            description="",
         ),
         AppTemplate(
             name="jupyter-notebook",
@@ -107,6 +128,8 @@ def test_app_template_ls_quiet_mode(run_cli: _RunCli) -> None:
             version="1.0.0",
             short_description="Interactive computing environment",
             tags=["jupyter", "notebook", "python"],
+            input=None,
+            description="",
         ),
     ]
 
@@ -203,4 +226,200 @@ def test_app_template_ls_versions_with_cluster_option(run_cli: _RunCli) -> None:
 
     assert not capture.err
     assert "1.0.0" in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_get_table_format(run_cli: _RunCli) -> None:
+    """Test the app_template get command with yaml format (default)."""
+    template = AppTemplate(
+        name="stable-diffusion",
+        title="Stable Diffusion",
+        version="master",
+        short_description="AI image generation model",
+        description="A detailed description of Stable Diffusion",
+        tags=["ai", "image-generation"],
+        input={
+            "type": "object",
+            "properties": {
+                "http": {
+                    "type": "object",
+                    "properties": {
+                        "port": {"type": "integer", "default": 8080},
+                        "host": {"type": "string", "default": "localhost"},
+                    },
+                }
+            },
+        },
+    )
+
+    with mock_apps_get_template(template):
+        capture = run_cli(["app-template", "get", "stable-diffusion"])
+
+    assert not capture.err
+    assert "template_name: stable-diffusion" in capture.out
+    assert "template_version: master" in capture.out
+    assert "# Application template configuration for: stable-diffusion" in capture.out
+    assert "port: 8080" in capture.out
+    assert "host: localhost" in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_get_yaml_format(run_cli: _RunCli) -> None:
+    """Test the app_template get command with YAML format."""
+    template = AppTemplate(
+        name="test-ping",
+        title="Test Ping",
+        version="latest",
+        short_description="Simple ping test",
+        description="",
+        tags=[],
+        input={
+            "type": "object",
+            "properties": {
+                "http": {
+                    "type": "object",
+                    "properties": {
+                        "port": {"type": "integer", "default": 8081},
+                        "host": {"type": "string", "default": "test"},
+                    },
+                }
+            },
+        },
+    )
+
+    with mock_apps_get_template(template):
+        capture = run_cli(["app-template", "get", "test-ping", "-o", "yaml"])
+
+    assert not capture.err
+    assert "template_name: test-ping" in capture.out
+    assert "template_version: latest" in capture.out
+    assert "port: 8081" in capture.out
+    assert "host: test" in capture.out
+    assert "# Application template configuration for: test-ping" in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_get_yaml_format_dockerhub(run_cli: _RunCli) -> None:
+    """Test the app_template get command with YAML format for dockerhub-like schema."""
+    template = AppTemplate(
+        name="dockerhub",
+        title="DockerHub",
+        version="v25.5.0",
+        short_description="Access images from your private DockerHub repositories",
+        description="",
+        tags=[],
+        input={
+            "type": "object",
+            "properties": {
+                "dockerhub": {
+                    "type": "object",
+                    "properties": {
+                        "username": {"type": "string"},
+                        "password": {"type": "string"},
+                        "registry": {
+                            "type": "string",
+                            "default": "https://index.docker.io/v1/",
+                        },
+                    },
+                    "required": ["username", "password"],
+                }
+            },
+            "required": ["dockerhub"],
+        },
+    )
+
+    with mock_apps_get_template(template):
+        capture = run_cli(["app-template", "get", "dockerhub", "-o", "yaml"])
+
+    assert not capture.err
+    assert "template_name: dockerhub" in capture.out
+    assert "template_version: v25.5.0" in capture.out
+    # Check that dockerhub is properly nested
+    assert "dockerhub:" in capture.out
+    assert "username: ''" in capture.out
+    assert "password: ''" in capture.out
+    assert "registry: https://index.docker.io/v1/" in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_get_json_format(run_cli: _RunCli) -> None:
+    """Test the app_template get command with JSON format."""
+    template = AppTemplate(
+        name="stable-diffusion",
+        title="Stable Diffusion",
+        version="master",
+        short_description="AI image generation model",
+        description="A detailed description",
+        tags=["ai"],
+        input={"type": "object", "properties": {}},
+    )
+
+    with mock_apps_get_template(template):
+        capture = run_cli(["app-template", "get", "stable-diffusion", "-o", "json"])
+
+    assert not capture.err
+    assert '"template_name": "stable-diffusion"' in capture.out
+    assert '"template_version": "master"' in capture.out
+    assert '"input":' in capture.out
+    assert capture.code == 0
+
+
+def test_app_template_get_with_file_output(run_cli: _RunCli) -> None:
+    """Test the app_template get command with file output."""
+    template = AppTemplate(
+        name="test-app",
+        title="Test Application",
+        version="1.0.0",
+        short_description="Test app",
+        description="",
+        tags=[],
+        input={"type": "object", "properties": {"name": {"type": "string"}}},
+    )
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".yaml"
+    ) as tmp_file:
+        temp_path = tmp_file.name
+
+    try:
+        with mock_apps_get_template(template):
+            capture = run_cli(
+                ["app-template", "get", "test-app", "-o", "yaml", "-f", temp_path]
+            )
+
+        assert not capture.err
+        assert f"Template saved to {temp_path}" in capture.out
+        assert capture.code == 0
+
+        # Check file content
+        with open(temp_path) as f:
+            content = f.read()
+            assert "template_name: test-app" in content
+            assert "template_version: 1.0.0" in content
+    finally:
+        import os
+
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+
+
+def test_app_template_get_with_version(run_cli: _RunCli) -> None:
+    """Test the app_template get command with specific version."""
+    template = AppTemplate(
+        name="stable-diffusion",
+        title="Stable Diffusion",
+        version="2.0.0",
+        short_description="Version 2.0",
+        description="",
+        tags=[],
+        input=None,
+    )
+
+    with mock_apps_get_template(template):
+        capture = run_cli(["app-template", "get", "stable-diffusion", "-V", "2.0.0"])
+
+    assert not capture.err
+    assert "template_name: stable-diffusion" in capture.out
+    assert "template_version: 2.0.0" in capture.out
+    assert "input: {}" in capture.out
     assert capture.code == 0
