@@ -371,4 +371,4 @@ class TestGenerateYamlFromSchema:
         assert "# my_param:" in result
         assert '#   type: "app-instance-ref"' in result
         assert '#   instance_id: "<app-instance-id>"' in result
-        assert '#   param_name: "<param-name-from-other-app>"' in result
+        assert '#   param_path: "<param-name-from-other-app>"' in result
