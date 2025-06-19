@@ -305,7 +305,7 @@ def _generate_yaml_from_schema(schema: Dict[str, Any], name: str, version: str) 
     stream.write("# my_param:\n")
     stream.write('#   type: "app-instance-ref"\n')
     stream.write('#   instance_id: "<app-instance-id>"\n')
-    stream.write('#   param_path: "<path-from-get-values-response>"\n')
+    stream.write('#   path: "<path-from-get-values-response>"\n')
     stream.write("\n")
 
     # Dump the YAML
