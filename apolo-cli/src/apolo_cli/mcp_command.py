@@ -11,5 +11,5 @@ from .utils import command
 async def mcp(root: Root) -> None:
     """Start MCP server for AI agent integration."""
     from .main import cli
-    
+
     await run_mcp_server(cli)

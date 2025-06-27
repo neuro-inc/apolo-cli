@@ -39,7 +39,9 @@ class ApoloMCPServer:
                 return [TextContent(type="text", text=f"Error: {str(e)}")]
 
     def _generate_tools(self) -> None:
-        def _process_command(cmd: click.Command, path: str = "", is_root: bool = False) -> None:
+        def _process_command(
+            cmd: click.Command, path: str = "", is_root: bool = False
+        ) -> None:
             # Don't include the root CLI name in the tool name
             if is_root:
                 full_name = ""
@@ -57,7 +59,8 @@ class ApoloMCPServer:
                     schema = self._generate_schema(cmd)
                     tool = Tool(
                         name=full_name,
-                        description=cmd.help or f"Execute {full_name.replace('_', ' ')} command",
+                        description=cmd.help
+                        or f"Execute {full_name.replace('_', ' ')} command",
                         inputSchema=schema,
                     )
                     self.tools[full_name] = tool
@@ -117,12 +120,16 @@ class ApoloMCPServer:
                     # Try converting underscores to hyphens for commands like service-account
                     hyphenated_part = part.replace("_", "-")
                     found_cmd = cmd.get_command(None, hyphenated_part)
-                
+
                 cmd = found_cmd
                 if cmd is None:
-                    raise ValueError(f"Command not found: {name} (failed at part: {part})")
+                    raise ValueError(
+                        f"Command not found: {name} (failed at part: {part})"
+                    )
             else:
-                raise ValueError(f"Invalid command path: {name} (reached non-group at: {part})")
+                raise ValueError(
+                    f"Invalid command path: {name} (reached non-group at: {part})"
+                )
 
         if cmd is None:
             raise ValueError(f"Command not found: {name}")
@@ -146,11 +153,11 @@ class ApoloMCPServer:
                     else:
                         args.append(str(value))
 
-        from io import StringIO
         import contextlib
+        from io import StringIO
 
         output = StringIO()
-        
+
         try:
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
                 ctx = click.Context(self.cli_group)
@@ -171,7 +178,7 @@ class ApoloMCPServer:
                     iso_datetime_format=False,
                     ctx=ctx,
                 )
-                
+
                 result = await self._run_command_with_args(cmd_parts + args, ctx)
                 return output.getvalue() or str(result)
         except Exception as e:
@@ -182,7 +189,7 @@ class ApoloMCPServer:
 
     async def _run_command_with_args(self, args: List[str], ctx: click.Context) -> Any:
         from .main import cli
-        
+
         try:
             with click.Context(cli, obj=ctx.obj) as new_ctx:
                 return await asyncio.to_thread(cli.main, args, standalone_mode=False)
