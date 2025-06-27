@@ -11,6 +11,7 @@
 | [_apolo logout_](shortcuts.md#logout) | Log out |
 | [_apolo logs_](shortcuts.md#logs) | Print the logs for a job |
 | [_apolo ls_](shortcuts.md#ls) | List directory contents |
+| [_apolo mcp_](shortcuts.md#mcp) | Start MCP server for AI agent integration |
 | [_apolo mkdir_](shortcuts.md#mkdir) | Make directories |
 | [_apolo mv_](shortcuts.md#mv) | Move or rename files and directories |
 | [_apolo port-forward_](shortcuts.md#port-forward) | Forward port\(s\) of a job |
@@ -306,6 +307,27 @@ By default `PATH` is equal project's dir (storage:)
 | _-h, --human-readable_ | with -l print human readable sizes \(e.g., 2K, 540M\). |
 | _-a, --all_ | do not ignore entries starting with . |
 | _--sort \[name &#124; size &#124; time\]_ | sort by given field, default is name. |
+
+
+
+### mcp
+
+Start MCP server for AI agent integration
+
+
+#### Usage
+
+```bash
+apolo mcp [OPTIONS]
+```
+
+Start `MCP` server for AI agent integration.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
 
 
 

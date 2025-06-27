@@ -1592,3 +1592,11 @@ def test_app_template_autocomplete(run_autocomplete: _RunAC) -> None:
     assert "ls" in zsh_out
     assert "get" in bash_out
     assert "get" in zsh_out
+
+
+@skip_on_windows
+def test_mcp_autocomplete(run_autocomplete: _RunAC) -> None:
+    # Test mcp command completion
+    zsh_out, bash_out = run_autocomplete(["mc"])
+    assert "mcp" in bash_out
+    assert "mcp" in zsh_out
