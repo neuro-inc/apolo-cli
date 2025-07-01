@@ -22,6 +22,26 @@ Apps
       :param str org_name: org to list applications. Default is current org.
       :param str project_name: project to list applications. Default is current project.
 
+   .. method:: install(app_data: dict, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> App
+      :async:
+
+      Install a new application instance from template data.
+
+      :param dict app_data: Dictionary containing application installation data.
+      :param str cluster_name: cluster to install application. Default is current cluster.
+      :param str org_name: org to install application. Default is current org.
+      :param str project_name: project to install application. Default is current project.
+
+   .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> None
+      :async:
+
+      Uninstall an application instance.
+
+      :param str app_id: The ID of the application instance to uninstall.
+      :param str cluster_name: cluster where the application is deployed. Default is current cluster.
+      :param str org_name: org where the application is deployed. Default is current org.
+      :param str project_name: project where the application is deployed. Default is current project.
+
    .. method:: list_templates(cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppTemplate]]
       :async:
 
@@ -74,6 +94,26 @@ Apps
       :param str project_name: Project where the app is deployed. Default is current project.
       :param datetime since: Optional timestamp to start logs from.
       :param bool timestamps: Include timestamps in the logs output.
+
+   .. method:: install(app_data: dict, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> App
+      :async:
+
+      Install a new application instance from template data.
+
+      :param dict app_data: Dictionary containing application installation data.
+      :param str cluster_name: cluster to install application. Default is current cluster.
+      :param str org_name: org to install application. Default is current org.
+      :param str project_name: project to install application. Default is current project.
+
+   .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> None
+      :async:
+
+      Uninstall an application instance.
+
+      :param str app_id: The ID of the application instance to uninstall.
+      :param str cluster_name: cluster where the application is deployed. Default is current cluster.
+      :param str org_name: org where the application is deployed. Default is current org.
+      :param str project_name: project where the application is deployed. Default is current project.
 
 ===
 
