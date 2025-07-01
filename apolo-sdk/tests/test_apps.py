@@ -92,14 +92,14 @@ async def test_apps_install(
 
     async def handler(request: web.Request) -> web.Response:
         response_data = {
-                "id": "id",
-                "name": "name",
-                "display_name": "display_name",
-                "template_name": "template_name",
-                "template_version": "template_version",
-                "project_name": "project_name",
-                "org_name": "org_name",
-                "state": "state",
+            "id": "id",
+            "name": "name",
+            "display_name": "display_name",
+            "template_name": "template_name",
+            "template_version": "template_version",
+            "project_name": "project_name",
+            "org_name": "org_name",
+            "state": "state",
         }
         assert request.method == "POST"
         url = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
