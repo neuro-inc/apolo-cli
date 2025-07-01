@@ -95,7 +95,7 @@ async def test_apps_install(
         url = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
         assert request.path == url
         assert await request.json() == app_data
-        return web.Response(status=201)
+        return web.Response(status=201, content_type="application/json")
 
     web_app = web.Application()
     web_app.router.add_post(
