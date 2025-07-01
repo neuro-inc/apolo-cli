@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.7.0 (2025-07-01)
+
+### Features
+
+- Added new command `apolo app-template get` - get app template installation payload with sample values ([#3268](https://github.com/neuro-inc/apolo-cli/issues/3268))
+
+
 # Apolo SDK/CLI 25.6.0 (2025-06-02)
 
 ### Misc
