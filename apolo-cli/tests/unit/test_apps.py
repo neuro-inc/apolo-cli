@@ -30,8 +30,17 @@ def mock_apps_install() -> Iterator[None]:
     """Context manager to mock the Apps.install method."""
     with mock.patch.object(Apps, "install") as mocked:
 
-        async def install(**kwargs: Any) -> str:
-            return "app-123"
+        async def install(**kwargs: Any) -> App:
+            return App(
+                id="app-123",
+                name="test-app-1",
+                display_name="Test App 1",
+                template_name="test-template",
+                template_version="1.0",
+                project_name="test-project",
+                org_name="test-org",
+                state="running",
+            )
 
         mocked.side_effect = install
         yield
