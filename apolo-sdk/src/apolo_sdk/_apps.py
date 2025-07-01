@@ -136,6 +136,7 @@ class Apps(metaclass=NoPublicConstructor):
 
         auth = await self._config._api_auth()
         async with self._core.request("POST", url, json=app_data, auth=auth) as resp:
+            resp.raise_for_status()
             item = await resp.json()
             return App(
                 id=item.get("id"),
