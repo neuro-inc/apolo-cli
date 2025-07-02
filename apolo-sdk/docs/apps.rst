@@ -95,16 +95,6 @@ Apps
       :param datetime since: Optional timestamp to start logs from.
       :param bool timestamps: Include timestamps in the logs output.
 
-   .. method:: install(app_data: dict, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> App
-      :async:
-
-      Install a new application instance from template data.
-
-      :param dict app_data: Dictionary containing application installation data.
-      :param str cluster_name: cluster to install application. Default is current cluster.
-      :param str org_name: org to install application. Default is current org.
-      :param str project_name: project to install application. Default is current project.
-
    .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> None
       :async:
 
