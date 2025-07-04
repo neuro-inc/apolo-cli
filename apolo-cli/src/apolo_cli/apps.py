@@ -145,18 +145,23 @@ async def install(
     """
     Install an app from a YAML file.
     """
+    if root.quiet:
+        apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
+    else:
+        apps_fmtr = AppsFormatter()
 
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
     try:
         with root.status(f"Installing app from [bold]{file_path}[/bold]"):
-            await root.client.apps.install(
+            resp = await root.client.apps.install(
                 app_data=app_data,
                 cluster_name=cluster,
                 org_name=org,
                 project_name=project,
             )
+            root.print(apps_fmtr([resp]))
     except IllegalArgumentError as e:
         if e.payload and e.payload.get("errors") and root.verbosity >= 0:
             root.print("[red]Input validation error:[/red]", markup=True)
@@ -168,7 +173,7 @@ async def install(
         raise e
 
     if not root.quiet:
-        root.print(f"App installed from [bold]{file_path}[/bold]", markup=True)
+        root.print(f"App installed from [bold]{file_path}[/bold].", markup=True)
 
 
 @command()

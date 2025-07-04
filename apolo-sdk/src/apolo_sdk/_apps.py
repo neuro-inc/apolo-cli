@@ -124,7 +124,7 @@ class Apps(metaclass=NoPublicConstructor):
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
-    ) -> None:
+    ) -> App:
         url = (
             self._build_base_url(
                 cluster_name=cluster_name,
@@ -135,8 +135,19 @@ class Apps(metaclass=NoPublicConstructor):
         )
 
         auth = await self._config._api_auth()
-        async with self._core.request("POST", url, json=app_data, auth=auth):
-            pass
+        async with self._core.request("POST", url, json=app_data, auth=auth) as resp:
+            resp.raise_for_status()
+            item = await resp.json()
+            return App(
+                id=item.get("id"),
+                name=item.get("name"),
+                display_name=item.get("display_name"),
+                template_name=item.get("template_name"),
+                template_version=item.get("template_version"),
+                project_name=item.get("project_name"),
+                org_name=item.get("org_name"),
+                state=item.get("state"),
+            )
 
     async def uninstall(
         self,
