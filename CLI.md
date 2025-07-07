@@ -153,6 +153,7 @@
 	* [apolo logout](#apolo-logout)
 	* [apolo logs](#apolo-logs)
 	* [apolo ls](#apolo-ls)
+	* [apolo mcp](#apolo-mcp)
 	* [apolo mkdir](#apolo-mkdir)
 	* [apolo mv](#apolo-mv)
 	* [apolo port-forward](#apolo-port-forward)
@@ -227,6 +228,7 @@ Name | Description|
 | _[apolo logout](#apolo-logout)_| Log out |
 | _[apolo logs](#apolo-logs)_| Print the logs for a job |
 | _[apolo ls](#apolo-ls)_| List directory contents |
+| _[apolo mcp](#apolo-mcp)_| Start MCP server for AI agent integration |
 | _[apolo mkdir](#apolo-mkdir)_| Make directories |
 | _[apolo mv](#apolo-mv)_| Move or rename files and directories |
 | _[apolo port-forward](#apolo-port-forward)_| Forward port\(s) of a job |
@@ -4011,6 +4013,25 @@ Name | Description|
 |_\-h, --human-readable_|with -l print human readable sizes \(e.g., 2K, 540M).|
 |_\-a, --all_|do not ignore entries starting with .|
 |_--sort \[name &#124; size &#124; time]_|sort by given field, default is name.|
+
+
+
+
+## apolo mcp
+
+Start MCP server for AI agent integration.
+
+**Usage:**
+
+```bash
+apolo mcp [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
 
 
 

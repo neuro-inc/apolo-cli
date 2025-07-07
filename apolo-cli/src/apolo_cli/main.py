@@ -307,6 +307,7 @@ CMD_MAP = {
     "service-account": "apolo_cli.service_accounts:service_account",
     "app": "apolo_cli.apps:app",
     "app-template": "apolo_cli.app_template:app_template",
+    "mcp": "apolo_cli.mcp_command:mcp",
     # shortcuts
     "run": "apolo_cli.job:run",
     "ps": "apolo_cli.job:ls",
