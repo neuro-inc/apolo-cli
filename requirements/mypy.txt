@@ -4,6 +4,6 @@ markdown-toc==1.2.6
 mypy==1.16.1
 pre-commit==4.2.0
 types-certifi==2021.10.8.3
-types-python-dateutil==2.9.0.20250516
+types-python-dateutil==2.9.0.20250708
 types-PyYAML==6.0.12.20250516
 types-toml==0.10.8.20240310
