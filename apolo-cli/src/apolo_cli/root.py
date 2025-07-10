@@ -199,10 +199,14 @@ class Root:
 
     def _create_trace_config(self) -> aiohttp.TraceConfig:
         trace_config = aiohttp.TraceConfig()
-        trace_config.on_request_start.append(self._on_request_start)
-        trace_config.on_request_chunk_sent.append(self._on_request_chunk_sent)
-        trace_config.on_request_end.append(self._on_request_end)
-        trace_config.on_response_chunk_received.append(self._on_response_chunk_received)
+        trace_config.on_request_start.append(self._on_request_start)  # type: ignore
+        trace_config.on_request_chunk_sent.append(
+            self._on_request_chunk_sent  # type: ignore
+        )
+        trace_config.on_request_end.append(self._on_request_end)  # type: ignore
+        trace_config.on_response_chunk_received.append(
+            self._on_response_chunk_received  # type: ignore
+        )
         return trace_config
 
     def _print_trace(self, lines: List[str]) -> None:

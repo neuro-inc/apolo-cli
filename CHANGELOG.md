@@ -5,6 +5,17 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.7.1 (2025-07-10)
+
+### Features
+
+- Use AppsFormatter to print information about the app being currently installed such as App Instance ID, App Name and Template Name ([#3285](https://github.com/neuro-inc/apolo-cli/issues/3285))
+
+### Bugfixes
+
+- Consider a new default botocore behavior related to a checksum calculation. Fixes `blob` CRUD commands. ([#3292](https://github.com/neuro-inc/apolo-cli/issues/3292))
+
+
 # Apolo SDK/CLI 25.7.0 (2025-07-01)
 
 ### Features
