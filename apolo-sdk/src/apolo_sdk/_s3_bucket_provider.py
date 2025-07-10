@@ -4,11 +4,13 @@ from email.utils import parsedate_to_datetime
 from typing import Any, AsyncIterator, Awaitable, Callable, Mapping, Optional, Union
 
 import aiobotocore.session
+import botocore
 import botocore.exceptions
 import certifi
 from aiobotocore.client import AioBaseClient
 from aiobotocore.config import AioConfig
 from aiobotocore.credentials import AioCredentials, AioRefreshableCredentials
+from packaging.version import parse
 
 from ._bucket_base import (
     BlobCommonPrefix,
@@ -21,6 +23,12 @@ from ._bucket_base import (
 )
 from ._errors import ResourceNotFound
 from ._utils import asyncgeneratorcontextmanager
+
+# Content-MD5 hash is no longer populated since this version,
+# so we should adjust our config a bit to continue a population
+# of checksum which is required by the MiniO
+VERSION_BOTOCORE_CHECKSUM_CALCULATION = parse("1.36.0")
+CHECKSUM_CALCULATE_WHEN_REQUIRED = "WHEN_REQUIRED"
 
 
 class S3Provider(MeasureTimeDiffMixin, BucketProvider):
@@ -78,7 +86,16 @@ class S3Provider(MeasureTimeDiffMixin, BucketProvider):
                 secret_key=initial_credentials.credentials["secret_access_key"],
             )
 
-        config = AioConfig(max_pool_connections=100)
+        config_kwargs: dict[str, int | str] = {"max_pool_connections": 100}
+        if parse(botocore.__version__) >= VERSION_BOTOCORE_CHECKSUM_CALCULATION:
+            config_kwargs.update(
+                {
+                    "request_checksum_calculation": CHECKSUM_CALCULATE_WHEN_REQUIRED,
+                    "response_checksum_validation": CHECKSUM_CALCULATE_WHEN_REQUIRED,
+                }
+            )
+
+        config = AioConfig(**config_kwargs)
 
         async with session.create_client(
             "s3",

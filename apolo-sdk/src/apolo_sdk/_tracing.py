@@ -70,5 +70,5 @@ async def _on_request_start(
 
 def _make_trace_config() -> aiohttp.TraceConfig:
     trace_config = aiohttp.TraceConfig()
-    trace_config.on_request_start.append(_on_request_start)
+    trace_config.on_request_start.append(_on_request_start)  # type: ignore
     return trace_config
