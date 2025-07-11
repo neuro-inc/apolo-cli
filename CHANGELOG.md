@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.7.1 (2025-07-11)
+
+### Misc
+
+- [#3297](https://github.com/neuro-inc/apolo-cli/issues/3297)
+
+
 # Apolo SDK/CLI 25.7.1 (2025-07-10)
 
 ### Features
