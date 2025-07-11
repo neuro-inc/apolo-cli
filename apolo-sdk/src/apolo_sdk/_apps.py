@@ -299,7 +299,7 @@ class Apps(metaclass=NoPublicConstructor):
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
-    ) -> AppTemplate:
+    ) -> Optional[AppTemplate]:
         """Get detailed information for a specific app template.
 
         Args:
@@ -328,7 +328,11 @@ class Apps(metaclass=NoPublicConstructor):
 
         auth = await self._config._api_auth()
         async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
             data = await resp.json()
+
+            if data is None:
+                return None
 
             return AppTemplate(
                 name=data.get("name", name),

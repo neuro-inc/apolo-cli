@@ -179,6 +179,10 @@ async def get(
             project_name=project,
         )
 
+    if template is None:
+        root.print(f"[red]ERROR:[/red] App template '{name}' not found", markup=True)
+        exit(1)
+
     basic_template = {
         "template_name": template.name,
         "template_version": template.version,
