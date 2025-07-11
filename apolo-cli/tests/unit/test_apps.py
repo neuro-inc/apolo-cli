@@ -194,13 +194,13 @@ def test_app_get_values_with_values(run_cli: _RunCli) -> None:
     """Test the app get-values command when values are returned."""
     values = [
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_internal_api",
             value={"url": "http://internal-api:8080"},
         ),
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_external_api",
             value={"url": "https://api.example.com"},
@@ -222,7 +222,7 @@ def test_app_get_values_with_app_id(run_cli: _RunCli) -> None:
     """Test the app get-values command with app ID filter."""
     values = [
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_internal_api",
             value={"url": "http://internal-api:8080"},
@@ -241,7 +241,7 @@ def test_app_get_values_with_type_filter(run_cli: _RunCli) -> None:
     """Test the app get-values command with type filter."""
     values = [
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_internal_api",
             value={"url": "http://internal-api:8080"},
@@ -271,13 +271,13 @@ def test_app_get_values_quiet_mode(run_cli: _RunCli) -> None:
     """Test the app get-values command in quiet mode."""
     values = [
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_internal_api",
             value={"url": "http://internal-api:8080"},
         ),
         AppValue(
-            app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+            instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
             type="dict",
             path="chat_external_api",
             value={"url": "https://api.example.com"},
