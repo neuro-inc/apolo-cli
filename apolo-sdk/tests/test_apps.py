@@ -551,6 +551,7 @@ async def test_apps_get_template(
             project_name="test3",
         )
 
+        assert template is not None
         assert template.name == "stable-diffusion"
         assert template.title == "Stable Diffusion"
         assert template.version == "master"
@@ -573,5 +574,6 @@ async def test_apps_get_template(
             project_name="test3",
         )
 
+        assert template is not None
         assert template.name == "stable-diffusion"
         assert template.version == "master"
