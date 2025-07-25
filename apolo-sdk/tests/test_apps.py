@@ -577,3 +577,31 @@ async def test_apps_get_template(
         assert template is not None
         assert template.name == "stable-diffusion"
         assert template.version == "master"
+
+
+async def test_apps_get_template_not_found(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    template_name = "nonexistent-template"
+
+    async def handler(request: web.Request) -> web.Response:
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        template_path = f"{base_path}/templates/{template_name}/latest"
+        assert request.path == template_path
+        return web.json_response(None)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(f"{base_path}/templates/{template_name}/latest", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        template = await client.apps.get_template(
+            name=template_name,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert template is None
