@@ -309,7 +309,6 @@ def _generate_yaml_from_schema(
     stream.write('#   instance_id: "<app-instance-id>"\n')
     stream.write('#   path: "<path-from-get-values-response>"\n')
 
-    # Add yaml-language-server schema comment
     schema_url = f"{base_url}/apis/apps/v2/templates/{name}/{version}/schema"
     stream.write(f"# yaml-language-server: $schema={schema_url}\n")
 

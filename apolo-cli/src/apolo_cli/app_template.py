@@ -185,7 +185,6 @@ async def get(
         "input": {},
     }
 
-    # Get base URL for schema
     base_url = str(root.client.config.api_url.with_path(""))
 
     if output_format.lower() == "yaml":
