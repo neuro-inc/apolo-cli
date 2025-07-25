@@ -275,7 +275,9 @@ def _generate_sample_from_schema(
     return result
 
 
-def _generate_yaml_from_schema(schema: Dict[str, Any], name: str, version: str) -> str:
+def _generate_yaml_from_schema(
+    schema: Dict[str, Any], name: str, version: str, base_url: str
+) -> str:
     """Generate YAML from JSON schema with examples and comments."""
     # Initialize ruamel.yaml
     yaml_obj = YAML()
@@ -306,6 +308,10 @@ def _generate_yaml_from_schema(schema: Dict[str, Any], name: str, version: str) 
     stream.write('#   type: "app-instance-ref"\n')
     stream.write('#   instance_id: "<app-instance-id>"\n')
     stream.write('#   path: "<path-from-get-values-response>"\n')
+
+    schema_url = f"{base_url}/apis/apps/v2/templates/{name}/{version}/schema"
+    stream.write(f"# yaml-language-server: $schema={schema_url}\n")
+
     stream.write("\n")
 
     # Dump the YAML

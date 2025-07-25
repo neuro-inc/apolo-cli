@@ -291,7 +291,9 @@ class TestGenerateYamlFromSchema:
                 "param2": {"type": "integer"},
             }
         }
-        result = _generate_yaml_from_schema(schema, "test-template", "1.0.0")
+        result = _generate_yaml_from_schema(
+            schema, "test-template", "1.0.0", "https://api.test.com"
+        )
 
         assert "# Application template configuration for: test-template" in result
         assert "template_name: test-template" in result
@@ -319,7 +321,9 @@ class TestGenerateYamlFromSchema:
                 }
             }
         }
-        result = _generate_yaml_from_schema(schema, "db-app", "2.0.0")
+        result = _generate_yaml_from_schema(
+            schema, "db-app", "2.0.0", "https://api.test.com"
+        )
 
         yaml_obj = YAML()
         parsed = yaml_obj.load(result)
@@ -346,7 +350,9 @@ class TestGenerateYamlFromSchema:
                 }
             }
         }
-        result = _generate_yaml_from_schema(schema, "server-list", "1.0.0")
+        result = _generate_yaml_from_schema(
+            schema, "server-list", "1.0.0", "https://api.test.com"
+        )
 
         yaml_obj = YAML()
         parsed = yaml_obj.load(result)
@@ -355,7 +361,9 @@ class TestGenerateYamlFromSchema:
 
     def test_empty_schema(self) -> None:
         schema: Dict[str, Any] = {}
-        result = _generate_yaml_from_schema(schema, "empty-template", "1.0.0")
+        result = _generate_yaml_from_schema(
+            schema, "empty-template", "1.0.0", "https://api.test.com"
+        )
 
         assert "template_name: empty-template" in result
         assert "template_version: 1.0.0" in result
@@ -363,7 +371,9 @@ class TestGenerateYamlFromSchema:
 
     def test_header_comments(self) -> None:
         schema = {"properties": {"param": {"type": "string"}}}
-        result = _generate_yaml_from_schema(schema, "comment-test", "1.0.0")
+        result = _generate_yaml_from_schema(
+            schema, "comment-test", "1.0.0", "https://api.test.com"
+        )
 
         assert "# Application template configuration for: comment-test" in result
         assert "# Fill in the values below to configure your application." in result
@@ -372,3 +382,8 @@ class TestGenerateYamlFromSchema:
         assert '#   type: "app-instance-ref"' in result
         assert '#   instance_id: "<app-instance-id>"' in result
         assert '#   path: "<path-from-get-values-response>"' in result
+        expected_schema_url = (
+            "# yaml-language-server: $schema=https://api.test.com/apis/apps/v2/"
+            "templates/comment-test/1.0.0/schema"
+        )
+        assert expected_schema_url in result

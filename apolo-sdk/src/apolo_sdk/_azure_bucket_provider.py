@@ -4,11 +4,12 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from io import BytesIO
-from typing import Any, AsyncIterator, Awaitable, Callable, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Optional, Tuple, Union, cast
 
+from azure.core.async_paging import AsyncItemPaged
 from azure.core.credentials import AzureSasCredential
 from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobBlock
+from azure.storage.blob import BlobBlock, BlobProperties
 from azure.storage.blob.aio import ContainerClient
 from azure.storage.blob.aio._list_blobs_helper import BlobPrefix
 from dateutil.parser import isoparse
@@ -98,7 +99,10 @@ class AzureProvider(MeasureTimeDiffMixin, BucketProvider):
         self, prefix: str, recursive: bool = False, limit: Optional[int] = None
     ) -> AsyncIterator[BucketEntry]:
         if recursive:
-            it = self._client.list_blobs(prefix)
+            it = cast(
+                AsyncItemPaged[Union[BlobProperties, BlobPrefix]],
+                self._client.list_blobs(prefix),
+            )
         else:
             it = self._client.walk_blobs(prefix)
         count = 0

@@ -185,17 +185,19 @@ async def get(
         "input": {},
     }
 
+    base_url = str(root.client.config.api_url.with_path(""))
+
     if output_format.lower() == "yaml":
         if template.input:
             content = _generate_yaml_from_schema(
-                template.input, template.name, template.version
+                template.input, template.name, template.version, base_url
             )
         else:
             content = yaml.dump(basic_template, default_flow_style=False)
     elif output_format.lower() == "json":
         if template.input:
             yaml_content = _generate_yaml_from_schema(
-                template.input, template.name, template.version
+                template.input, template.name, template.version, base_url
             )
             content = json.dumps(yaml.safe_load(yaml_content), indent=2)
         else:
