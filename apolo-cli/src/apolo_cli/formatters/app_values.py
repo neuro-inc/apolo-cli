@@ -24,7 +24,7 @@ class SimpleAppValuesFormatter(BaseAppValuesFormatter):
                 else value.value
             )
             table.add_row(
-                f"{value.app_instance_id}:{value.type}:{value.path}:{formatted_value}"
+                f"{value.instance_id}:{value.type}:{value.path}:{formatted_value}"
             )
         return table
 
@@ -44,7 +44,7 @@ class AppValuesFormatter(BaseAppValuesFormatter):
                 else value.value
             )
             table.add_row(
-                value.app_instance_id,
+                value.instance_id,
                 value.type,
                 value.path,
                 str(formatted_value) if formatted_value is not None else "",
