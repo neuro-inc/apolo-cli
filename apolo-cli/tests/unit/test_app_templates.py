@@ -65,6 +65,18 @@ def mock_apps_get_template(template: AppTemplate) -> Iterator[None]:
         yield
 
 
+@contextmanager
+def mock_apps_get_template_none() -> Iterator[None]:
+    """Context manager to mock the Apps.get_template method returning None."""
+    with mock.patch.object(Apps, "get_template") as mocked:
+
+        async def async_func(**kwargs: Any) -> None:
+            return None
+
+        mocked.side_effect = async_func
+        yield
+
+
 def test_app_template_ls_with_templates(run_cli: _RunCli) -> None:
     """Test the app_template ls command when templates are returned."""
     templates = [
@@ -423,3 +435,13 @@ def test_app_template_get_with_version(run_cli: _RunCli) -> None:
     assert "template_version: 2.0.0" in capture.out
     assert "input: {}" in capture.out
     assert capture.code == 0
+
+
+def test_app_template_get_not_found(run_cli: _RunCli) -> None:
+    """Test the app_template get command when template is not found."""
+    with mock_apps_get_template_none():
+        capture = run_cli(["app-template", "get", "nonexistent-template"])
+
+    assert capture.err == ""
+    assert "ERROR: App template 'nonexistent-template' not found" in capture.out
+    assert capture.code == 1
