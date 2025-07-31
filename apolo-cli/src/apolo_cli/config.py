@@ -106,7 +106,8 @@ async def _show_browser(url: URL) -> None:
         )
     else:
         root.print(
-            "[dim]Your browser has been opened to visit:[/dim]\n" "    [b]{url}[/b]"
+            f"[dim]Your browser has been opened to visit:[/dim] [b]{url}[/b]",
+            markup=True,
         )
 
 
