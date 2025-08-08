@@ -5,6 +5,18 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.8.0 (2025-08-08)
+
+### Features
+
+- Add yaml language server comment to app generation template. ([#3304](https://github.com/neuro-inc/apolo-cli/issues/3304))
+
+### Bugfixes
+
+- Handle wrong template name. ([#3296](https://github.com/neuro-inc/apolo-cli/issues/3296))
+- Fix markup for *login* command. ([#3307](https://github.com/neuro-inc/apolo-cli/issues/3307))
+
+
 # Apolo SDK/CLI 25.7.1 (2025-07-11)
 
 ### Misc
