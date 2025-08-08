@@ -33,19 +33,19 @@ class TestAppValuesFormatter:
     def app_values(self) -> List[AppValue]:
         return [
             AppValue(
-                app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+                instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
                 type="dict",
                 path="chat_internal_api",
                 value={"url": "http://internal-api:8080"},
             ),
             AppValue(
-                app_instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
+                instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
                 type="dict",
                 path="chat_external_api",
                 value={"url": "https://api.example.com"},
             ),
             AppValue(
-                app_instance_id="a4723404-f5e2-48b5-b709-629754b5056f",
+                instance_id="a4723404-f5e2-48b5-b709-629754b5056f",
                 type="string",
                 path="api_endpoint",
                 value="https://api.example.org/v1",

@@ -26,7 +26,7 @@ class AppTemplate:
 @rewrite_module
 @dataclass(frozen=True)
 class AppValue:
-    app_instance_id: str
+    instance_id: str
     type: str
     path: str
     value: Any
@@ -211,7 +211,7 @@ class Apps(metaclass=NoPublicConstructor):
             data = await resp.json()
             for item in data["items"]:
                 yield AppValue(
-                    app_instance_id=item["app_instance_id"],
+                    instance_id=item.get("instance_id", item.get("app_instance_id")),
                     type=item["type"],
                     path=item["path"],
                     value=item.get("value"),

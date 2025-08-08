@@ -171,7 +171,7 @@ Apps
 
    *Read-only* :class:`~dataclasses.dataclass` for describing an application value.
 
-   .. attribute:: app_instance_id
+   .. attribute:: instance_id
 
       The application instance ID, :class:`str`.
 
