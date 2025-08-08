@@ -211,7 +211,7 @@ class Apps(metaclass=NoPublicConstructor):
             data = await resp.json()
             for item in data["items"]:
                 yield AppValue(
-                    instance_id=item["instance_id"],
+                    instance_id=item.get("instance_id", item.get("app_instance_id")),
                     type=item["type"],
                     path=item["path"],
                     value=item.get("value"),
