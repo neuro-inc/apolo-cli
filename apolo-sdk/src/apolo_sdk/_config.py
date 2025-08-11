@@ -33,7 +33,7 @@ from ._server_cfg import (
     _ServerConfig,
     get_server_config,
 )
-from ._utils import NoPublicConstructor, find_project_root, flat, RELOGIN_TEXT
+from ._utils import RELOGIN_TEXT, NoPublicConstructor, find_project_root, flat
 
 WIN32 = sys.platform == "win32"
 CMD_RE = re.compile("[A-Za-z][A-Za-z0-9-]*")
