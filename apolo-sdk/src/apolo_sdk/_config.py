@@ -141,9 +141,7 @@ class Config(metaclass=NoPublicConstructor):
     @property
     def cluster_name(self) -> str:
         if not self._config_data.clusters:
-            raise RuntimeError(
-                "There are no clusters available. " + RELOGIN_TEXT
-            )
+            raise RuntimeError("There are no clusters available. " + RELOGIN_TEXT)
         name = self._get_user_cluster_name()
         if name is None:
             name = self._config_data.cluster_name
@@ -244,9 +242,7 @@ class Config(metaclass=NoPublicConstructor):
                 config_authorized.clusters != self.clusters
                 or config_authorized.auth_config != self._config_data.auth_config
             ):
-                raise ConfigError(
-                    "Apolo Platform CLI was updated. " + RELOGIN_TEXT
-                )
+                raise ConfigError("Apolo Platform CLI was updated. " + RELOGIN_TEXT)
             self.__config_data = replace(self._config_data, version=__version__)
             _save(self._config_data, self._path)
 
@@ -258,8 +254,7 @@ class Config(metaclass=NoPublicConstructor):
             raise RuntimeError(
                 f"Cluster {self.cluster_name} doesn't exist in "
                 f"a list of available clusters "
-                f"{list(server_config.clusters)}. "
-                RELOGIN_TEXT
+                f"{list(server_config.clusters)}. " + RELOGIN_TEXT
             )
         self.__config_data = replace(
             self._config_data,
@@ -506,13 +501,10 @@ def _open_db_ro(
     if not path.exists():
         raise ConfigError(f"Config at {path} does not exists. Please login.")
     if not path.is_dir():
-        raise ConfigError(
-            f"Config at {path} is not a directory. " + RELOGIN_TEXT
-        )
+        raise ConfigError(f"Config at {path} is not a directory. " + RELOGIN_TEXT)
     if not config_file.is_file():
         raise ConfigError(
-            f"Config {config_file} is not a regular file. "
-            + RELOGIN_TEXT
+            f"Config {config_file} is not a regular file. " + RELOGIN_TEXT
         )
 
     if not WIN32:
