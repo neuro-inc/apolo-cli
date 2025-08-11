@@ -261,3 +261,6 @@ def queue_calls(
         return queue, _NoopProxy()
 
     return queue, Proxy()
+
+
+RELOGIN_TEXT = "Please run 'apolo logout' and then 'apolo login'."
