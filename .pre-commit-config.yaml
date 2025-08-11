@@ -17,7 +17,7 @@ repos:
     entry: make docs
     pass_filenames: false
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 'v5.0.0'
+  rev: 'v6.0.0'
   hooks:
   - id: check-merge-conflict
     exclude: "rst$"
@@ -39,7 +39,7 @@ repos:
   - id: black
     language_version: python3 # Should be a command that runs python3.6+
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 'v5.0.0'
+  rev: 'v6.0.0'
   hooks:
   - id: check-case-conflict
   - id: check-json
@@ -82,7 +82,7 @@ repos:
     - -ignore
     - 'SC1004:'
 - repo: https://github.com/sirosen/check-jsonschema
-  rev: 0.33.1
+  rev: 0.33.2
   hooks:
   - id: check-github-actions
 ci:
