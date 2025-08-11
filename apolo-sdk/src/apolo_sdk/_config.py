@@ -33,12 +33,12 @@ from ._server_cfg import (
     _ServerConfig,
     get_server_config,
 )
-from ._utils import NoPublicConstructor, find_project_root, flat
+from ._utils import RELOGIN_TEXT, NoPublicConstructor, find_project_root, flat
 
 WIN32 = sys.platform == "win32"
 CMD_RE = re.compile("[A-Za-z][A-Za-z0-9-]*")
 
-MALFORMED_CONFIG_MSG = "Malformed config. Please logout and login again."
+MALFORMED_CONFIG_MSG = "Malformed config. " + RELOGIN_TEXT
 
 
 SCHEMA = {
@@ -141,9 +141,7 @@ class Config(metaclass=NoPublicConstructor):
     @property
     def cluster_name(self) -> str:
         if not self._config_data.clusters:
-            raise RuntimeError(
-                "There are no clusters available. Please logout and login again."
-            )
+            raise RuntimeError("There are no clusters available. " + RELOGIN_TEXT)
         name = self._get_user_cluster_name()
         if name is None:
             name = self._config_data.cluster_name
@@ -222,9 +220,9 @@ class Config(metaclass=NoPublicConstructor):
             return self._config_data.clusters[cluster_name]
         except KeyError:
             if self._get_user_cluster_name() is None:
-                tip = "Please logout and login again."
+                tip = RELOGIN_TEXT
             else:
-                tip = "Please edit local user config file or logout and login again."
+                tip = "Please edit local user config file or " + RELOGIN_TEXT
             raise RuntimeError(
                 f"Cluster {cluster_name} doesn't exist in "
                 f"a list of available clusters "
@@ -244,9 +242,7 @@ class Config(metaclass=NoPublicConstructor):
                 config_authorized.clusters != self.clusters
                 or config_authorized.auth_config != self._config_data.auth_config
             ):
-                raise ConfigError(
-                    "Apolo Platform CLI was updated. Please logout and login again."
-                )
+                raise ConfigError("Apolo Platform CLI was updated. " + RELOGIN_TEXT)
             self.__config_data = replace(self._config_data, version=__version__)
             _save(self._config_data, self._path)
 
@@ -258,8 +254,7 @@ class Config(metaclass=NoPublicConstructor):
             raise RuntimeError(
                 f"Cluster {self.cluster_name} doesn't exist in "
                 f"a list of available clusters "
-                f"{list(server_config.clusters)}. "
-                f"Please logout and login again."
+                f"{list(server_config.clusters)}. " + RELOGIN_TEXT
             )
         self.__config_data = replace(
             self._config_data,
@@ -506,13 +501,10 @@ def _open_db_ro(
     if not path.exists():
         raise ConfigError(f"Config at {path} does not exists. Please login.")
     if not path.is_dir():
-        raise ConfigError(
-            f"Config at {path} is not a directory. Please logout and login again."
-        )
+        raise ConfigError(f"Config at {path} is not a directory. " + RELOGIN_TEXT)
     if not config_file.is_file():
         raise ConfigError(
-            f"Config {config_file} is not a regular file. "
-            "Please logout and login again."
+            f"Config {config_file} is not a regular file. " + RELOGIN_TEXT
         )
 
     if not WIN32:

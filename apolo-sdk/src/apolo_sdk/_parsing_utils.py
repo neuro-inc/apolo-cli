@@ -7,6 +7,7 @@ from yarl import URL
 
 from ._rewrite import rewrite_module
 from ._url_utils import _check_uri, _check_uri_str
+from ._utils import RELOGIN_TEXT
 
 
 @rewrite_module
@@ -276,7 +277,7 @@ class _ImageNameParser:
         else:
             project_name = self._default_project_name
         if cluster_name not in self._registries:
-            tip = "Please logout and login again."
+            tip = RELOGIN_TEXT
             raise RuntimeError(
                 f"Cluster {cluster_name} doesn't exist in "
                 f"a list of available clusters "
