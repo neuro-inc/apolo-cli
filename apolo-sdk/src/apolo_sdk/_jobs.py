@@ -878,14 +878,14 @@ def _resources_to_api(resources: Resources) -> Dict[str, Any]:
     }
     if resources.nvidia_gpu:
         value["nvidia_gpu"] = resources.nvidia_gpu
-    if resources.amd_gpu:
-        value["amd_gpu"] = resources.amd_gpu
-    if resources.intel_gpu:
-        value["intel_gpu"] = resources.intel_gpu
     if resources.nvidia_gpu_model:
         value["nvidia_gpu_model"] = resources.nvidia_gpu_model
+    if resources.amd_gpu:
+        value["amd_gpu"] = resources.amd_gpu
     if resources.amd_gpu_model:
         value["amd_gpu_model"] = resources.amd_gpu_model
+    if resources.intel_gpu:
+        value["intel_gpu"] = resources.intel_gpu
     if resources.intel_gpu_model:
         value["intel_gpu_model"] = resources.intel_gpu_model
     if resources.tpu_type:

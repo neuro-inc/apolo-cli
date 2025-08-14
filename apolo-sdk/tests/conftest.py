@@ -19,6 +19,14 @@ from apolo_sdk import (
     __version__,
 )
 from apolo_sdk._config import _AuthConfig, _AuthToken, _ConfigData, _save
+from apolo_sdk._server_cfg import (
+    AMDGPU,
+    AMDGPUPreset,
+    IntelGPU,
+    IntelGPUPreset,
+    NvidiaGPU,
+    NvidiaGPUPreset,
+)
 from apolo_sdk._tracing import _make_trace_config
 
 
@@ -69,7 +77,7 @@ def cluster_config() -> Cluster:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                nvidia_gpu=1,
+                nvidia_gpu=NvidiaGPU(count=1, model="nvidia-gpu", memory=10**10),
             ),
             "amd-gpu": ResourcePool(
                 min_size=0,
@@ -77,7 +85,7 @@ def cluster_config() -> Cluster:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                amd_gpu=1,
+                amd_gpu=AMDGPU(count=1, model="amd-gpu"),
             ),
             "intel-gpu": ResourcePool(
                 min_size=0,
@@ -85,7 +93,7 @@ def cluster_config() -> Cluster:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                intel_gpu=1,
+                intel_gpu=IntelGPU(count=1, model="intel-gpu"),
             ),
         },
         presets={
@@ -93,42 +101,42 @@ def cluster_config() -> Cluster:
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                nvidia_gpu=1,
+                nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-gpu", memory=10**10),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "nvidia-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                nvidia_gpu=1,
+                nvidia_gpu=NvidiaGPUPreset(count=1),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "amd-gpu-small": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                amd_gpu=1,
+                amd_gpu=AMDGPUPreset(count=1),
                 resource_pool_names=("amd-gpu",),
             ),
             "amd-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                amd_gpu=1,
+                amd_gpu=AMDGPUPreset(count=1),
                 resource_pool_names=("amd-gpu",),
             ),
             "intel-gpu-small": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                intel_gpu=1,
+                intel_gpu=IntelGPUPreset(count=1),
                 resource_pool_names=("intel-gpu",),
             ),
             "intel-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                intel_gpu=1,
+                intel_gpu=IntelGPUPreset(count=1),
                 resource_pool_names=("intel-gpu",),
             ),
             "cpu-small": Preset(
@@ -198,7 +206,9 @@ def make_client(
                         cpu=7,
                         memory=60 * 2**30,
                         disk_size=150 * 2**30,
-                        nvidia_gpu=1,
+                        nvidia_gpu=NvidiaGPU(
+                            count=1, model="nvidia-gpu", memory=10**10
+                        ),
                     ),
                     "amd-gpu": ResourcePool(
                         min_size=0,
@@ -206,7 +216,7 @@ def make_client(
                         cpu=7,
                         memory=60 * 2**30,
                         disk_size=150 * 2**30,
-                        amd_gpu=1,
+                        amd_gpu=AMDGPU(count=1, model="amd-gpu"),
                     ),
                     "intel-gpu": ResourcePool(
                         min_size=0,
@@ -214,7 +224,7 @@ def make_client(
                         cpu=7,
                         memory=60 * 2**30,
                         disk_size=150 * 2**30,
-                        intel_gpu=1,
+                        intel_gpu=IntelGPU(count=1, model="intel-gpu"),
                     ),
                 },
                 presets={
@@ -222,42 +232,44 @@ def make_client(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=30 * 2**30,
-                        nvidia_gpu=1,
+                        nvidia_gpu=NvidiaGPUPreset(
+                            count=1, model="nvidia-gpu", memory=10**10
+                        ),
                         resource_pool_names=("nvidia-gpu",),
                     ),
                     "nvidia-gpu-large": Preset(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=60 * 2**30,
-                        nvidia_gpu=1,
+                        nvidia_gpu=NvidiaGPUPreset(count=1),
                         resource_pool_names=("nvidia-gpu",),
                     ),
                     "amd-gpu-small": Preset(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=30 * 2**30,
-                        amd_gpu=1,
+                        amd_gpu=AMDGPUPreset(count=1),
                         resource_pool_names=("amd-gpu",),
                     ),
                     "amd-gpu-large": Preset(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=60 * 2**30,
-                        amd_gpu=1,
+                        amd_gpu=AMDGPUPreset(count=1),
                         resource_pool_names=("amd-gpu",),
                     ),
                     "intel-gpu-small": Preset(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=30 * 2**30,
-                        intel_gpu=1,
+                        intel_gpu=IntelGPUPreset(count=1),
                         resource_pool_names=("intel-gpu",),
                     ),
                     "intel-gpu-large": Preset(
                         credits_per_hour=Decimal("10"),
                         cpu=7,
                         memory=60 * 2**30,
-                        intel_gpu=1,
+                        intel_gpu=IntelGPUPreset(count=1),
                         resource_pool_names=("intel-gpu",),
                     ),
                     "cpu-small": Preset(

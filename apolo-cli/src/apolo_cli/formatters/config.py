@@ -128,7 +128,7 @@ def _format_presets(
     available_jobs_counts: Optional[Mapping[str, int]],
 ) -> Table:
     has_gpu = any(p.nvidia_gpu or p.amd_gpu or p.intel_gpu for p in presets.values())
-    has_tpu = any(p.tpu_type for p in presets.values())
+    has_tpu = any(p.tpu for p in presets.values())
 
     table = Table(
         title="Resource Presets:",
@@ -157,9 +157,7 @@ def _format_presets(
 
         if has_tpu:
             tpu = (
-                f"{preset.tpu_type}/{preset.tpu_software_version}"
-                if preset.tpu_type
-                else ""
+                f"{preset.tpu.type}/{preset.tpu.software_version}" if preset.tpu else ""
             )
             row.append(tpu)
         row.append("\n".join(preset.resource_pool_names))

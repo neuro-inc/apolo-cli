@@ -4,7 +4,9 @@ from typing import Callable, Optional, Protocol, Union, overload
 import humanize
 from yarl import URL
 
-from apolo_sdk import SCHEMES, Preset, RemoteImage, _NodePool
+from apolo_sdk import SCHEMES, Preset, RemoteImage, _ResourcePoolType
+
+from apolo_cli.utils import format_size
 
 NEWLINE_SEP = "\n"
 GPU_MODEL_SEP = " x "
@@ -158,7 +160,7 @@ def no() -> str:
     return "[red]×[/red]"
 
 
-def format_multiple_gpus(entity: Union[_NodePool, Preset]) -> str:
+def format_multiple_gpus(entity: Union[_ResourcePoolType, Preset]) -> str:
     """
     Constructs a GPU string from the provided `entity`.
     Each GPU make will be separated by a newline, e.g.:
@@ -168,24 +170,33 @@ def format_multiple_gpus(entity: Union[_NodePool, Preset]) -> str:
     Intel: 1
     """
     gpus = []
-    for gpu_make, gpu_count, gpu_model in (
-        ("Nvidia", entity.nvidia_gpu, entity.nvidia_gpu_model),
-        ("AMD", entity.amd_gpu, entity.amd_gpu_model),
-        ("Intel", entity.intel_gpu, entity.intel_gpu_model),
+    for gpu_make, gpu in (
+        ("Nvidia", entity.nvidia_gpu),
+        ("AMD", entity.amd_gpu),
+        ("Intel", entity.intel_gpu),
     ):
-        if not gpu_count:
+        if not gpu:
             continue
-        gpus.append(f"{gpu_make}: {format_gpu_string(gpu_count, gpu_model)}")
+        gpus.append(
+            f"{gpu_make}: {format_gpu_string(gpu.count, gpu.model, gpu.memory)}"
+        )
 
     return NEWLINE_SEP.join(gpus)
 
 
-def format_gpu_string(gpu_count: int, gpu_model: Optional[str]) -> str:
+def format_gpu_string(
+    gpu_count: int, gpu_model: Optional[str], gpu_memory: Optional[int] = None
+) -> str:
     """
     Constructs a GPU string, applying a separator if a GPU model present, e.g.:
     1 x nvidia-tesla-k80
     """
     gpu = [str(gpu_count)]
     if gpu_model:
-        gpu.append(gpu_model)
+        if gpu_memory:
+            gpu.append(f"{gpu_model} {format_size(gpu_memory)}")
+        else:
+            gpu.append(gpu_model)
+    elif gpu_memory:
+        gpu.append(format_size(gpu_memory))
     return GPU_MODEL_SEP.join(gpu)

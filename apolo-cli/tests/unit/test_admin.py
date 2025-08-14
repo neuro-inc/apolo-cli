@@ -6,6 +6,7 @@ from unittest import mock
 from apolo_sdk import (
     Preset,
     _Admin,
+    _AMDGPUPreset,
     _Balance,
     _CloudProviderOptions,
     _CloudProviderType,
@@ -13,7 +14,9 @@ from apolo_sdk import (
     _ClusterUser,
     _ClusterUserRoleType,
     _ClusterUserWithInfo,
+    _IntelGPUPreset,
     _NodePoolOptions,
+    _NvidiaGPUPreset,
     _OrgUserRoleType,
     _OrgUserWithInfo,
     _PatchNodePoolSizeRequest,
@@ -23,6 +26,12 @@ from apolo_sdk import (
     _UserInfo,
 )
 from apolo_sdk._config import Config
+from apolo_sdk._server_cfg import (
+    AMDGPUPreset,
+    IntelGPUPreset,
+    NvidiaGPUPreset,
+    TPUPreset,
+)
 
 from .conftest import SysCapWithCode
 
@@ -403,9 +412,9 @@ def test_add_resource_preset(run_cli: _RunCli) -> None:
                 credits_per_hour=Decimal("10"),
                 cpu=0.1,
                 memory=100 * 10**6,
-                nvidia_gpu=1,
-                amd_gpu=2,
-                intel_gpu=3,
+                nvidia_gpu=_NvidiaGPUPreset(count=1),
+                amd_gpu=_AMDGPUPreset(count=2),
+                intel_gpu=_IntelGPUPreset(count=3),
                 tpu=_TPUPreset(
                     type="v2-8",
                     software_version="1.14",
@@ -494,14 +503,41 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
                 credits_per_hour=p.credits_per_hour,
                 cpu=p.cpu,
                 memory=p.memory,
-                nvidia_gpu=p.nvidia_gpu,
-                amd_gpu=p.amd_gpu,
-                intel_gpu=p.intel_gpu,
-                nvidia_gpu_model=p.nvidia_gpu_model,
-                amd_gpu_model=p.amd_gpu_model,
-                intel_gpu_model=p.intel_gpu_model,
-                tpu_type=p.tpu.type if p.tpu else None,
-                tpu_software_version=p.tpu.software_version if p.tpu else None,
+                nvidia_gpu=(
+                    NvidiaGPUPreset(
+                        count=p.nvidia_gpu.count,
+                        model=p.nvidia_gpu.model,
+                        memory=p.nvidia_gpu.memory,
+                    )
+                    if p.nvidia_gpu
+                    else None
+                ),
+                amd_gpu=(
+                    AMDGPUPreset(
+                        count=p.amd_gpu.count,
+                        model=p.amd_gpu.model,
+                        memory=p.amd_gpu.memory,
+                    )
+                    if p.amd_gpu
+                    else None
+                ),
+                intel_gpu=(
+                    IntelGPUPreset(
+                        count=p.intel_gpu.count,
+                        model=p.intel_gpu.model,
+                        memory=p.intel_gpu.memory,
+                    )
+                    if p.intel_gpu
+                    else None
+                ),
+                tpu=(
+                    TPUPreset(
+                        type=p.tpu.type,
+                        software_version=p.tpu.software_version,
+                    )
+                    if p.tpu
+                    else None
+                ),
                 preemptible_node=p.preemptible_node,
                 scheduler_enabled=p.scheduler_enabled,
             )
@@ -539,16 +575,22 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
                 "100Mb",
                 "-g",
                 "1",
-                "--amd-gpu",
-                "2",
-                "--intel-gpu",
-                "3",
                 "--nvidia-gpu-model",
                 "nvidia-tesla-k80",
+                "--nvidia-gpu-memory",
+                "10Gb",
+                "--amd-gpu",
+                "2",
                 "--amd-gpu-model",
                 "instinct-mi25",
+                "--amd-gpu-memory",
+                "20Gb",
+                "--intel-gpu",
+                "3",
                 "--intel-gpu-model",
                 "flex-170",
+                "--intel-gpu-memory",
+                "30Gb",
                 "--tpu-type",
                 "v2-8",
                 "--tpu-sw-version",
@@ -564,14 +606,12 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
             memory=10**8,
             scheduler_enabled=True,
             preemptible_node=True,
-            nvidia_gpu=1,
-            amd_gpu=2,
-            intel_gpu=3,
-            nvidia_gpu_model="nvidia-tesla-k80",
-            amd_gpu_model="instinct-mi25",
-            intel_gpu_model="flex-170",
-            tpu_type="v2-8",
-            tpu_software_version="1.14",
+            nvidia_gpu=NvidiaGPUPreset(
+                count=1, model="nvidia-tesla-k80", memory=10**10
+            ),
+            amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25", memory=2 * 10**10),
+            intel_gpu=IntelGPUPreset(count=3, model="flex-170", memory=3 * 10**10),
+            tpu=TPUPreset(type="v2-8", software_version="1.14"),
         )
 
 

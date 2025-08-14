@@ -10,19 +10,17 @@ from rich.table import Column, Table
 
 from apolo_sdk import (
     _CloudProviderOptions,
-    _CloudProviderType,
     _Cluster,
     _ClusterUser,
     _ClusterUserWithInfo,
     _ConfigCluster,
-    _NodePool,
     _NodePoolOptions,
     _Org,
     _OrgCluster,
     _OrgUserWithInfo,
     _Project,
     _ProjectUserWithInfo,
-    _Storage,
+    _ResourcePoolType,
 )
 
 from apolo_cli.formatters.config import format_quota_details
@@ -192,38 +190,20 @@ class ClustersFormatter:
             )
             table.add_column()
             table.add_column(style="bold")
-            if config_cluster:
-                table.add_row("Status", config_cluster.status.capitalize())
-                if config_cluster.cloud_provider:
-                    cloud_provider = config_cluster.cloud_provider
-                    region = getattr(cloud_provider, "region", "")
-                    zones = getattr(cloud_provider, "zones", "")
-                    if cloud_provider.type != _CloudProviderType.ON_PREM:
-                        table.add_row("Cloud", cloud_provider.type)
-                    if region:
-                        table.add_row("Region", region)
-                    if zones:
-                        table.add_row("Zones", ", ".join(zones))
-                    if cloud_provider.node_pools:
-                        table.add_row(
-                            "Node pools",
-                            Styled(
-                                _format_node_pools(
-                                    cloud_provider.type, cloud_provider.node_pools
-                                ),
-                                style="reset",
-                            ),
-                        )
-                    if cloud_provider.storage:
-                        table.add_row(
-                            "Storage",
-                            Styled(
-                                _format_storage(cloud_provider.storage),
-                                style="reset",
-                            ),
-                        )
-            else:
-                table.add_row("Status", "Setup failed (not found in platform-config)")
+            if (
+                config_cluster
+                and config_cluster.orchestrator
+                and config_cluster.orchestrator.resource_pool_types
+            ):
+                table.add_row(
+                    "Node pools",
+                    Styled(
+                        _format_node_pools(
+                            config_cluster.orchestrator.resource_pool_types
+                        ),
+                        style="reset",
+                    ),
+                )
             if admin_cluster:
                 if admin_cluster.default_credits:
                     table.add_row(
@@ -243,9 +223,7 @@ class ClustersFormatter:
         return RichGroup(*out)
 
 
-def _format_node_pools(
-    type: _CloudProviderType, node_pools: Iterable[_NodePool]
-) -> Table:
+def _format_node_pools(node_pools: Iterable[_ResourcePoolType]) -> Table:
     is_scalable = _is_scalable(node_pools)
     has_preemptible = _has_preemptible(node_pools)
     has_idle = _has_idle(node_pools)
@@ -255,8 +233,6 @@ def _format_node_pools(
         show_edge=True,
     )
     table.add_column("Name", style="bold", justify="left", max_width=None, no_wrap=True)
-    if type != _CloudProviderType.ON_PREM:
-        table.add_column("Machine", style="bold", justify="left")
     table.add_column("CPU", justify="right")
     table.add_column("Memory", justify="right")
     table.add_column("Disk", justify="right")
@@ -273,16 +249,9 @@ def _format_node_pools(
 
     for node_pool in node_pools:
         row = [node_pool.name]
-        if type != _CloudProviderType.ON_PREM:
-            row.append(node_pool.machine_type or "")
         row.append(str(node_pool.available_cpu))
         row.append(format_size(node_pool.available_memory))
-        if node_pool.disk_type:
-            row.append(
-                f"{format_size(node_pool.disk_size)} " f"{node_pool.disk_type.upper()}"
-            )
-        else:
-            row.append(format_size(node_pool.disk_size))
+        row.append(format_size(node_pool.disk_size))
         if has_preemptible:
             row.append("√" if node_pool.is_preemptible else "×")
         row.append(format_multiple_gpus(node_pool))
@@ -296,46 +265,21 @@ def _format_node_pools(
     return table
 
 
-def _format_storage(storage: _Storage) -> Table:
-    table = Table(
-        box=box.SIMPLE_HEAVY,
-        show_edge=True,
-    )
-    table.add_column("Name", style="bold", justify="left")
-    table.add_column("Type", style="bold", justify="left")
-    for instance in storage.instances:
-        if instance.size is not None:
-            table.add_column("Size", style="bold", justify="left")
-            has_size = True
-            break
-    else:
-        has_size = False
-    for instance in storage.instances:
-        row = [instance.name or "<default>", getattr(storage, "description", "")]
-        if has_size:
-            if instance.size is None:
-                row.append("")
-            else:
-                row.append(format_size(instance.size))
-        table.add_row(*row)
-    return table
-
-
-def _is_scalable(node_pools: Iterable[_NodePool]) -> bool:
+def _is_scalable(node_pools: Iterable[_ResourcePoolType]) -> bool:
     for node_pool in node_pools:
         if node_pool.min_size != node_pool.max_size:
             return True
     return False
 
 
-def _has_preemptible(node_pools: Iterable[_NodePool]) -> bool:
+def _has_preemptible(node_pools: Iterable[_ResourcePoolType]) -> bool:
     for node_pool in node_pools:
         if node_pool.is_preemptible:
             return True
     return False
 
 
-def _has_idle(node_pools: Iterable[_NodePool]) -> bool:
+def _has_idle(node_pools: Iterable[_ResourcePoolType]) -> bool:
     for node_pool in node_pools:
         if node_pool.idle_size:
             return True

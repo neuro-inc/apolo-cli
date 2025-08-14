@@ -27,6 +27,7 @@ from apolo_sdk._config import (
     _validate_user_config,
 )
 from apolo_sdk._login import _AuthToken
+from apolo_sdk._server_cfg import AMDGPUPreset, IntelGPUPreset, NvidiaGPUPreset
 
 from tests import _TestServerFactory
 
@@ -379,9 +380,7 @@ async def test_presets(
                 cpu=7,
                 memory=61440 * 2**20,
                 scheduler_enabled=False,
-                nvidia_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                nvidia_gpu=NvidiaGPUPreset(count=1),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "nvidia-gpu-small": Preset(
@@ -389,9 +388,7 @@ async def test_presets(
                 cpu=7,
                 memory=30720 * 2**20,
                 scheduler_enabled=False,
-                nvidia_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-gpu", memory=10**10),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "amd-gpu-large": Preset(
@@ -399,9 +396,7 @@ async def test_presets(
                 cpu=7,
                 memory=61440 * 2**20,
                 scheduler_enabled=False,
-                amd_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                amd_gpu=AMDGPUPreset(count=1),
                 resource_pool_names=("amd-gpu",),
             ),
             "amd-gpu-small": Preset(
@@ -409,9 +404,7 @@ async def test_presets(
                 cpu=7,
                 memory=30720 * 2**20,
                 scheduler_enabled=False,
-                amd_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                amd_gpu=AMDGPUPreset(count=1),
                 resource_pool_names=("amd-gpu",),
             ),
             "intel-gpu-large": Preset(
@@ -419,9 +412,7 @@ async def test_presets(
                 cpu=7,
                 memory=61440 * 2**20,
                 scheduler_enabled=False,
-                intel_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                intel_gpu=IntelGPUPreset(count=1),
                 resource_pool_names=("intel-gpu",),
             ),
             "intel-gpu-small": Preset(
@@ -429,9 +420,7 @@ async def test_presets(
                 cpu=7,
                 memory=30720 * 2**20,
                 scheduler_enabled=False,
-                intel_gpu=1,
-                tpu_type=None,
-                tpu_software_version=None,
+                intel_gpu=IntelGPUPreset(count=1),
                 resource_pool_names=("intel-gpu",),
             ),
         }
