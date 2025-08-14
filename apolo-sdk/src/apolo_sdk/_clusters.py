@@ -74,15 +74,6 @@ class _ConfigClient(ConfigClientBase):
         ) as resp:
             yield resp
 
-    async def setup_cluster_cloud_provider(
-        self, name: str, config: Dict[str, Any]
-    ) -> None:
-        auth = await self._config._api_auth()
-        url = self._config.api_url / "clusters" / name / "cloud_provider"
-        url = url.with_query(start_deployment="true")
-        async with self._core.request("PUT", url, auth=auth, json=config):
-            pass
-
 
 @rewrite_module
 class _Clusters(metaclass=NoPublicConstructor):
