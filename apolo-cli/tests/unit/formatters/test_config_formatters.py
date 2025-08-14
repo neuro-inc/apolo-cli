@@ -14,7 +14,6 @@ from apolo_sdk import (
     Preset,
     Quota,
     _Balance,
-    _ClusterStatus,
     _ConfigCluster,
     _EnergyConfig,
     _EnergySchedule,
@@ -166,7 +165,7 @@ class TestConfigFormatter:
     def _config_cluster_with_energy(self) -> _ConfigCluster:
         return _ConfigCluster(
             name="default",
-            status=_ClusterStatus.DEPLOYED,
+            status=None,  # type: ignore
             created_at=datetime.now(),
             energy=_EnergyConfig(
                 co2_grams_eq_per_kwh=40.4,

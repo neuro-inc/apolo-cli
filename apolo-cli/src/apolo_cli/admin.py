@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-import configparser
-import json
 import logging
-import os
-import pathlib
 from dataclasses import replace
 from decimal import Decimal, InvalidOperation
-from typing import IO, Any, Sequence
+from typing import Any, Sequence
 
 import click
-import yaml
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 from rich.markup import escape as rich_escape
@@ -18,7 +13,6 @@ from rich.markup import escape as rich_escape
 from apolo_sdk import (
     _AMDGPUPreset,
     _Balance,
-    _CloudProviderType,
     _Cluster,
     _ClusterUserRoleType,
     _ConfigCluster,
@@ -26,14 +20,12 @@ from apolo_sdk import (
     _NvidiaGPUPreset,
     _OrgCluster,
     _OrgUserRoleType,
-    _PatchNodePoolSizeRequest,
     _Project,
     _ProjectUser,
     _ProjectUserRoleType,
     _Quota,
     _ResourcePreset,
     _TPUPreset,
-    _VCDCloudProviderOptions,
 )
 from apolo_sdk._server_cfg import (
     AMDGPUPreset,
@@ -47,7 +39,6 @@ from apolo_cli.formatters.config import BalanceFormatter
 from .click_types import MEMORY
 from .defaults import JOB_CPU_NUMBER, JOB_MEMORY_AMOUNT, PRESET_PRICE
 from .formatters.admin import (
-    CloudProviderOptionsFormatter,
     ClustersFormatter,
     ClusterUserFormatter,
     ClusterUserWithInfoFormatter,
@@ -110,32 +101,6 @@ async def get_clusters(root: Root) -> None:
         root.print(fmt(clusters))
 
 
-@command()
-@option(
-    "--idle-size",
-    type=int,
-    metavar="NUMBER",
-    help="Number of idle nodes in the node pool.",
-)
-@argument("cluster_name", required=True, type=str)
-@argument("node_pool_name", required=True, type=str)
-async def update_node_pool(
-    root: Root, cluster_name: str, node_pool_name: str, idle_size: int | None
-) -> None:
-    """
-    Update cluster node pool.
-    """
-    await root.client._clusters.update_node_pool(
-        cluster_name, node_pool_name, _PatchNodePoolSizeRequest(idle_size=idle_size)
-    )
-    if not root.quiet:
-        root.print(
-            f"Cluster [bold]{cluster_name}[/bold] "
-            f"node pool [bold]{node_pool_name}[/bold] successfully updated",
-            markup=True,
-        )
-
-
 @command(hidden=True)
 async def get_admin_clusters(root: Root) -> None:
     """
@@ -149,13 +114,6 @@ async def get_admin_clusters(root: Root) -> None:
 
 
 @command()
-@option(
-    "--skip-provisioning",
-    default=False,
-    is_flag=True,
-    hidden=True,
-    help="Do not provision cluster. Used it tests.",
-)
 @option(
     "--default-credits",
     metavar="AMOUNT",
@@ -185,11 +143,9 @@ async def get_admin_clusters(root: Root) -> None:
 async def add_cluster(
     root: Root,
     cluster_name: str,
-    config: IO[str],
     default_credits: str,
     default_jobs: str,
     default_role: str,
-    skip_provisioning: bool = False,
 ) -> None:
     """
     Create a new cluster.
@@ -197,21 +153,14 @@ async def add_cluster(
     Creates cluster entry on admin side and then start its provisioning using
     provided config.
     """
-    config_dict = yaml.safe_load(config)
     await root.client._admin.create_cluster(
         cluster_name,
         default_credits=_parse_credits_value(default_credits),
         default_quota=_Quota(_parse_jobs_value(default_jobs)),
         default_role=_ClusterUserRoleType(default_role),
     )
-    if skip_provisioning:
-        return
-    await root.client._clusters.setup_cluster_cloud_provider(cluster_name, config_dict)
     if not root.quiet:
-        root.print(
-            f"Cluster {cluster_name} successfully added "
-            "and will be set up within 24 hours"
-        )
+        root.print(f"Cluster {cluster_name} successfully added")
 
 
 @command()
@@ -280,308 +229,6 @@ async def remove_cluster(root: Root, cluster_name: str, force: bool) -> None:
         if answer != "y":
             return
     await root.client._admin.delete_cluster(cluster_name)
-
-
-@command()
-@option(
-    "--type", prompt="Select cluster type", type=click.Choice(["aws", "gcp", "azure"])
-)
-async def show_cluster_options(root: Root, type: str) -> None:
-    """
-    Show available cluster options.
-    """
-    fmt = CloudProviderOptionsFormatter()
-    options = await root.client._clusters.get_cloud_provider_options(
-        _CloudProviderType(type)
-    )
-    root.print(fmt(options))
-
-
-@command()
-@argument(
-    "config",
-    required=False,
-    type=click.Path(exists=False, path_type=str),
-    default="cluster.yml",
-)
-@option(
-    "--type",
-    prompt="Select cluster type",
-    type=click.Choice(["aws", "gcp", "azure", "vcd"]),
-)
-async def generate_cluster_config(root: Root, config: str, type: str) -> None:
-    """
-    Create a cluster configuration file.
-    """
-    config_path = pathlib.Path(config)
-    if config_path.exists():
-        raise ValueError(
-            f"Config path {config_path} already exists, "
-            "please remove the file or pass the new file name explicitly."
-        )
-    session: PromptSession[str] = PromptSession()
-    if type == "aws":
-        content = await generate_aws(session)
-    elif type == "gcp":
-        content = await generate_gcp(session)
-    elif type == "azure":
-        content = await generate_azure(session)
-    elif type == "vcd":
-        content = await generate_vcd(root, session)
-    else:
-        assert False, "Prompt should prevent this case"
-    config_path.write_text(content, encoding="utf-8")
-    if not root.quiet:
-        root.print(f"Cluster config {config_path} is generated.")
-
-
-AWS_TEMPLATE = """\
-type: aws
-region: us-east-1
-zones:
-- us-east-1a
-- us-east-1b
-vpc_id: {vpc_id}
-credentials:
-  access_key_id: {access_key_id}
-  secret_access_key: {secret_access_key}
-node_pools:
-- machine_type: m5.2xlarge
-  min_size: 1
-  max_size: 4
-- machine_type: p2.xlarge
-  min_size: 1
-  max_size: 4
-- machine_type: p3.2xlarge
-  min_size: 0
-  max_size: 1
-storage:
-  performance_mode: generalPurpose
-  throughput_mode: bursting
-  instances:
-  - {}
-"""
-
-
-async def generate_aws(session: PromptSession[str]) -> str:
-    args = {}
-    args["vpc_id"] = await session.prompt_async("AWS VPC ID: ")
-    access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
-    secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    if access_key_id is None or secret_access_key is None:
-        aws_config_file = pathlib.Path(
-            os.environ.get("AWS_SHARED_CREDENTIALS_FILE", "~/.aws/credentials")
-        )
-        aws_config_file = aws_config_file.expanduser().absolute()
-        parser = configparser.ConfigParser()
-        parser.read(aws_config_file)
-        profile = await session.prompt_async(
-            "AWS profile name: ", default=os.environ.get("AWS_PROFILE", "default")
-        )
-        if access_key_id is None:
-            access_key_id = parser[profile]["aws_access_key_id"]
-        if secret_access_key is None:
-            secret_access_key = parser[profile]["aws_secret_access_key"]
-    access_key_id = await session.prompt_async(
-        "AWS Access Key: ", default=access_key_id
-    )
-    secret_access_key = await session.prompt_async(
-        "AWS Secret Key: ", default=secret_access_key
-    )
-    args["access_key_id"] = access_key_id
-    args["secret_access_key"] = secret_access_key
-    return AWS_TEMPLATE.format_map(args)
-
-
-GCP_TEMPLATE = """\
-type: gcp
-location_type: multi_zonal
-region: us-central1
-zones:
-- us-central1-a
-- us-central1-c
-project: {project_name}
-credentials: {credentials}
-node_pools:
-- machine_type: n1-highmem-8
-  min_size: 1
-  max_size: 4
-- machine_type: n1-highmem-8
-  min_size: 1
-  max_size: 4
-  nvidia_gpu: 1
-  nvidia_gpu_model: nvidia-tesla-k80
-- machine_type: n1-highmem-8
-  min_size: 0
-  max_size: 1
-  nvidia_gpu: 1
-  nvidia_gpu_model: nvidia-tesla-v100
-storage:
-  tier: PREMIUM
-  instances:
-  - {}
-"""
-
-
-async def generate_gcp(session: PromptSession[str]) -> str:
-    args = {}
-    args["project_name"] = await session.prompt_async("GCP project name: ")
-    credentials_file = await session.prompt_async(
-        "Service Account Key File (.json): ",
-        default=os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", ""),
-    )
-    with open(credentials_file, "rb") as fp:
-        data = json.load(fp)
-    out = yaml.dump(data)
-    args["credentials"] = "\n" + "\n".join("  " + line for line in out.splitlines())
-    return GCP_TEMPLATE.format_map(args)
-
-
-AZURE_TEMPLATE = """\
-type: azure
-region: centralus
-resource_group: {resource_group}
-credentials:
-  subscription_id: {subscription_id}
-  tenant_id: {tenant_id}
-  client_id: {client_id}
-  client_secret: {client_secret}
-node_pools:
-- machine_type: Standard_D8_v3
-  min_size: 1
-  max_size: 4
-- machine_type: Standard_NC6
-  min_size: 1
-  max_size: 4
-- machine_type: Standard_NC6s_v3
-  min_size: 0
-  max_size: 1
-storage:
-  tier: Premium
-  instances:
-  - size: {file_share_size}
-"""
-
-
-async def generate_azure(session: PromptSession[str]) -> str:
-    args = {}
-    args["subscription_id"] = await session.prompt_async(
-        "Azure subscription ID: ", default=os.environ.get("AZURE_SUBSCRIPTION_ID", "")
-    )
-    args["client_id"] = await session.prompt_async(
-        "Azure client ID: ", default=os.environ.get("AZURE_CLIENT_ID", "")
-    )
-    args["tenant_id"] = await session.prompt_async(
-        "Azure tenant ID: ", default=os.environ.get("AZURE_TENANT_ID", "")
-    )
-    args["client_secret"] = await session.prompt_async(
-        "Azure client secret: ", default=os.environ.get("AZURE_CLIENT_SECRET", "")
-    )
-    args["resource_group"] = await session.prompt_async("Azure resource group: ")
-    file_share_size_gb = await session.prompt_async("Azure Files storage size (Gb): ")
-    args["file_share_size"] = file_share_size_gb * 10**9
-    return AZURE_TEMPLATE.format_map(args)
-
-
-VCD_TEMPLATE = """\
-type: vcd_{vcd_provider}
-url: {url}
-organization: {organization}
-virtual_data_center: {virtual_data_center}
-edge_name: {edge_name}
-edge_public_ip: {edge_ip}
-edge_external_network_name: {edge_external_network_name}
-catalog_name: {catalog_name}
-credentials:
-  user: {user}
-  password: {password}
-node_pools:
-- machine_type: {kubernetes_node_pool_machine_type}
-  role: kubernetes
-  name: kubernetes
-  min_size: 3
-  max_size: 3
-  disk_type: {storage_profile_name}
-  disk_size: 40_000_000_000
-- machine_type: {platform_node_pool_machine_type}
-  role: platform
-  name: platform
-  min_size: 3
-  max_size: 3
-  disk_type: {storage_profile_name}
-  disk_size: 100_000_000_000
-storage:
-  profile_name: {storage_profile_name}
-  size: {storage_size}
-  instances:
-  - size: {storage_size}
-"""
-
-
-async def generate_vcd(root: Root, session: PromptSession[str]) -> str:
-    args = {}
-    cloud_provider_options = await root.client._clusters.list_cloud_provider_options()
-    cloud_providers = {
-        c.type.value: c
-        for c in cloud_provider_options
-        if isinstance(c, _VCDCloudProviderOptions)
-    }
-
-    if len(cloud_providers) == 1:
-        args["vcd_provider"] = next(iter(cloud_providers.keys()))[4:]
-    else:
-        args["vcd_provider"] = await session.prompt_async(
-            "VCD provider: ", default=os.environ.get("VCD_PROVIDER", "").lower()
-        )
-    cloud_provider = cloud_providers[f"vcd_{args['vcd_provider']}"]
-
-    args["url"] = await session.prompt_async(
-        "Url: ",
-        default=os.environ.get(
-            "VCD_URL", str(cloud_provider.url) if cloud_provider.url else ""
-        ),
-    )
-    args["organization"] = await session.prompt_async(
-        "Organization: ",
-        default=os.environ.get("VCD_ORGANIZATION", cloud_provider.organization or ""),
-    )
-    args["virtual_data_center"] = await session.prompt_async(
-        "Virtual data center: ",
-        default=os.environ.get("VCD_VIRTUAL_DATA_CENTER", ""),
-    )
-    args["user"] = await session.prompt_async(
-        "User: ", default=os.environ.get("VCD_USER", "")
-    )
-    args["password"] = await session.prompt_async(
-        "Password: ", default=os.environ.get("VCD_PASSWORD", "")
-    )
-    args["edge_name"] = await session.prompt_async(
-        "Edge name: ",
-        default=(cloud_provider.edge_name_template or "").format(
-            organization=args["organization"], vdc=args["virtual_data_center"]
-        ),
-    )
-    args["edge_ip"] = await session.prompt_async("Edge IP: ")
-    args["edge_external_network_name"] = await session.prompt_async(
-        "Edge external network: ",
-        default=cloud_provider.edge_external_network_name or "",
-    )
-    args["catalog_name"] = await session.prompt_async(
-        "Catalog: ", default=cloud_provider.catalog_name or ""
-    )
-    args["storage_profile_name"] = await session.prompt_async(
-        "Storage profile: ",
-        default=(cloud_provider.storage_profile_names or [""])[0],
-    )
-    storage_size_gb = await session.prompt_async("Storage size (Gb): ")
-    args["storage_size"] = storage_size_gb * 10**9
-    args["kubernetes_node_pool_id"] = await session.prompt_async(
-        "Kubernetes node pool machine type: "
-    )
-    args["platform_node_pool_id"] = await session.prompt_async(
-        "Platform node pool machine type: "
-    )
-    return VCD_TEMPLATE.format_map(args)
 
 
 @command()
@@ -2292,12 +1939,9 @@ async def remove_project_user(
 
 admin.add_command(get_clusters)
 admin.add_command(get_admin_clusters)
-admin.add_command(generate_cluster_config)
 admin.add_command(add_cluster)
 admin.add_command(update_cluster)
 admin.add_command(remove_cluster)
-admin.add_command(show_cluster_options)
-admin.add_command(update_node_pool)
 
 admin.add_command(get_cluster_users)
 admin.add_command(add_cluster_user)

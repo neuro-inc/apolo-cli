@@ -20,7 +20,6 @@
 		* [apolo admin add-project-user](#apolo-admin-add-project-user)
 		* [apolo admin add-resource-preset](#apolo-admin-add-resource-preset)
 		* [apolo admin add-user-credits](#apolo-admin-add-user-credits)
-		* [apolo admin generate-cluster-config](#apolo-admin-generate-cluster-config)
 		* [apolo admin get-cluster-orgs](#apolo-admin-get-cluster-orgs)
 		* [apolo admin get-cluster-users](#apolo-admin-get-cluster-users)
 		* [apolo admin get-clusters](#apolo-admin-get-clusters)
@@ -44,10 +43,8 @@
 		* [apolo admin set-org-defaults](#apolo-admin-set-org-defaults)
 		* [apolo admin set-user-credits](#apolo-admin-set-user-credits)
 		* [apolo admin set-user-quota](#apolo-admin-set-user-quota)
-		* [apolo admin show-cluster-options](#apolo-admin-show-cluster-options)
 		* [apolo admin update-cluster](#apolo-admin-update-cluster)
 		* [apolo admin update-cluster-user](#apolo-admin-update-cluster-user)
-		* [apolo admin update-node-pool](#apolo-admin-update-node-pool)
 		* [apolo admin update-org-cluster](#apolo-admin-update-org-cluster)
 		* [apolo admin update-project](#apolo-admin-update-project)
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
@@ -479,7 +476,6 @@ Name | Description|
 | _[apolo admin add\-project-user](#apolo-admin-add-project-user)_| Add user access to specified project |
 | _[apolo admin add\-resource-preset](#apolo-admin-add-resource-preset)_| Add new resource preset |
 | _[apolo admin add\-user-credits](#apolo-admin-add-user-credits)_| Add given values to user credits |
-| _[apolo admin generate\-cluster-config](#apolo-admin-generate-cluster-config)_| Create a cluster configuration file |
 | _[apolo admin get\-cluster-orgs](#apolo-admin-get-cluster-orgs)_| Print the list of all orgs in the cluster |
 | _[apolo admin get\-cluster-users](#apolo-admin-get-cluster-users)_| List users in specified cluster |
 | _[apolo admin get-clusters](#apolo-admin-get-clusters)_| Print the list of available clusters |
@@ -503,10 +499,8 @@ Name | Description|
 | _[apolo admin set\-org-defaults](#apolo-admin-set-org-defaults)_| Set org defaults to a given value |
 | _[apolo admin set\-user-credits](#apolo-admin-set-user-credits)_| Set user credits to given value |
 | _[apolo admin set\-user-quota](#apolo-admin-set-user-quota)_| Set user quota to given values |
-| _[apolo admin show\-cluster-options](#apolo-admin-show-cluster-options)_| Show available cluster options |
 | _[apolo admin update-cluster](#apolo-admin-update-cluster)_| Update a cluster |
 | _[apolo admin update\-cluster-user](#apolo-admin-update-cluster-user)_|  |
-| _[apolo admin update\-node-pool](#apolo-admin-update-node-pool)_| Update cluster node pool |
 | _[apolo admin update\-org-cluster](#apolo-admin-update-org-cluster)_| Update org cluster quotas |
 | _[apolo admin update-project](#apolo-admin-update-project)_| Update project settings |
 | _[apolo admin update\-project-user](#apolo-admin-update-project-user)_| Update user access to specified project |
@@ -737,26 +731,6 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\-c, --credits AMOUNT_|Credits amount to add  \[required]|
-
-
-
-
-### apolo admin generate-cluster-config
-
-Create a cluster configuration file.
-
-**Usage:**
-
-```bash
-apolo admin generate-cluster-config [OPTIONS] [CONFIG]
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_--type \[aws &#124; gcp &#124; azure &#124; vcd]_||
 
 
 
@@ -1219,26 +1193,6 @@ Name | Description|
 
 
 
-### apolo admin show-cluster-options
-
-Show available cluster options.
-
-**Usage:**
-
-```bash
-apolo admin show-cluster-options [OPTIONS]
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_--type \[aws &#124; gcp &#124; azure]_||
-
-
-
-
 ### apolo admin update-cluster
 
 Update a cluster.
@@ -1275,26 +1229,6 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_--org ORG_|org name for org-cluster users|
-
-
-
-
-### apolo admin update-node-pool
-
-Update cluster node pool.
-
-**Usage:**
-
-```bash
-apolo admin update-node-pool [OPTIONS] CLUSTER_NAME NODE_POOL_NAME
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_\--idle-size NUMBER_|Number of idle nodes in the node pool.|
 
 
 

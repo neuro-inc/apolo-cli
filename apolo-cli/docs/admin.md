@@ -23,7 +23,6 @@ Cluster administration commands.
 | [_add-project-user_](admin.md#add-project-user) | Add user access to specified project |
 | [_add-resource-preset_](admin.md#add-resource-preset) | Add new resource preset |
 | [_add-user-credits_](admin.md#add-user-credits) | Add given values to user credits |
-| [_generate-cluster-config_](admin.md#generate-cluster-config) | Create a cluster configuration file |
 | [_get-cluster-orgs_](admin.md#get-cluster-orgs) | Print the list of all orgs in the cluster |
 | [_get-cluster-users_](admin.md#get-cluster-users) | List users in specified cluster |
 | [_get-clusters_](admin.md#get-clusters) | Print the list of available clusters |
@@ -47,10 +46,8 @@ Cluster administration commands.
 | [_set-org-defaults_](admin.md#set-org-defaults) | Set org defaults to a given value |
 | [_set-user-credits_](admin.md#set-user-credits) | Set user credits to given value |
 | [_set-user-quota_](admin.md#set-user-quota) | Set user quota to given values |
-| [_show-cluster-options_](admin.md#show-cluster-options) | Show available cluster options |
 | [_update-cluster_](admin.md#update-cluster) | Update a cluster |
 | [_update-cluster-user_](admin.md#update-cluster-user) |  |
-| [_update-node-pool_](admin.md#update-node-pool) | Update cluster node pool |
 | [_update-org-cluster_](admin.md#update-org-cluster) | Update org cluster quotas |
 | [_update-project_](admin.md#update-project) | Update project settings |
 | [_update-project-user_](admin.md#update-project-user) | Update user access to specified project |
@@ -312,28 +309,6 @@ Add given values to user credits
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
 | _-c, --credits AMOUNT_ | Credits amount to add  _\[required\]_ |
-
-
-
-### generate-cluster-config
-
-Create a cluster configuration file
-
-
-#### Usage
-
-```bash
-apolo admin generate-cluster-config [OPTIONS] [CONFIG]
-```
-
-Create a cluster configuration file.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--type \[aws &#124; gcp &#124; azure &#124; vcd\]_ |  |
 
 
 
@@ -848,28 +823,6 @@ Set user quota to given values
 
 
 
-### show-cluster-options
-
-Show available cluster options
-
-
-#### Usage
-
-```bash
-apolo admin show-cluster-options [OPTIONS]
-```
-
-Show available cluster options.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--type \[aws &#124; gcp &#124; azure\]_ |  |
-
-
-
 ### update-cluster
 
 Update a cluster
@@ -913,28 +866,6 @@ apolo admin update-cluster-user [OPTIONS] CLUSTER_NAME USER_NAME [ROLE]
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
 | _--org ORG_ | org name for org-cluster users |
-
-
-
-### update-node-pool
-
-Update cluster node pool
-
-
-#### Usage
-
-```bash
-apolo admin update-node-pool [OPTIONS] CLUSTER_NAME NODE_POOL_NAME
-```
-
-Update cluster node pool.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _--idle-size NUMBER_ | Number of idle nodes in the node pool. |
 
 
 
