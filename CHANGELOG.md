@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.8.1 (2025-08-14)
+
+### Features
+
+- Support GPU memory configuration in resource presets. ([#3317](https://github.com/neuro-inc/apolo-cli/issues/3317))
+
+
 # Apolo SDK/CLI 25.8.0 (2025-08-08)
 
 ### Features
