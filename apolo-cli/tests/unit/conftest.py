@@ -110,7 +110,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                intel_gpu=IntelGPU(count=1, model="flex-170"),
+                intel_gpu=IntelGPUPreset(count=1, model="flex-170"),
                 resource_pool_names=("intel-gpu",),
             ),
             "intel-gpu-large": Preset(
