@@ -14,6 +14,14 @@ from yarl import URL
 
 from apolo_sdk import AppsConfig, Cluster, Factory, Preset, Project, ResourcePool
 from apolo_sdk._config import _AuthConfig, _AuthToken, _ConfigData
+from apolo_sdk._server_cfg import (
+    AMDGPU,
+    AMDGPUPreset,
+    IntelGPU,
+    IntelGPUPreset,
+    NvidiaGPU,
+    NvidiaGPUPreset,
+)
 
 from apolo_cli import __version__
 from apolo_cli.const import EX_OK
@@ -50,8 +58,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                nvidia_gpu=1,
-                nvidia_gpu_model="nvidia-tesla-k80",
+                nvidia_gpu=NvidiaGPU(count=1, model="nvidia-tesla-k80"),
             ),
             "amd-gpu": ResourcePool(
                 min_size=0,
@@ -59,8 +66,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                amd_gpu=1,
-                amd_gpu_model="instinct-mi25",
+                amd_gpu=AMDGPU(count=1, model="instinct-mi25"),
             ),
             "intel-gpu": ResourcePool(
                 min_size=0,
@@ -68,8 +74,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
                 cpu=7,
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
-                intel_gpu=1,
-                intel_gpu_model="flex-170",
+                intel_gpu=IntelGPU(count=1, model="flex-170"),
             ),
         },
         presets={
@@ -77,48 +82,42 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                nvidia_gpu=1,
-                nvidia_gpu_model="nvidia-tesla-k80",
+                nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-tesla-k80"),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "nvidia-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                nvidia_gpu=1,
-                nvidia_gpu_model="nvidia-A100",
+                nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-A100"),
                 resource_pool_names=("nvidia-gpu",),
             ),
             "amd-gpu-small": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                amd_gpu=1,
-                amd_gpu_model="instinct-mi25",
+                amd_gpu=AMDGPUPreset(count=1, model="instinct-mi25"),
                 resource_pool_names=("amd-gpu",),
             ),
             "amd-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                amd_gpu=1,
-                amd_gpu_model="instinct-mi100",
+                amd_gpu=AMDGPUPreset(count=1, model="instinct-mi100"),
                 resource_pool_names=("amd-gpu",),
             ),
             "intel-gpu-small": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=30 * 2**30,
-                intel_gpu=1,
-                intel_gpu_model="flex-170",
+                intel_gpu=IntelGPUPreset(count=1, model="flex-170"),
                 resource_pool_names=("intel-gpu",),
             ),
             "intel-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
                 memory=60 * 2**30,
-                intel_gpu=1,
-                intel_gpu_model="max-1550",
+                intel_gpu=IntelGPUPreset(count=1, model="max-1550"),
                 resource_pool_names=("intel-gpu",),
             ),
             "cpu-small": Preset(

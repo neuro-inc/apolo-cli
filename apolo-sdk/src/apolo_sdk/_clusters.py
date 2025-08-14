@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict, List, Mapping, Optional
 
 import aiohttp
+from neuro_config_client import AMDGPU as _AMDGPU
+from neuro_config_client import AMDGPUPreset as _AMDGPUPreset
 from neuro_config_client import AWSCloudProvider as _AWSCloudProvider
 from neuro_config_client import AWSStorage as _AWSStorage
 from neuro_config_client import AzureCloudProvider as _AzureCloudProvider
@@ -24,14 +26,20 @@ from neuro_config_client import EnergySchedulePeriod as _EnergySchedulePeriod
 from neuro_config_client import GoogleCloudProvider as _GoogleCloudProvider
 from neuro_config_client import GoogleFilestoreTier as _GoogleFilestoreTier
 from neuro_config_client import GoogleStorage as _GoogleStorage
+from neuro_config_client import IntelGPU as _IntelGPU
+from neuro_config_client import IntelGPUPreset as _IntelGPUPreset
 from neuro_config_client import NodePool as _NodePool
 from neuro_config_client import NodePoolOptions as _NodePoolOptions
+from neuro_config_client import NvidiaGPU as _NvidiaGPU
+from neuro_config_client import NvidiaGPUPreset as _NvidiaGPUPreset
 from neuro_config_client import OnPremCloudProvider as _OnPremCloudProvider
 from neuro_config_client import PatchNodePoolSizeRequest as _PatchNodePoolSizeRequest
+from neuro_config_client import ResourcePoolType as _ResourcePoolType
 from neuro_config_client import ResourcePreset as _ResourcePreset
 from neuro_config_client import Storage as _Storage
 from neuro_config_client import StorageInstance as _StorageInstance
 from neuro_config_client import TPUPreset as _TPUPreset
+from neuro_config_client import TPUResource as _TPUResource
 from neuro_config_client import VCDCloudProvider as _VCDCloudProvider
 from neuro_config_client import VCDCloudProviderOptions as _VCDCloudProviderOptions
 from neuro_config_client import VCDStorage as _VCDStorage
@@ -44,6 +52,8 @@ from ._utils import NoPublicConstructor
 # Explicit __all__ to re-export neuro_config_client entities
 
 __all__ = [
+    "_AMDGPU",
+    "_AMDGPUPreset",
     "_AWSCloudProvider",
     "_AWSStorage",
     "_AzureCloudProvider",
@@ -64,13 +74,19 @@ __all__ = [
     "_GoogleCloudProvider",
     "_GoogleFilestoreTier",
     "_GoogleStorage",
+    "_IntelGPU",
+    "_IntelGPUPreset",
     "_NodePool",
     "_NodePoolOptions",
+    "_NvidiaGPU",
+    "_NvidiaGPUPreset",
     "_OnPremCloudProvider",
+    "_ResourcePoolType",
     "_ResourcePreset",
     "_Storage",
     "_StorageInstance",
     "_TPUPreset",
+    "_TPUResource",
     "_VCDCloudProvider",
     "_VCDCloudProviderOptions",
     "_VCDStorage",

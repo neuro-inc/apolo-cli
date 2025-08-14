@@ -16,11 +16,14 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from rich.markup import escape as rich_escape
 
 from apolo_sdk import (
+    _AMDGPUPreset,
     _Balance,
     _CloudProviderType,
     _Cluster,
     _ClusterUserRoleType,
     _ConfigCluster,
+    _IntelGPUPreset,
+    _NvidiaGPUPreset,
     _OrgCluster,
     _OrgUserRoleType,
     _PatchNodePoolSizeRequest,
@@ -31,6 +34,12 @@ from apolo_sdk import (
     _ResourcePreset,
     _TPUPreset,
     _VCDCloudProviderOptions,
+)
+from apolo_sdk._server_cfg import (
+    AMDGPUPreset,
+    IntelGPUPreset,
+    NvidiaGPUPreset,
+    TPUPreset,
 )
 
 from apolo_cli.formatters.config import BalanceFormatter
@@ -976,23 +985,23 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     help="Number of Nvidia GPUs",
 )
 @option(
-    "--amd-gpu",
-    metavar="NUMBER",
-    type=int,
-    help="Number of AMD GPUs",
-)
-@option(
-    "--intel-gpu",
-    metavar="NUMBER",
-    type=int,
-    help="Number of Intel GPUs",
-)
-@option(
     "--nvidia-gpu-model",
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Nvidia GPU model",
     required=False,
+)
+@option(
+    "--nvidia-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="Nvidia GPU memory amount",
+)
+@option(
+    "--amd-gpu",
+    metavar="NUMBER",
+    type=int,
+    help="Number of AMD GPUs",
 )
 @option(
     "--amd-gpu-model",
@@ -1002,11 +1011,29 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     required=False,
 )
 @option(
+    "--amd-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="AMD GPU memory amount",
+)
+@option(
+    "--intel-gpu",
+    metavar="NUMBER",
+    type=int,
+    help="Number of Intel GPUs",
+)
+@option(
     "--intel-gpu-model",
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Intel GPU model",
     required=False,
+)
+@option(
+    "--intel-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="Intel GPU memory amount",
 )
 @option("--tpu-type", metavar="TYPE", type=str, help="TPU type")
 @option(
@@ -1046,11 +1073,14 @@ async def add_resource_preset(
     cpu: float,
     memory: int,
     nvidia_gpu: int | None,
-    amd_gpu: int | None,
-    intel_gpu: int | None,
     nvidia_gpu_model: str | None,
+    nvidia_gpu_memory: int | None,
+    amd_gpu: int | None,
     amd_gpu_model: str | None,
+    amd_gpu_memory: int | None,
+    intel_gpu: int | None,
     intel_gpu_model: str | None,
+    intel_gpu_memory: int | None,
     tpu_type: str | None,
     tpu_software_version: str | None,
     scheduler: bool,
@@ -1063,6 +1093,30 @@ async def add_resource_preset(
     presets = dict(root.client.config.presets)
     if preset_name in presets:
         raise ValueError(f"Preset '{preset_name}' already exists")
+    if nvidia_gpu:
+        nvidia_gpu_preset = _NvidiaGPUPreset(
+            count=nvidia_gpu,
+            model=nvidia_gpu_model,
+            memory=nvidia_gpu_memory,
+        )
+    else:
+        nvidia_gpu_preset = None
+    if amd_gpu:
+        amd_gpu_preset = _AMDGPUPreset(
+            count=amd_gpu,
+            model=amd_gpu_model,
+            memory=amd_gpu_memory,
+        )
+    else:
+        amd_gpu_preset = None
+    if intel_gpu:
+        intel_gpu_preset = _IntelGPUPreset(
+            count=intel_gpu,
+            model=intel_gpu_model,
+            memory=intel_gpu_memory,
+        )
+    else:
+        intel_gpu_preset = None
     if tpu_type and tpu_software_version:
         tpu_preset = _TPUPreset(type=tpu_type, software_version=tpu_software_version)
     else:
@@ -1072,12 +1126,9 @@ async def add_resource_preset(
         credits_per_hour=_parse_finite_decimal(credits_per_hour),
         cpu=cpu,
         memory=memory,
-        nvidia_gpu=nvidia_gpu,
-        amd_gpu=amd_gpu,
-        intel_gpu=intel_gpu,
-        nvidia_gpu_model=nvidia_gpu_model,
-        amd_gpu_model=amd_gpu_model,
-        intel_gpu_model=intel_gpu_model,
+        nvidia_gpu=nvidia_gpu_preset,
+        amd_gpu=amd_gpu_preset,
+        intel_gpu=intel_gpu_preset,
         tpu=tpu_preset,
         scheduler_enabled=scheduler,
         preemptible_node=preemptible_node,
@@ -1125,22 +1176,22 @@ async def add_resource_preset(
     help="Number of Nvidia GPUs",
 )
 @option(
-    "--amd-gpu",
-    metavar="NUMBER",
-    type=int,
-    help="Number of AMD GPUs",
-)
-@option(
-    "--intel-gpu",
-    metavar="NUMBER",
-    type=int,
-    help="Number of Intel GPUs",
-)
-@option(
     "--nvidia-gpu-model",
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Nvidia GPU model",
+)
+@option(
+    "--nvidia-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="Nvidia GPU memory amount",
+)
+@option(
+    "--amd-gpu",
+    metavar="NUMBER",
+    type=int,
+    help="Number of AMD GPUs",
 )
 @option(
     "--amd-gpu-model",
@@ -1149,10 +1200,28 @@ async def add_resource_preset(
     help="AMD GPU model",
 )
 @option(
+    "--amd-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="AMD GPU memory amount",
+)
+@option(
+    "--intel-gpu",
+    metavar="NUMBER",
+    type=int,
+    help="Number of Intel GPUs",
+)
+@option(
     "--intel-gpu-model",
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Intel GPU model",
+)
+@option(
+    "--intel-gpu-memory",
+    metavar="AMOUNT",
+    type=MEMORY,
+    help="Intel GPU memory amount",
 )
 @option("--tpu-type", metavar="TYPE", type=str, help="TPU type")
 @option(
@@ -1190,11 +1259,14 @@ async def update_resource_preset(
     cpu: float | None,
     memory: int | None,
     nvidia_gpu: int | None,
-    amd_gpu: int | None,
-    intel_gpu: int | None,
     nvidia_gpu_model: str | None,
+    nvidia_gpu_memory: int | None,
+    amd_gpu: int | None,
     amd_gpu_model: str | None,
+    amd_gpu_memory: int | None,
+    intel_gpu: int | None,
     intel_gpu_model: str | None,
+    intel_gpu_memory: int | None,
     tpu_type: str | None,
     tpu_software_version: str | None,
     scheduler: bool | None,
@@ -1218,23 +1290,59 @@ async def update_resource_preset(
         ),
         "cpu": cpu,
         "memory": memory,
-        "nvidia_gpu": nvidia_gpu,
-        "amd_gpu": amd_gpu,
-        "intel_gpu": intel_gpu,
-        "nvidia_gpu_model": nvidia_gpu_model,
-        "amd_gpu_model": amd_gpu_model,
-        "intel_gpu_model": intel_gpu_model,
-        "tpu_type": tpu_type,
-        "tpu_software_version": tpu_software_version,
         "scheduler_enabled": scheduler,
         "preemptible_node": preemptible_node,
         "resource_pool_names": resource_pool_names,
     }
+    if nvidia_gpu:
+        kwargs["nvidia_gpu"] = NvidiaGPUPreset(
+            count=nvidia_gpu,
+            model=nvidia_gpu_model,
+            memory=nvidia_gpu_memory,
+        )
+    if amd_gpu:
+        kwargs["amd_gpu"] = AMDGPUPreset(
+            count=amd_gpu,
+            model=amd_gpu_model,
+            memory=amd_gpu_memory,
+        )
+    if intel_gpu:
+        kwargs["intel_gpu"] = IntelGPUPreset(
+            count=intel_gpu,
+            model=intel_gpu_model,
+            memory=intel_gpu_memory,
+        )
+    if tpu_type and tpu_software_version:
+        kwargs["tpu"] = TPUPreset(type=tpu_type, software_version=tpu_software_version)
     kwargs = {key: value for key, value in kwargs.items() if value is not None}
     preset = replace(preset, **kwargs)
-    if preset.tpu_type and preset.tpu_software_version:
+    if preset.nvidia_gpu:
+        nvidia_gpu_preset = _NvidiaGPUPreset(
+            count=preset.nvidia_gpu.count,
+            model=preset.nvidia_gpu.model,
+            memory=preset.nvidia_gpu.memory,
+        )
+    else:
+        nvidia_gpu_preset = None
+    if preset.amd_gpu:
+        amd_gpu_preset = _AMDGPUPreset(
+            count=preset.amd_gpu.count,
+            model=preset.amd_gpu.model,
+            memory=preset.amd_gpu.memory,
+        )
+    else:
+        amd_gpu_preset = None
+    if preset.intel_gpu:
+        intel_gpu_preset = _IntelGPUPreset(
+            count=preset.intel_gpu.count,
+            model=preset.intel_gpu.model,
+            memory=preset.intel_gpu.memory,
+        )
+    else:
+        intel_gpu_preset = None
+    if preset.tpu:
         tpu_preset = _TPUPreset(
-            type=preset.tpu_type, software_version=preset.tpu_software_version
+            type=preset.tpu.type, software_version=preset.tpu.software_version
         )
     else:
         tpu_preset = None
@@ -1245,12 +1353,9 @@ async def update_resource_preset(
             credits_per_hour=preset.credits_per_hour,
             cpu=preset.cpu,
             memory=preset.memory,
-            nvidia_gpu=preset.nvidia_gpu,
-            amd_gpu=preset.amd_gpu,
-            intel_gpu=preset.intel_gpu,
-            nvidia_gpu_model=preset.nvidia_gpu_model,
-            amd_gpu_model=preset.amd_gpu_model,
-            intel_gpu_model=preset.intel_gpu_model,
+            nvidia_gpu=nvidia_gpu_preset,
+            amd_gpu=amd_gpu_preset,
+            intel_gpu=intel_gpu_preset,
             tpu=tpu_preset,
             scheduler_enabled=preset.scheduler_enabled,
             preemptible_node=preset.preemptible_node,

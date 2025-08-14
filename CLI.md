@@ -701,13 +701,16 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\--amd-gpu NUMBER_|Number of AMD GPUs|
+|_\--amd-gpu-memory AMOUNT_|AMD GPU memory amount|
 |_\--amd-gpu-model GPU\_MODEL_FREE_TEXT_|AMD GPU model|
 |_\-c, --cpu NUMBER_|Number of CPUs  \[default: 0.1]|
 |_\--credits-per-hour AMOUNT_|Price of running job of this preset for an hour in credits  \[default: 0]|
 |_\--intel-gpu NUMBER_|Number of Intel GPUs|
+|_\--intel-gpu-memory AMOUNT_|Intel GPU memory amount|
 |_\--intel-gpu-model GPU\_MODEL_FREE_TEXT_|Intel GPU model|
 |_\-m, --memory AMOUNT_|Memory amount  \[default: 1GB]|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
+|_\--nvidia-gpu-memory AMOUNT_|Nvidia GPU memory amount|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower\-cost preemptible instance  \[default: non-preemptible-node]|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|
@@ -1379,13 +1382,16 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\--amd-gpu NUMBER_|Number of AMD GPUs|
+|_\--amd-gpu-memory AMOUNT_|AMD GPU memory amount|
 |_\--amd-gpu-model GPU\_MODEL_FREE_TEXT_|AMD GPU model|
 |_\-c, --cpu NUMBER_|Number of CPUs|
 |_\--credits-per-hour AMOUNT_|Price of running job of this preset for an hour in credits|
 |_\--intel-gpu NUMBER_|Number of Intel GPUs|
+|_\--intel-gpu-memory AMOUNT_|Intel GPU memory amount|
 |_\--intel-gpu-model GPU\_MODEL_FREE_TEXT_|Intel GPU model|
 |_\-m, --memory AMOUNT_|Memory amount|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
+|_\--nvidia-gpu-memory AMOUNT_|Nvidia GPU memory amount|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower-cost preemptible instance|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|

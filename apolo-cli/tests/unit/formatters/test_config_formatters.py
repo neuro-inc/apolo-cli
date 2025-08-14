@@ -21,6 +21,12 @@ from apolo_sdk import (
     _EnergySchedulePeriod,
     _Quota,
 )
+from apolo_sdk._server_cfg import (
+    AMDGPUPreset,
+    IntelGPUPreset,
+    NvidiaGPUPreset,
+    TPUPreset,
+)
 
 from apolo_cli.alias import list_aliases
 from apolo_cli.formatters.config import (
@@ -72,8 +78,10 @@ class TestConfigFormatter:
             cpu=2,
             memory=2 * 2**30,
             scheduler_enabled=False,
-            tpu_type="v3-8",
-            tpu_software_version="1.14",
+            tpu=TPUPreset(
+                type="v3-8",
+                software_version="1.14",
+            ),
             resource_pool_names=("tpu",),
         )
         presets["hybrid"] = Preset(
@@ -81,14 +89,15 @@ class TestConfigFormatter:
             cpu=4,
             memory=30 * 2**30,
             scheduler_enabled=False,
-            nvidia_gpu=1,
-            amd_gpu=2,
-            intel_gpu=3,
-            nvidia_gpu_model="nvidia-tesla-k80",
-            amd_gpu_model="instinct-mi25",
-            intel_gpu_model="flex-170",
-            tpu_type="v3-64",
-            tpu_software_version="1.14",
+            nvidia_gpu=NvidiaGPUPreset(
+                count=1, model="nvidia-tesla-k80", memory=10**10
+            ),
+            amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25", memory=2 * 10**10),
+            intel_gpu=IntelGPUPreset(count=3, model="flex-170", memory=3 * 10**10),
+            tpu=TPUPreset(
+                type="v3-64",
+                software_version="1.14",
+            ),
             resource_pool_names=("gpu-small", "gpu-large"),
         )
         new_config = replace(cluster_config, presets=presets)
