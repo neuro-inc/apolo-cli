@@ -9,15 +9,11 @@ from rich.console import RenderableType
 from apolo_sdk import (
     _AMDGPU,
     _Balance,
-    _CloudProviderOptions,
-    _CloudProviderType,
     _Cluster,
-    _ClusterStatus,
     _ClusterUser,
     _ClusterUserRoleType,
     _ClusterUserWithInfo,
     _ConfigCluster,
-    _NodePoolOptions,
     _NvidiaGPU,
     _OrgCluster,
     _OrgUserRoleType,
@@ -28,7 +24,6 @@ from apolo_sdk import (
 )
 
 from apolo_cli.formatters.admin import (
-    CloudProviderOptionsFormatter,
     ClustersFormatter,
     ClusterUserFormatter,
     ClusterUserWithInfoFormatter,
@@ -172,7 +167,7 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=_ClusterStatus.DEPLOYED,
+                    status=None,  # type: ignore
                     created_at=datetime(2022, 12, 3),
                 ),
             )
@@ -193,7 +188,7 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=_ClusterStatus.DEPLOYED,
+                    status=None,  # type: ignore
                     orchestrator=OrchestratorConfig(
                         job_hostname_template="",
                         job_internal_hostname_template=None,
@@ -229,7 +224,7 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=_ClusterStatus.DEPLOYED,
+                    status=None,  # type: ignore
                     orchestrator=OrchestratorConfig(
                         job_hostname_template="",
                         job_internal_hostname_template=None,
@@ -270,83 +265,6 @@ class TestOrgClusterFormatter:
             balance=_Balance(),
         )
         rich_cmp(formatter(cluster))
-
-
-class TestCloudProviderOptionsFormatter:
-    def test_formatter_aws(self, rich_cmp: RichCmp) -> None:
-        formatter = CloudProviderOptionsFormatter()
-        options = _CloudProviderOptions(
-            type=_CloudProviderType.AWS,
-            node_pools=[
-                _NodePoolOptions(
-                    machine_type="m5.xlarge",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=16 * 10**3,
-                    available_memory=14 * 2**30,
-                ),
-                _NodePoolOptions(
-                    machine_type="p2.xlarge",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=64 * 10**3,
-                    available_memory=60 * 2**30,
-                    nvidia_gpu=1,
-                    nvidia_gpu_model="nvidia-tesla-k80",
-                ),
-            ],
-        )
-        rich_cmp(formatter(options))
-
-    def test_formatter_gcp(self, rich_cmp: RichCmp) -> None:
-        formatter = CloudProviderOptionsFormatter()
-        options = _CloudProviderOptions(
-            type=_CloudProviderType.GCP,
-            node_pools=[
-                _NodePoolOptions(
-                    machine_type="n1-highmem-4",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=16 * 10**3,
-                    available_memory=14 * 2**30,
-                ),
-                _NodePoolOptions(
-                    machine_type="n1-highmem-4",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=64 * 10**3,
-                    available_memory=60 * 2**30,
-                    nvidia_gpu=1,
-                    nvidia_gpu_model="nvidia-tesla-k80",
-                ),
-            ],
-        )
-        rich_cmp(formatter(options))
-
-    def test_formatter_azure(self, rich_cmp: RichCmp) -> None:
-        formatter = CloudProviderOptionsFormatter()
-        options = _CloudProviderOptions(
-            type=_CloudProviderType.AZURE,
-            node_pools=[
-                _NodePoolOptions(
-                    machine_type="Standard_D4_v3",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=16 * 10**3,
-                    available_memory=14 * 2**30,
-                ),
-                _NodePoolOptions(
-                    machine_type="Standard_NC6",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=64 * 10**3,
-                    available_memory=60 * 2**30,
-                    nvidia_gpu=1,
-                    nvidia_gpu_model="nvidia-tesla-k80",
-                ),
-            ],
-        )
-        rich_cmp(formatter(options))
 
 
 class TestOrgUserFormatter:

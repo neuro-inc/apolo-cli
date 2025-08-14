@@ -6,15 +6,13 @@ from rich.console import Group as RichGroup
 from rich.console import RenderableType
 from rich.rule import Rule
 from rich.styled import Styled
-from rich.table import Column, Table
+from rich.table import Table
 
 from apolo_sdk import (
-    _CloudProviderOptions,
     _Cluster,
     _ClusterUser,
     _ClusterUserWithInfo,
     _ConfigCluster,
-    _NodePoolOptions,
     _Org,
     _OrgCluster,
     _OrgUserWithInfo,
@@ -307,40 +305,6 @@ class OrgsFormatter:
         for org in orgs:
             table.add_row(org.name)
         return table
-
-
-class CloudProviderOptionsFormatter:
-    def __call__(self, options: _CloudProviderOptions) -> RenderableType:
-        out: list[RenderableType] = []
-        table = Table(
-            Column("Machine"),
-            Column("CPU"),
-            Column("CPU Avail"),
-            Column("Memory"),
-            Column("Memory Avail"),
-            Column("GPU"),
-            title="Available node pools:",
-            title_justify="left",
-            title_style="bold italic",
-            box=box.SIMPLE_HEAVY,
-            show_edge=False,
-        )
-        for np in options.node_pools:
-            table.add_row(
-                np.machine_type,
-                str(np.cpu),
-                str(np.available_cpu),
-                format_size(np.memory),
-                format_size(np.available_memory),
-                self._gpu(np),
-            )
-        out.append(table)
-        return RichGroup(*out)
-
-    def _gpu(self, node_pool: _NodePoolOptions) -> str:
-        if node_pool.nvidia_gpu:
-            return f"{node_pool.nvidia_gpu} x {node_pool.nvidia_gpu_model}"
-        return ""
 
 
 class ProjectsFormatter:

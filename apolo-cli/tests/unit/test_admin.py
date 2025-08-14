@@ -8,18 +8,14 @@ from apolo_sdk import (
     _Admin,
     _AMDGPUPreset,
     _Balance,
-    _CloudProviderOptions,
-    _CloudProviderType,
     _Clusters,
     _ClusterUser,
     _ClusterUserRoleType,
     _ClusterUserWithInfo,
     _IntelGPUPreset,
-    _NodePoolOptions,
     _NvidiaGPUPreset,
     _OrgUserRoleType,
     _OrgUserWithInfo,
-    _PatchNodePoolSizeRequest,
     _Quota,
     _ResourcePreset,
     _TPUPreset,
@@ -368,34 +364,6 @@ def test_remove_cluster_user_print_result(run_cli: _RunCli) -> None:
         assert not capture.out
 
 
-def test_show_cluster_config_options(run_cli: _RunCli) -> None:
-    with mock.patch.object(_Clusters, "get_cloud_provider_options") as mocked:
-        sample_data = _CloudProviderOptions(
-            type=_CloudProviderType.AWS,
-            node_pools=[
-                _NodePoolOptions(
-                    machine_type="p2.xlarge",
-                    cpu=4,
-                    available_cpu=3,
-                    memory=64 * 2**30,
-                    available_memory=60 * 2**30,
-                    nvidia_gpu=1,
-                    nvidia_gpu_model="nvidia-tesla-k80",
-                )
-            ],
-        )
-
-        async def get_cloud_provider_options(
-            cloud_provider_name: str,
-        ) -> _CloudProviderOptions:
-            assert cloud_provider_name == "aws"
-            return sample_data
-
-        mocked.side_effect = get_cloud_provider_options
-        capture = run_cli(["admin", "show-cluster-options", "--type", "aws"])
-        assert not capture.err
-
-
 def test_add_resource_preset(run_cli: _RunCli) -> None:
     with ExitStack() as exit_stack:
         clusters_mocked = exit_stack.enter_context(
@@ -688,35 +656,6 @@ def test_remove_resource_preset_not_exists(run_cli: _RunCli) -> None:
         capture = run_cli(["admin", "remove-resource-preset", "unknown"])
         assert capture.code
         assert "Preset 'unknown' not found" in capture.err
-
-
-def test_update_node_pool(run_cli: _RunCli) -> None:
-    with ExitStack() as exit_stack:
-        clusters_mocked = exit_stack.enter_context(
-            mock.patch.object(_Clusters, "update_node_pool")
-        )
-
-        async def update_node_pool(
-            cluster_name: str, node_pool_name: str, request: _PatchNodePoolSizeRequest
-        ) -> None:
-            assert cluster_name == "default"
-            assert node_pool_name == "cpu"
-            assert request.idle_size == 1
-
-        clusters_mocked.side_effect = update_node_pool
-
-        capture = run_cli(
-            ["admin", "update-node-pool", "default", "cpu", "--idle-size", "1"]
-        )
-        assert not capture.err
-        assert capture.out == "Cluster default node pool cpu successfully updated"
-
-        # Same with quiet mode
-        capture = run_cli(
-            ["-q", "admin", "update-node-pool", "default", "cpu", "--idle-size", "1"]
-        )
-        assert not capture.err
-        assert not capture.out
 
 
 def test_add_org_user_with_credits(run_cli: _RunCli) -> None:
