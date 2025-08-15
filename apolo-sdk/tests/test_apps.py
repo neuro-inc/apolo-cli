@@ -153,6 +153,39 @@ async def test_apps_uninstall(
         )
 
 
+async def test_apps_uninstall_with_force(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "DELETE"
+        url = (
+            "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/"
+            + app_id
+        )
+        assert request.path == url
+        assert request.query.get("force") == "true"
+        return web.Response(status=204)
+
+    web_app = web.Application()
+    web_app.router.add_delete(
+        f"/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/{app_id}",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.uninstall(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+            force=True,
+        )
+
+
 @pytest.fixture
 def app_templates_payload() -> list[dict[str, Any]]:
     return [
