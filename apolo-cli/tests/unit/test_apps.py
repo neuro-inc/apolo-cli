@@ -173,6 +173,18 @@ def test_app_uninstall(run_cli: _RunCli) -> None:
     assert capture.code == 0
 
 
+def test_app_uninstall_with_force(run_cli: _RunCli) -> None:
+    """Test the app uninstall command with --force flag."""
+    app_id = "app-123"
+
+    with mock_apps_uninstall():
+        capture = run_cli(["app", "uninstall", "--force", app_id])
+
+    assert not capture.err
+    assert f"App {app_id} uninstalled" in capture.out
+    assert capture.code == 0
+
+
 @contextmanager
 def mock_apps_get_values(values: List[AppValue]) -> Iterator[None]:
     """Context manager to mock the Apps.get_values method."""

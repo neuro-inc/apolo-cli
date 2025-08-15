@@ -88,12 +88,19 @@ async def list(
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
+@option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Force uninstall the app.",
+)
 async def uninstall(
     root: Root,
     app_id: str,
     cluster: Optional[str],
     org: Optional[str],
     project: Optional[str],
+    force: bool,
 ) -> None:
     """
     Uninstall an app.
@@ -106,6 +113,7 @@ async def uninstall(
             cluster_name=cluster,
             org_name=org,
             project_name=project,
+            force=force,
         )
     if not root.quiet:
         root.print(f"App [bold]{app_id}[/bold] uninstalled", markup=True)

@@ -155,6 +155,7 @@ class Apps(metaclass=NoPublicConstructor):
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
+        force: bool = False,
     ) -> None:
         url = (
             self._build_base_url(
@@ -166,8 +167,12 @@ class Apps(metaclass=NoPublicConstructor):
             / app_id
         )
 
+        params = {}
+        if force:
+            params["force"] = "true"
+
         auth = await self._config._api_auth()
-        async with self._core.request("DELETE", url, auth=auth):
+        async with self._core.request("DELETE", url, params=params, auth=auth):
             pass
 
     @asyncgeneratorcontextmanager
