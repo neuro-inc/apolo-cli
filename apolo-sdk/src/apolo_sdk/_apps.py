@@ -155,6 +155,7 @@ class Apps(metaclass=NoPublicConstructor):
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
+        *,
         force: bool = False,
     ) -> None:
         url = (
