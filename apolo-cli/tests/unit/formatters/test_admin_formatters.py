@@ -191,7 +191,6 @@ class TestClustersFormatter:
                     status=None,  # type: ignore
                     orchestrator=OrchestratorConfig(
                         job_hostname_template="",
-                        job_internal_hostname_template=None,
                         job_fallback_hostname="",
                         job_schedule_timeout_s=0,
                         job_schedule_scale_up_timeout_s=0,
@@ -227,7 +226,6 @@ class TestClustersFormatter:
                     status=None,  # type: ignore
                     orchestrator=OrchestratorConfig(
                         job_hostname_template="",
-                        job_internal_hostname_template=None,
                         job_fallback_hostname="",
                         job_schedule_timeout_s=0,
                         job_schedule_scale_up_timeout_s=0,
