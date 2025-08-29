@@ -2,11 +2,26 @@ from dataclasses import replace
 from datetime import datetime, time
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable, Union
+from typing import Any, Callable, Dict, Union
 
 import pytest
 import toml
+from neuro_config_client import (
+    ACMEEnvironment,
+    AppsConfig,
+    BucketsConfig,
+    DisksConfig,
+    DNSConfig,
+    IngressConfig,
+    MetricsConfig,
+    MonitoringConfig,
+    OrchestratorConfig,
+    RegistryConfig,
+    SecretsConfig,
+    StorageConfig,
+)
 from rich.console import RenderableType
+from yarl import URL
 
 from apolo_sdk import (
     Client,
@@ -52,6 +67,36 @@ RichCmp = Callable[[RenderableType], None]
 )
 def test_format_quota_details(quota: Union[None, int, Decimal], expected: str) -> None:
     assert format_quota_details(quota) == expected
+
+
+def _create_minimal_cluster_config(**kwargs: Any) -> Dict[str, Any]:
+    """Create minimal cluster config with all required sections."""
+    defaults = {
+        "orchestrator": OrchestratorConfig(
+            job_hostname_template="",
+            job_fallback_hostname="",
+            job_schedule_timeout_s=0,
+            job_schedule_scale_up_timeout_s=0,
+            resource_pool_types=[],
+        ),
+        "storage": StorageConfig(url=URL("https://storage.example.com")),
+        "registry": RegistryConfig(url=URL("https://registry.example.com")),
+        "monitoring": MonitoringConfig(url=URL("https://monitoring.example.com")),
+        "secrets": SecretsConfig(url=URL("https://secrets.example.com")),
+        "metrics": MetricsConfig(url=URL("https://metrics.example.com")),
+        "dns": DNSConfig(name="example.com"),
+        "disks": DisksConfig(
+            url=URL("https://disks.example.com"), storage_limit_per_user=100 * 1024**3
+        ),
+        "buckets": BucketsConfig(url=URL("https://buckets.example.com")),
+        "ingress": IngressConfig(acme_environment=ACMEEnvironment.STAGING),
+        "energy": _EnergyConfig(co2_grams_eq_per_kwh=0.0, schedules=[]),
+        "apps": AppsConfig(
+            apps_hostname_templates=[], app_proxy_url=URL("https://apps.example.com")
+        ),
+    }
+    defaults.update(kwargs)
+    return defaults
 
 
 class TestConfigFormatter:
@@ -167,56 +212,58 @@ class TestConfigFormatter:
             name="default",
             status=None,  # type: ignore
             created_at=datetime.now(),
-            energy=_EnergyConfig(
-                co2_grams_eq_per_kwh=40.4,
-                schedules=(
-                    _EnergySchedule(
-                        "DEFAULT",
-                        price_per_kwh=Decimal("10.4"),
-                        periods=(
-                            _EnergySchedulePeriod(1, time.min, time.max),
-                            _EnergySchedulePeriod(2, time.min, time.max),
-                            _EnergySchedulePeriod(3, time.min, time.max),
-                            _EnergySchedulePeriod(4, time.min, time.max),
-                            _EnergySchedulePeriod(5, time.min, time.max),
-                            _EnergySchedulePeriod(6, time.min, time.max),
-                            _EnergySchedulePeriod(7, time.min, time.max),
+            **_create_minimal_cluster_config(
+                energy=_EnergyConfig(
+                    co2_grams_eq_per_kwh=40.4,
+                    schedules=(
+                        _EnergySchedule(
+                            "DEFAULT",
+                            price_per_kwh=Decimal("10.4"),
+                            periods=(
+                                _EnergySchedulePeriod(1, time.min, time.max),
+                                _EnergySchedulePeriod(2, time.min, time.max),
+                                _EnergySchedulePeriod(3, time.min, time.max),
+                                _EnergySchedulePeriod(4, time.min, time.max),
+                                _EnergySchedulePeriod(5, time.min, time.max),
+                                _EnergySchedulePeriod(6, time.min, time.max),
+                                _EnergySchedulePeriod(7, time.min, time.max),
+                            ),
+                        ),
+                        _EnergySchedule(
+                            "GREEN",
+                            price_per_kwh=Decimal("0.5"),
+                            periods=(
+                                _EnergySchedulePeriod(1, time.min, time(8)),
+                                _EnergySchedulePeriod(2, time.min, time(8)),
+                                _EnergySchedulePeriod(3, time.min, time(8)),
+                                _EnergySchedulePeriod(4, time.min, time(8)),
+                                _EnergySchedulePeriod(5, time.min, time(8)),
+                                _EnergySchedulePeriod(6, time.min, time(8)),
+                                _EnergySchedulePeriod(7, time.min, time(8)),
+                                _EnergySchedulePeriod(1, time(20), time.max),
+                                _EnergySchedulePeriod(2, time(20), time.max),
+                                _EnergySchedulePeriod(3, time(20), time.max),
+                                _EnergySchedulePeriod(4, time(20), time.max),
+                                _EnergySchedulePeriod(5, time(20), time.max),
+                                _EnergySchedulePeriod(6, time(20), time.max),
+                                _EnergySchedulePeriod(7, time(20), time.max),
+                            ),
+                        ),
+                        _EnergySchedule(
+                            "SCATTERED",
+                            price_per_kwh=Decimal("0.5"),
+                            periods=(
+                                _EnergySchedulePeriod(1, time(5), time(10)),
+                                _EnergySchedulePeriod(2, time(3), time(5)),
+                                _EnergySchedulePeriod(3, time.min, time.max),
+                                _EnergySchedulePeriod(4, time(5), time(10)),
+                                _EnergySchedulePeriod(5, time(2), time(5)),
+                                _EnergySchedulePeriod(6, time.min, time.max),
+                                _EnergySchedulePeriod(7, time.min, time.max),
+                            ),
                         ),
                     ),
-                    _EnergySchedule(
-                        "GREEN",
-                        price_per_kwh=Decimal("0.5"),
-                        periods=(
-                            _EnergySchedulePeriod(1, time.min, time(8)),
-                            _EnergySchedulePeriod(2, time.min, time(8)),
-                            _EnergySchedulePeriod(3, time.min, time(8)),
-                            _EnergySchedulePeriod(4, time.min, time(8)),
-                            _EnergySchedulePeriod(5, time.min, time(8)),
-                            _EnergySchedulePeriod(6, time.min, time(8)),
-                            _EnergySchedulePeriod(7, time.min, time(8)),
-                            _EnergySchedulePeriod(1, time(20), time.max),
-                            _EnergySchedulePeriod(2, time(20), time.max),
-                            _EnergySchedulePeriod(3, time(20), time.max),
-                            _EnergySchedulePeriod(4, time(20), time.max),
-                            _EnergySchedulePeriod(5, time(20), time.max),
-                            _EnergySchedulePeriod(6, time(20), time.max),
-                            _EnergySchedulePeriod(7, time(20), time.max),
-                        ),
-                    ),
-                    _EnergySchedule(
-                        "SCATTERED",
-                        price_per_kwh=Decimal("0.5"),
-                        periods=(
-                            _EnergySchedulePeriod(1, time(5), time(10)),
-                            _EnergySchedulePeriod(2, time(3), time(5)),
-                            _EnergySchedulePeriod(3, time.min, time.max),
-                            _EnergySchedulePeriod(4, time(5), time(10)),
-                            _EnergySchedulePeriod(5, time(2), time(5)),
-                            _EnergySchedulePeriod(6, time.min, time.max),
-                            _EnergySchedulePeriod(7, time.min, time.max),
-                        ),
-                    ),
-                ),
+                )
             ),
         )
 

@@ -1,10 +1,25 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Callable
+from typing import Any, Callable, Dict
 
 from dateutil.parser import isoparse
-from neuro_config_client import OrchestratorConfig
+from neuro_config_client import (
+    ACMEEnvironment,
+    AppsConfig,
+    BucketsConfig,
+    DisksConfig,
+    DNSConfig,
+    EnergyConfig,
+    IngressConfig,
+    MetricsConfig,
+    MonitoringConfig,
+    OrchestratorConfig,
+    RegistryConfig,
+    SecretsConfig,
+    StorageConfig,
+)
 from rich.console import RenderableType
+from yarl import URL
 
 from apolo_sdk import (
     _AMDGPU,
@@ -32,6 +47,36 @@ from apolo_cli.formatters.admin import (
 )
 
 RichCmp = Callable[[RenderableType], None]
+
+
+def _create_minimal_cluster_config(**kwargs: Any) -> Dict[str, Any]:
+    """Create minimal cluster config with all required sections."""
+    defaults = {
+        "orchestrator": OrchestratorConfig(
+            job_hostname_template="",
+            job_fallback_hostname="",
+            job_schedule_timeout_s=0,
+            job_schedule_scale_up_timeout_s=0,
+            resource_pool_types=[],
+        ),
+        "storage": StorageConfig(url=URL("https://storage.example.com")),
+        "registry": RegistryConfig(url=URL("https://registry.example.com")),
+        "monitoring": MonitoringConfig(url=URL("https://monitoring.example.com")),
+        "secrets": SecretsConfig(url=URL("https://secrets.example.com")),
+        "metrics": MetricsConfig(url=URL("https://metrics.example.com")),
+        "dns": DNSConfig(name="example.com"),
+        "disks": DisksConfig(
+            url=URL("https://disks.example.com"), storage_limit_per_user=100 * 1024**3
+        ),
+        "buckets": BucketsConfig(url=URL("https://buckets.example.com")),
+        "ingress": IngressConfig(acme_environment=ACMEEnvironment.STAGING),
+        "energy": EnergyConfig(co2_grams_eq_per_kwh=0.0, schedules=[]),
+        "apps": AppsConfig(
+            apps_hostname_templates=[], app_proxy_url=URL("https://apps.example.com")
+        ),
+    }
+    defaults.update(kwargs)
+    return defaults
 
 
 class TestClusterUserFormatter:
@@ -169,6 +214,7 @@ class TestClustersFormatter:
                     name="default",
                     status=None,  # type: ignore
                     created_at=datetime(2022, 12, 3),
+                    **_create_minimal_cluster_config(),
                 ),
             )
         }
@@ -189,22 +235,23 @@ class TestClustersFormatter:
                 _ConfigCluster(
                     name="default",
                     status=None,  # type: ignore
-                    orchestrator=OrchestratorConfig(
-                        job_hostname_template="",
-                        job_internal_hostname_template=None,
-                        job_fallback_hostname="",
-                        job_schedule_timeout_s=0,
-                        job_schedule_scale_up_timeout_s=0,
-                        resource_pool_types=[
-                            self._create_resource_pool(
-                                "node-pool-1", is_scalable=False
-                            ),
-                            self._create_resource_pool(
-                                "node-pool-2", is_scalable=False, is_gpu=True
-                            ),
-                        ],
-                    ),
                     created_at=datetime(2022, 12, 3),
+                    **_create_minimal_cluster_config(
+                        orchestrator=OrchestratorConfig(
+                            job_hostname_template="",
+                            job_fallback_hostname="",
+                            job_schedule_timeout_s=0,
+                            job_schedule_scale_up_timeout_s=0,
+                            resource_pool_types=[
+                                self._create_resource_pool(
+                                    "node-pool-1", is_scalable=False
+                                ),
+                                self._create_resource_pool(
+                                    "node-pool-2", is_scalable=False, is_gpu=True
+                                ),
+                            ],
+                        ),
+                    ),
                 ),
             )
         }
@@ -225,20 +272,21 @@ class TestClustersFormatter:
                 _ConfigCluster(
                     name="default",
                     status=None,  # type: ignore
-                    orchestrator=OrchestratorConfig(
-                        job_hostname_template="",
-                        job_internal_hostname_template=None,
-                        job_fallback_hostname="",
-                        job_schedule_timeout_s=0,
-                        job_schedule_scale_up_timeout_s=0,
-                        resource_pool_types=[
-                            self._create_resource_pool(
-                                "node-pool-1", is_preemptible=True, has_idle=True
-                            ),
-                            self._create_resource_pool("node-pool-2"),
-                        ],
-                    ),
                     created_at=datetime(2022, 12, 3),
+                    **_create_minimal_cluster_config(
+                        orchestrator=OrchestratorConfig(
+                            job_hostname_template="",
+                            job_fallback_hostname="",
+                            job_schedule_timeout_s=0,
+                            job_schedule_scale_up_timeout_s=0,
+                            resource_pool_types=[
+                                self._create_resource_pool(
+                                    "node-pool-1", is_preemptible=True, has_idle=True
+                                ),
+                                self._create_resource_pool("node-pool-2"),
+                            ],
+                        ),
+                    ),
                 ),
             )
         }
