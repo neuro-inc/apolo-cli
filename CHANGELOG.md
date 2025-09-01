@@ -5,6 +5,17 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.9.0 (2025-09-01)
+
+### Features
+
+- Add force option to app uninstall command. ([#3320](https://github.com/neuro-inc/apolo-cli/issues/3320))
+
+### Bugfixes
+
+- Fix neuro config client dependency issue. ([#3329](https://github.com/neuro-inc/apolo-cli/issues/3329))
+
+
 # Apolo SDK/CLI 25.8.1 (2025-08-14)
 
 ### Features
@@ -109,14 +120,14 @@ No significant changes.
   to an org itself, and to an org users, instead of a cluster / cluster users.
 
   New commands:
-	- `apolo admin set-org-defaults` - allows to set an organization default values, such as a default user credits
+    - `apolo admin set-org-defaults` - allows to set an organization default values, such as a default user credits
 
   Existing commands changes:
-	- `apolo admin add-cluster-user` cmd is no longer accepting a `credits` argument.
-	- `apolo admin set-user-credits` cmd is now expecting an org name instead of a cluster name.
-	- `apolo admin add-user-credits` cmd is now expecting an org name instead of a cluster name.
-	- `apolo admin set-org-cluster-credits` was removed in a favor of an `apolo admin set-org-credits`.
-	- `apolo admin add-org-cluster-credits` was removed in a favor of an `apolo admin add-org-credits`. ([#3137](https://github.com/neuro-inc/neuro-cli/issues/3137))
+    - `apolo admin add-cluster-user` cmd is no longer accepting a `credits` argument.
+    - `apolo admin set-user-credits` cmd is now expecting an org name instead of a cluster name.
+    - `apolo admin add-user-credits` cmd is now expecting an org name instead of a cluster name.
+    - `apolo admin set-org-cluster-credits` was removed in a favor of an `apolo admin set-org-credits`.
+    - `apolo admin add-org-cluster-credits` was removed in a favor of an `apolo admin add-org-credits`. ([#3137](https://github.com/neuro-inc/neuro-cli/issues/3137))
 
 ### Bugfixes
 
@@ -750,9 +761,9 @@ Features
 
 - All asynchronous iterators returned by API support now an asynchronous manager protocol. It is strongly preferable to use "asyn with" before iterating them. For example::
 
-			async with client.jobs.list() as jobs:
-				async for job in jobs:
-					print(job.id) ([#2192](https://github.com/neuro-inc/platform-client-python/issues/2192))
+            async with client.jobs.list() as jobs:
+                async for job in jobs:
+                    print(job.id) ([#2192](https://github.com/neuro-inc/platform-client-python/issues/2192))
 - Added `neuro storage df` command that allows to retrieve cluster's storage disk usage. ([#2201](https://github.com/neuro-inc/platform-client-python/issues/2201))
 
 
