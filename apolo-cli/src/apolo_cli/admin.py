@@ -639,12 +639,6 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     required=False,
 )
 @option(
-    "--nvidia-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="Nvidia GPU memory amount",
-)
-@option(
     "--amd-gpu",
     metavar="NUMBER",
     type=int,
@@ -658,12 +652,6 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     required=False,
 )
 @option(
-    "--amd-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="AMD GPU memory amount",
-)
-@option(
     "--intel-gpu",
     metavar="NUMBER",
     type=int,
@@ -675,12 +663,6 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     type=str,
     help="Intel GPU model",
     required=False,
-)
-@option(
-    "--intel-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="Intel GPU memory amount",
 )
 @option("--tpu-type", metavar="TYPE", type=str, help="TPU type")
 @option(
@@ -721,13 +703,10 @@ async def add_resource_preset(
     memory: int,
     nvidia_gpu: int | None,
     nvidia_gpu_model: str | None,
-    nvidia_gpu_memory: int | None,
     amd_gpu: int | None,
     amd_gpu_model: str | None,
-    amd_gpu_memory: int | None,
     intel_gpu: int | None,
     intel_gpu_model: str | None,
-    intel_gpu_memory: int | None,
     tpu_type: str | None,
     tpu_software_version: str | None,
     scheduler: bool,
@@ -744,7 +723,6 @@ async def add_resource_preset(
         nvidia_gpu_preset = _NvidiaGPUPreset(
             count=nvidia_gpu,
             model=nvidia_gpu_model,
-            memory=nvidia_gpu_memory,
         )
     else:
         nvidia_gpu_preset = None
@@ -752,7 +730,6 @@ async def add_resource_preset(
         amd_gpu_preset = _AMDGPUPreset(
             count=amd_gpu,
             model=amd_gpu_model,
-            memory=amd_gpu_memory,
         )
     else:
         amd_gpu_preset = None
@@ -760,7 +737,6 @@ async def add_resource_preset(
         intel_gpu_preset = _IntelGPUPreset(
             count=intel_gpu,
             model=intel_gpu_model,
-            memory=intel_gpu_memory,
         )
     else:
         intel_gpu_preset = None
@@ -829,12 +805,6 @@ async def add_resource_preset(
     help="Nvidia GPU model",
 )
 @option(
-    "--nvidia-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="Nvidia GPU memory amount",
-)
-@option(
     "--amd-gpu",
     metavar="NUMBER",
     type=int,
@@ -847,12 +817,6 @@ async def add_resource_preset(
     help="AMD GPU model",
 )
 @option(
-    "--amd-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="AMD GPU memory amount",
-)
-@option(
     "--intel-gpu",
     metavar="NUMBER",
     type=int,
@@ -863,12 +827,6 @@ async def add_resource_preset(
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Intel GPU model",
-)
-@option(
-    "--intel-gpu-memory",
-    metavar="AMOUNT",
-    type=MEMORY,
-    help="Intel GPU memory amount",
 )
 @option("--tpu-type", metavar="TYPE", type=str, help="TPU type")
 @option(
@@ -907,13 +865,10 @@ async def update_resource_preset(
     memory: int | None,
     nvidia_gpu: int | None,
     nvidia_gpu_model: str | None,
-    nvidia_gpu_memory: int | None,
     amd_gpu: int | None,
     amd_gpu_model: str | None,
-    amd_gpu_memory: int | None,
     intel_gpu: int | None,
     intel_gpu_model: str | None,
-    intel_gpu_memory: int | None,
     tpu_type: str | None,
     tpu_software_version: str | None,
     scheduler: bool | None,
@@ -945,19 +900,16 @@ async def update_resource_preset(
         kwargs["nvidia_gpu"] = NvidiaGPUPreset(
             count=nvidia_gpu,
             model=nvidia_gpu_model,
-            memory=nvidia_gpu_memory,
         )
     if amd_gpu:
         kwargs["amd_gpu"] = AMDGPUPreset(
             count=amd_gpu,
             model=amd_gpu_model,
-            memory=amd_gpu_memory,
         )
     if intel_gpu:
         kwargs["intel_gpu"] = IntelGPUPreset(
             count=intel_gpu,
             model=intel_gpu_model,
-            memory=intel_gpu_memory,
         )
     if tpu_type and tpu_software_version:
         kwargs["tpu"] = TPUPreset(type=tpu_type, software_version=tpu_software_version)
