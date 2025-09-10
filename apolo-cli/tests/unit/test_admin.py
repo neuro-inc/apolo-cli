@@ -568,11 +568,9 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
             memory=10**8,
             scheduler_enabled=True,
             preemptible_node=True,
-            nvidia_gpu=NvidiaGPUPreset(
-                count=1, model="nvidia-tesla-k80", memory=10**10
-            ),
-            amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25", memory=2 * 10**10),
-            intel_gpu=IntelGPUPreset(count=3, model="flex-170", memory=3 * 10**10),
+            nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-tesla-k80"),
+            amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25"),
+            intel_gpu=IntelGPUPreset(count=3, model="flex-170"),
             tpu=TPUPreset(type="v2-8", software_version="1.14"),
         )
 
