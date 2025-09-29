@@ -124,6 +124,7 @@
 		* [apolo job top](#apolo-job-top)
 	* [apolo secret](#apolo-secret)
 		* [apolo secret add](#apolo-secret-add)
+		* [apolo secret get](#apolo-secret-get)
 		* [apolo secret ls](#apolo-secret-ls)
 		* [apolo secret rm](#apolo-secret-rm)
 	* [apolo service-account](#apolo-service-account)
@@ -3221,6 +3222,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo secret add](#apolo-secret-add)_| Add secret KEY with data VALUE |
+| _[apolo secret get](#apolo-secret-get)_| Get secret KEY |
 | _[apolo secret ls](#apolo-secret-ls)_| List secrets |
 | _[apolo secret rm](#apolo-secret-rm)_| Remove secret KEY |
 
@@ -3253,6 +3255,38 @@ Name | Description|
 |_--help_|Show this message and exit.|
 |_--cluster CLUSTER_|Perform on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo secret get
+
+Get secret KEY.<br/><br/>If --file is specified, the secret content will be saved to the file.<br/>Otherwise, it will be displayed on stdout.<br/>
+
+**Usage:**
+
+```bash
+apolo secret get [OPTIONS] KEY
+```
+
+**Examples:**
+
+```bash
+
+apolo secret get KEY_NAME
+apolo secret get KEY_NAME --file secret.txt
+
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Perform on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_\-f, --file PATH_|Save secret to file instead of displaying it.|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 

@@ -152,6 +152,76 @@ async def add(
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
+@option(
+    "-f",
+    "--file",
+    "output_file",
+    type=pathlib.Path,
+    help="Save secret to file instead of displaying it.",
+)
+@argument("key")
+async def get(
+    root: Root,
+    key: str,
+    cluster: Optional[str],
+    org: Optional[str],
+    project: Optional[str],
+    output_file: Optional[pathlib.Path],
+) -> None:
+    """
+    Get secret KEY.
+
+    If --file is specified, the secret content will be saved to the file.
+    Otherwise, it will be displayed on stdout.
+
+    Examples:
+
+      apolo secret get KEY_NAME
+      apolo secret get KEY_NAME --file secret.txt
+    """
+    org_name = org
+    secret_data = await root.client.secrets.get(
+        key,
+        cluster_name=cluster,
+        org_name=org_name,
+        project_name=project,
+    )
+
+    if output_file:
+        output_file.expanduser().write_bytes(secret_data)
+        if not root.quiet:
+            root.print(f"Secret '{key}' saved to {output_file}")
+    else:
+        try:
+            content = secret_data.decode("utf-8")
+            root.print(content, end="")
+        except UnicodeDecodeError:
+            if not root.quiet:
+                root.print(
+                    f"Secret '{key}' contains binary data. "
+                    "Use --file option to save it.",
+                    err=True,
+                )
+            else:
+                raise
+
+
+@command()
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Perform on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
 @argument("key")
 async def rm(
     root: Root,
@@ -174,6 +244,7 @@ async def rm(
 
 secret.add_command(ls)
 secret.add_command(add)
+secret.add_command(get)
 secret.add_command(rm)
 
 
