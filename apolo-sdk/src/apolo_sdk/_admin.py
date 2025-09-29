@@ -1,10 +1,9 @@
 # Admin API is experimental,
 # remove underscore prefix after stabilizing and making public
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Optional, Union
 
 import aiohttp
-from multidict import CIMultiDict
 from neuro_admin_client import AdminClientBase
 from neuro_admin_client import Balance as _Balance
 from neuro_admin_client import Cluster as _Cluster
@@ -73,9 +72,8 @@ class _Admin(AdminClientBase, metaclass=NoPublicConstructor):
         method: str,
         path: str,
         *,
-        json: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None,
+        json: Optional[Dict[str, Any]] = None,
         params: Union[Query, None] = None,
-        headers: Optional[CIMultiDict[str]] = None,
     ) -> AsyncIterator[aiohttp.ClientResponse]:
         url = self._admin_url / path
         auth = await self._config._api_auth()
@@ -85,6 +83,5 @@ class _Admin(AdminClientBase, metaclass=NoPublicConstructor):
             params=params,
             json=json,
             auth=auth,
-            headers=headers,
         ) as resp:
             yield resp
