@@ -17,7 +17,7 @@ neuro-config-client==25.8.7
 packaging==25.0
 python-dateutil==2.9.0.post0
 python-jose==3.5.0
-pyyaml==6.0.2
+pyyaml==6.0.3
 rich==14.1.0
 ruamel.yaml==0.18.15
 toml==0.10.2
