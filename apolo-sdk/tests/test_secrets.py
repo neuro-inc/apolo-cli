@@ -174,3 +174,57 @@ async def test_rm_with_project(
 
     async with make_client(srv.make_url("/")) as client:
         await client.secrets.rm("name", project_name="project")
+
+
+async def test_get(
+    aiohttp_server: _TestServerFactory, make_client: _MakeClient
+) -> None:
+    async def handler(request: web.Request) -> web.Response:
+        assert request.match_info["key"] == "name"
+        assert request.query.get("project_name") == "test-project"
+        return web.json_response({"value": base64.b64encode(b"data").decode("ascii")})
+
+    app = web.Application()
+    app.router.add_get("/secrets/{key}", handler)
+
+    srv = await aiohttp_server(app)
+
+    async with make_client(srv.make_url("/")) as client:
+        result = await client.secrets.get("name")
+        assert result == b"data"
+
+
+async def test_get_with_org(
+    aiohttp_server: _TestServerFactory, make_client: _MakeClient
+) -> None:
+    async def handler(request: web.Request) -> web.Response:
+        assert request.match_info["key"] == "name"
+        assert request.query.get("org_name") == "test-org"
+        return web.json_response({"value": base64.b64encode(b"data").decode("ascii")})
+
+    app = web.Application()
+    app.router.add_get("/secrets/{key}", handler)
+
+    srv = await aiohttp_server(app)
+
+    async with make_client(srv.make_url("/")) as client:
+        result = await client.secrets.get("name", org_name="test-org")
+        assert result == b"data"
+
+
+async def test_get_with_project(
+    aiohttp_server: _TestServerFactory, make_client: _MakeClient
+) -> None:
+    async def handler(request: web.Request) -> web.Response:
+        assert request.match_info["key"] == "name"
+        assert request.query.get("project_name") == "project"
+        return web.json_response({"value": base64.b64encode(b"data").decode("ascii")})
+
+    app = web.Application()
+    app.router.add_get("/secrets/{key}", handler)
+
+    srv = await aiohttp_server(app)
+
+    async with make_client(srv.make_url("/")) as client:
+        result = await client.secrets.get("name", project_name="project")
+        assert result == b"data"

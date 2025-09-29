@@ -81,6 +81,25 @@ class Secrets(metaclass=NoPublicConstructor):
         async with self._core.request("POST", url, auth=auth, json=data):
             pass
 
+    async def get(
+        self,
+        key: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> bytes:
+        url = self._get_secrets_url(cluster_name) / key
+        auth = await self._config._api_auth()
+        params = {
+            "project_name": project_name or self._config.project_name_or_raise,
+        }
+        org_name_val = org_name or self._config.org_name
+        if org_name_val:
+            params["org_name"] = org_name_val
+        async with self._core.request("GET", url, auth=auth, params=params) as resp:
+            ret = await resp.json()
+            return base64.b64decode(ret["value"])
+
     async def rm(
         self,
         key: str,

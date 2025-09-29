@@ -34,6 +34,19 @@ Secrets
       :param str cluster_name: cluster to create a secret. Default is current cluster.
       :param str org_name: org to create a secrets. Default is current org.
 
+   .. method:: get(key: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> bytes
+      :async:
+
+      Get a secret *key* value.
+
+      :param str key: secret's name.
+
+      :param str cluster_name: cluster to look for a secret. Default is current cluster.
+      :param str org_name: org to look for a secrets. Default is current org.
+      :param str project_name: project to look for a secrets. Default is current project.
+
+      :return: The secret value as bytes.
+
    .. method:: rm(key: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None) -> None
       :async:
 
