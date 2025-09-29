@@ -46,9 +46,8 @@ def test_secret_get_binary_output_to_file(root: Any, tmp_path: pathlib.Path) -> 
     )
 
 
-def test_secret_get_binary_output_to_stdout_quiet(root: Any) -> None:
+def test_secret_get_binary_output_to_stdout(root: Any) -> None:
     runner = CliRunner()
-    root.verbosity = -1
     root.client.secrets.get = AsyncMock(return_value=b"\xff\x00binary_data")
 
     with pytest.raises(UnicodeDecodeError):

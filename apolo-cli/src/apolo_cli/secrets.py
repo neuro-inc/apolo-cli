@@ -192,18 +192,8 @@ async def get(
         if not root.quiet:
             root.print(f"Secret '{key}' saved to {output_file}")
     else:
-        try:
-            content = secret_data.decode("utf-8")
-            root.print(content, end="")
-        except UnicodeDecodeError:
-            if not root.quiet:
-                root.print(
-                    f"Secret '{key}' contains binary data. "
-                    "Use --file option to save it.",
-                    err=True,
-                )
-            else:
-                raise
+        content = secret_data.decode("utf-8")
+        root.print(content, end="")
 
 
 @command()
