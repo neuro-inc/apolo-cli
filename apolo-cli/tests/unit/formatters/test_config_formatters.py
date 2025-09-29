@@ -210,7 +210,6 @@ class TestConfigFormatter:
     def _config_cluster_with_energy(self) -> _ConfigCluster:
         return _ConfigCluster(
             name="default",
-            status=None,  # type: ignore
             created_at=datetime.now(),
             **_create_minimal_cluster_config(
                 energy=_EnergyConfig(
