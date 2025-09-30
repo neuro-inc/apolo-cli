@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.9.1 (2025-09-30)
+
+## Features
+
+- Add `apolo secret get [key]` command to retrieve secret content ([#3351](https://github.com/neuro-inc/apolo-cli/issues/3351))
+
+
 # Apolo SDK/CLI 25.9.0 (2025-09-01)
 
 ### Features
