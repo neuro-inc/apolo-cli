@@ -212,7 +212,6 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=None,  # type: ignore
                     created_at=datetime(2022, 12, 3),
                     **_create_minimal_cluster_config(),
                 ),
@@ -234,7 +233,6 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=None,  # type: ignore
                     created_at=datetime(2022, 12, 3),
                     **_create_minimal_cluster_config(
                         orchestrator=OrchestratorConfig(
@@ -271,7 +269,6 @@ class TestClustersFormatter:
                 ),
                 _ConfigCluster(
                     name="default",
-                    status=None,  # type: ignore
                     created_at=datetime(2022, 12, 3),
                     **_create_minimal_cluster_config(
                         orchestrator=OrchestratorConfig(
