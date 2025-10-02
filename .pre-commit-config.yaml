@@ -34,7 +34,7 @@ repos:
   hooks:
   - id: isort
 - repo: https://github.com/psf/black
-  rev: '25.1.0'
+  rev: '25.9.0'
   hooks:
   - id: black
     language_version: python3 # Should be a command that runs python3.6+
@@ -82,7 +82,7 @@ repos:
     - -ignore
     - 'SC1004:'
 - repo: https://github.com/sirosen/check-jsonschema
-  rev: 0.33.3
+  rev: 0.34.0
   hooks:
   - id: check-github-actions
 ci:
