@@ -36,7 +36,7 @@ from apolo_sdk._server_cfg import (
 
 from apolo_cli.formatters.config import BalanceFormatter
 
-from .click_types import MEMORY
+from .click_types import MEMORY, NVIDIA_MIG, NvidiaMIG
 from .defaults import JOB_CPU_NUMBER, JOB_MEMORY_AMOUNT, PRESET_PRICE
 from .formatters.admin import (
     ClustersFormatter,
@@ -639,6 +639,13 @@ async def add_user_credits(root: Root, org: str, user_name: str, credits: str) -
     required=False,
 )
 @option(
+    "--nvidia-mig",
+    metavar="NVIDIA_MIG",
+    type=NVIDIA_MIG,
+    multiple=True,
+    help="Nvidia MIG configuration in format PROFILE[:MODEL]=COUNT",
+)
+@option(
     "--amd-gpu",
     metavar="NUMBER",
     type=int,
@@ -703,6 +710,7 @@ async def add_resource_preset(
     memory: int,
     nvidia_gpu: int | None,
     nvidia_gpu_model: str | None,
+    nvidia_mig: Sequence[NvidiaMIG] | None,
     amd_gpu: int | None,
     amd_gpu_model: str | None,
     intel_gpu: int | None,
@@ -726,6 +734,16 @@ async def add_resource_preset(
         )
     else:
         nvidia_gpu_preset = None
+    if nvidia_mig:
+        nvidia_mig_presets = {
+            mig.profile_name: _NvidiaGPUPreset(
+                count=mig.count,
+                model=mig.model,
+            )
+            for mig in nvidia_mig
+        }
+    else:
+        nvidia_mig_presets = None
     if amd_gpu:
         amd_gpu_preset = _AMDGPUPreset(
             count=amd_gpu,
@@ -750,6 +768,7 @@ async def add_resource_preset(
         cpu=cpu,
         memory=memory,
         nvidia_gpu=nvidia_gpu_preset,
+        nvidia_migs=nvidia_mig_presets,
         amd_gpu=amd_gpu_preset,
         intel_gpu=intel_gpu_preset,
         tpu=tpu_preset,
@@ -803,6 +822,13 @@ async def add_resource_preset(
     metavar="GPU_MODEL_FREE_TEXT",
     type=str,
     help="Nvidia GPU model",
+)
+@option(
+    "--nvidia-mig",
+    metavar="NVIDIA_MIG",
+    type=NVIDIA_MIG,
+    multiple=True,
+    help="Nvidia MIG configuration, PROFILE[:MODEL]=COUNT",
 )
 @option(
     "--amd-gpu",
@@ -865,6 +891,7 @@ async def update_resource_preset(
     memory: int | None,
     nvidia_gpu: int | None,
     nvidia_gpu_model: str | None,
+    nvidia_mig: Sequence[NvidiaMIG] | None,
     amd_gpu: int | None,
     amd_gpu_model: str | None,
     intel_gpu: int | None,
@@ -901,6 +928,14 @@ async def update_resource_preset(
             count=nvidia_gpu,
             model=nvidia_gpu_model,
         )
+    if nvidia_mig:
+        kwargs["nvidia_migs"] = {
+            mig.profile_name: NvidiaGPUPreset(
+                count=mig.count,
+                model=mig.model,
+            )
+            for mig in nvidia_mig
+        }
     if amd_gpu:
         kwargs["amd_gpu"] = AMDGPUPreset(
             count=amd_gpu,
@@ -923,6 +958,16 @@ async def update_resource_preset(
         )
     else:
         nvidia_gpu_preset = None
+    if preset.nvidia_migs:
+        nvidia_mig_presets = {
+            key: _NvidiaGPUPreset(
+                count=value.count,
+                model=value.model,
+            )
+            for key, value in preset.nvidia_migs.items()
+        }
+    else:
+        nvidia_mig_presets = None
     if preset.amd_gpu:
         amd_gpu_preset = _AMDGPUPreset(
             count=preset.amd_gpu.count,
@@ -953,6 +998,7 @@ async def update_resource_preset(
             cpu=preset.cpu,
             memory=preset.memory,
             nvidia_gpu=nvidia_gpu_preset,
+            nvidia_migs=nvidia_mig_presets,
             amd_gpu=amd_gpu_preset,
             intel_gpu=intel_gpu_preset,
             tpu=tpu_preset,

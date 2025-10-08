@@ -704,6 +704,7 @@ Name | Description|
 |_\-m, --memory AMOUNT_|Memory amount  \[default: 1GB]|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
+|_\--nvidia-mig NVIDIA_MIG_|Nvidia MIG configuration in format PROFILE\[:MODEL]=COUNT|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower\-cost preemptible instance  \[default: non-preemptible-node]|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|
 |_\-p, --scheduler / -P, --no-scheduler_|Use round robin scheduler for jobs  \[default: no-scheduler]|
@@ -1322,6 +1323,7 @@ Name | Description|
 |_\-m, --memory AMOUNT_|Memory amount|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
+|_\--nvidia-mig NVIDIA_MIG_|Nvidia MIG configuration, PROFILE\[:MODEL]=COUNT|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower-cost preemptible instance|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|
 |_\-p, --scheduler / -P, --no-scheduler_|Use round robin scheduler for jobs|

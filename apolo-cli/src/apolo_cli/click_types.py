@@ -1,6 +1,7 @@
 import abc
 import os
 import re
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import (
     Any,
@@ -1243,6 +1244,42 @@ class UnionType(AsyncType[Any]):
                 root, ctx, param, incomplete
             )
         return result
+
+
+@dataclass
+class NvidiaMIG:
+    profile_name: str
+    count: int
+    model: Optional[str] = None
+
+
+class NvidiaMIGType(click.ParamType):
+    name = "nvidia_mig"
+
+    def convert(
+        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+    ) -> NvidiaMIG:
+        if not value:
+            self.fail("Value cannot be empty", param, ctx)
+        left, _, right = value.rpartition("=")
+        if not left:
+            self.fail("Value must be in format PROFILE[:MODEL]=COUNT", param, ctx)
+        try:
+            count = int(right)
+            if count <= 0:
+                self.fail("COUNT must be a positive integer", param, ctx)
+        except ValueError:
+            self.fail("COUNT must be a positive integer", param, ctx)
+        profile_name, _, model = left.partition(":")
+        nvidia_mig = NvidiaMIG(
+            profile_name=profile_name,
+            count=count,
+            model=model or None,
+        )
+        return nvidia_mig
+
+
+NVIDIA_MIG = NvidiaMIGType()
 
 
 def setup_shell_completion() -> None:
