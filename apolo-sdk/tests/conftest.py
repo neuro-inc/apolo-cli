@@ -78,6 +78,11 @@ def cluster_config() -> Cluster:
                 memory=60 * 2**30,
                 disk_size=150 * 2**30,
                 nvidia_gpu=NvidiaGPU(count=1, model="nvidia-gpu", memory=10**10),
+                nvidia_migs={
+                    "1g.5gb": NvidiaGPU(
+                        count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                    )
+                },
             ),
             "amd-gpu": ResourcePool(
                 min_size=0,
@@ -109,6 +114,17 @@ def cluster_config() -> Cluster:
                 cpu=7,
                 memory=60 * 2**30,
                 nvidia_gpu=NvidiaGPUPreset(count=1),
+                resource_pool_names=("nvidia-gpu",),
+            ),
+            "nvidia-mig": Preset(
+                credits_per_hour=Decimal("10"),
+                cpu=7,
+                memory=30 * 2**30,
+                nvidia_migs={
+                    "1g.5gb": NvidiaGPUPreset(
+                        count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                    )
+                },
                 resource_pool_names=("nvidia-gpu",),
             ),
             "amd-gpu-small": Preset(
@@ -209,6 +225,11 @@ def make_client(
                         nvidia_gpu=NvidiaGPU(
                             count=1, model="nvidia-gpu", memory=10**10
                         ),
+                        nvidia_migs={
+                            "1g.5gb": NvidiaGPU(
+                                count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                            )
+                        },
                     ),
                     "amd-gpu": ResourcePool(
                         min_size=0,
@@ -242,6 +263,17 @@ def make_client(
                         cpu=7,
                         memory=60 * 2**30,
                         nvidia_gpu=NvidiaGPUPreset(count=1),
+                        resource_pool_names=("nvidia-gpu",),
+                    ),
+                    "nvidia-mig": Preset(
+                        credits_per_hour=Decimal("10"),
+                        cpu=7,
+                        memory=30 * 2**30,
+                        nvidia_migs={
+                            "1g.5gb": NvidiaGPUPreset(
+                                count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                            )
+                        },
                         resource_pool_names=("nvidia-gpu",),
                     ),
                     "amd-gpu-small": Preset(

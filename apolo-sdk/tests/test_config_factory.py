@@ -142,6 +142,13 @@ async def mock_for_login_factory(
                                 "model": "nvidia-gpu",
                                 "memory": 10**10,
                             },
+                            "nvidia_migs": {
+                                "1g.5gb": {
+                                    "count": 1,
+                                    "model": "nvidia-gpu-1g.5gb",
+                                    "memory": 5 * 10**9,
+                                }
+                            },
                         },
                         {
                             "name": "amd-gpu",
@@ -178,6 +185,21 @@ async def mock_for_login_factory(
                             "cpu": 7,
                             "memory": 60 * 2**30,
                             "nvidia_gpu": {"count": 1},
+                            "resource_pool_names": ["nvidia-gpu"],
+                            "available_resource_pool_names": ["nvidia-gpu"],
+                        },
+                        {
+                            "name": "nvidia-mig",
+                            "credits_per_hour": "10",
+                            "cpu": 7,
+                            "memory": 30 * 2**30,
+                            "nvidia_migs": {
+                                "1g.5gb": {
+                                    "count": 1,
+                                    "model": "nvidia-gpu-1g.5gb",
+                                    "memory": 5 * 10**9,
+                                }
+                            },
                             "resource_pool_names": ["nvidia-gpu"],
                             "available_resource_pool_names": ["nvidia-gpu"],
                         },

@@ -279,6 +279,7 @@ Add new resource preset
 | _-m, --memory AMOUNT_ | Memory amount  _\[default: 1GB\]_ |
 | _-g, --nvidia-gpu NUMBER_ | Number of Nvidia GPUs |
 | _--nvidia-gpu-model GPU\_MODEL\_FREE\_TEXT_ | Nvidia GPU model |
+| _--nvidia-mig NVIDIA\_MIG_ | Nvidia MIG configuration in format PROFILE_\[:MODEL\]_=COUNT |
 | _--preemptible-node / --non-preemptible-node_ | Use a lower-cost preemptible instance  _\[default: non-preemptible-node\]_ |
 | _-r, --resource-pool TEXT_ | Name of the resource pool where job will be scheduled \(multiple values are supported\) |
 | _-p, --scheduler / -P, --no-scheduler_ | Use round robin scheduler for jobs  _\[default: no-scheduler\]_ |
@@ -968,6 +969,7 @@ Update existing resource preset
 | _-m, --memory AMOUNT_ | Memory amount |
 | _-g, --nvidia-gpu NUMBER_ | Number of Nvidia GPUs |
 | _--nvidia-gpu-model GPU\_MODEL\_FREE\_TEXT_ | Nvidia GPU model |
+| _--nvidia-mig NVIDIA\_MIG_ | Nvidia MIG configuration, PROFILE_\[:MODEL\]_=COUNT |
 | _--preemptible-node / --non-preemptible-node_ | Use a lower-cost preemptible instance |
 | _-r, --resource-pool TEXT_ | Name of the resource pool where job will be scheduled \(multiple values are supported\) |
 | _-p, --scheduler / -P, --no-scheduler_ | Use round robin scheduler for jobs |

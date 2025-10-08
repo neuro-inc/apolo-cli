@@ -381,6 +381,13 @@ def test_add_resource_preset(run_cli: _RunCli) -> None:
                 cpu=0.1,
                 memory=100 * 10**6,
                 nvidia_gpu=_NvidiaGPUPreset(count=1),
+                nvidia_migs={
+                    "1g.5gb": _NvidiaGPUPreset(count=1),
+                    "2g.10gb": _NvidiaGPUPreset(
+                        count=2,
+                        model="nvidia-tesla-k80-2g.10gb",
+                    ),
+                },
                 amd_gpu=_AMDGPUPreset(count=2),
                 intel_gpu=_IntelGPUPreset(count=3),
                 tpu=_TPUPreset(
@@ -410,6 +417,10 @@ def test_add_resource_preset(run_cli: _RunCli) -> None:
                 "100Mb",
                 "-g",
                 "1",
+                "--nvidia-mig",
+                "1g.5gb=1",
+                "--nvidia-mig",
+                "2g.10gb:nvidia-tesla-k80-2g.10gb=2",
                 "--amd-gpu",
                 "2",
                 "--intel-gpu",
@@ -475,16 +486,25 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
                     NvidiaGPUPreset(
                         count=p.nvidia_gpu.count,
                         model=p.nvidia_gpu.model,
-                        memory=p.nvidia_gpu.memory,
                     )
                     if p.nvidia_gpu
+                    else None
+                ),
+                nvidia_migs=(
+                    {
+                        key: NvidiaGPUPreset(
+                            count=value.count,
+                            model=value.model,
+                        )
+                        for key, value in p.nvidia_migs.items()
+                    }
+                    if p.nvidia_migs
                     else None
                 ),
                 amd_gpu=(
                     AMDGPUPreset(
                         count=p.amd_gpu.count,
                         model=p.amd_gpu.model,
-                        memory=p.amd_gpu.memory,
                     )
                     if p.amd_gpu
                     else None
@@ -493,7 +513,6 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
                     IntelGPUPreset(
                         count=p.intel_gpu.count,
                         model=p.intel_gpu.model,
-                        memory=p.intel_gpu.memory,
                     )
                     if p.intel_gpu
                     else None
@@ -545,6 +564,10 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
                 "1",
                 "--nvidia-gpu-model",
                 "nvidia-tesla-k80",
+                "--nvidia-mig",
+                "1g.5gb=1",
+                "--nvidia-mig",
+                "2g.10gb:nvidia-tesla-k80-2g.10gb=2",
                 "--amd-gpu",
                 "2",
                 "--amd-gpu-model",
@@ -569,6 +592,13 @@ def test_update_resource_preset(run_cli: _RunCli) -> None:
             scheduler_enabled=True,
             preemptible_node=True,
             nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-tesla-k80"),
+            nvidia_migs={
+                "1g.5gb": NvidiaGPUPreset(count=1),
+                "2g.10gb": NvidiaGPUPreset(
+                    count=2,
+                    model="nvidia-tesla-k80-2g.10gb",
+                ),
+            },
             amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25"),
             intel_gpu=IntelGPUPreset(count=3, model="flex-170"),
             tpu=TPUPreset(type="v2-8", software_version="1.14"),

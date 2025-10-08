@@ -7,19 +7,22 @@ User Configuration:
  Jobs Quota           10                                
  API URL              https://api.dev.apolo.us/api/v1   
  Docker Registry URL  https://registry-api.dev.apolo.us 
-Resource Presets:                                                                                                                                           
- Name               #CPU    Memory   GPU                                    TPU          Resource Pools   Round Robin   Preemptible Node   Credits per hour 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- nvidia-gpu-small      7   32.2 GB   Nvidia: 1 x nvidia-tesla-k80                        nvidia-gpu            ×               ×           10               
- nvidia-gpu-large      7   64.4 GB   Nvidia: 1 x nvidia-A100                             nvidia-gpu            ×               ×           10               
- amd-gpu-small         7   32.2 GB   AMD: 1 x instinct-mi25                              amd-gpu               ×               ×           10               
- amd-gpu-large         7   64.4 GB   AMD: 1 x instinct-mi100                             amd-gpu               ×               ×           10               
- intel-gpu-small       7   32.2 GB   Intel: 1 x flex-170                                 intel-gpu             ×               ×           10               
- intel-gpu-large       7   64.4 GB   Intel: 1 x max-1550                                 intel-gpu             ×               ×           10               
- cpu-small             7    2.1 GB                                                                             ×               ×           10               
- cpu-large             7   15.0 GB                                                                             ×               ×           10               
- cpu-large-p           7   15.0 GB                                                                             √               √           10               
- tpu-small             2    2.1 GB                                          v3-8/1.14    tpu                   ×               ×           10               
- hybrid                4   32.2 GB   Nvidia: 1 x nvidia-tesla-k80 10.0 GB   v3-64/1.14   gpu-small             ×               ×           10               
-                                     AMD: 2 x instinct-mi25 20.0 GB                      gpu-large                                                          
+Resource Presets:                                                                                                                                               
+ Name               #CPU    Memory   GPU                                        TPU          Resource Pools   Round Robin   Preemptible Node   Credits per hour 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ nvidia-gpu-small      7   32.2 GB   Nvidia: 1 x nvidia-tesla-k80                            nvidia-gpu            ×               ×           10               
+ nvidia-gpu-large      7   64.4 GB   Nvidia: 1 x nvidia-A100                                 nvidia-gpu            ×               ×           10               
+ amd-gpu-small         7   32.2 GB   AMD: 1 x instinct-mi25                                  amd-gpu               ×               ×           10               
+ amd-gpu-large         7   64.4 GB   AMD: 1 x instinct-mi100                                 amd-gpu               ×               ×           10               
+ intel-gpu-small       7   32.2 GB   Intel: 1 x flex-170                                     intel-gpu             ×               ×           10               
+ intel-gpu-large       7   64.4 GB   Intel: 1 x max-1550                                     intel-gpu             ×               ×           10               
+ cpu-small             7    2.1 GB                                                                                 ×               ×           10               
+ cpu-large             7   15.0 GB                                                                                 ×               ×           10               
+ cpu-large-p           7   15.0 GB                                                                                 √               √           10               
+ tpu-small             2    2.1 GB                                              v3-8/1.14    tpu                   ×               ×           10               
+ hybrid                4   32.2 GB   Nvidia: 1 x nvidia-tesla-k80 10.0 GB       v3-64/1.14   gpu-small             ×               ×           10               
+                                     Nvidia MIG: 2 x 1g.5gb 5.0 GB                           gpu-large                                                          
+                                     Nvidia MIG: 1 x nvidia-tesla-k80-2g.10gb                                                                                   
+                                     10.0 GB                                                                                                                    
+                                     AMD: 2 x instinct-mi25 20.0 GB                                                                                             
                                      Intel: 3 x flex-170 30.0 GB

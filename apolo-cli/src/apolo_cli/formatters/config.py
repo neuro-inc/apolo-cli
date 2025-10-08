@@ -127,7 +127,10 @@ def _format_presets(
     presets: Mapping[str, Preset],
     available_jobs_counts: Optional[Mapping[str, int]],
 ) -> Table:
-    has_gpu = any(p.nvidia_gpu or p.amd_gpu or p.intel_gpu for p in presets.values())
+    has_gpu = any(
+        p.nvidia_gpu or p.nvidia_migs or p.amd_gpu or p.intel_gpu
+        for p in presets.values()
+    )
     has_tpu = any(p.tpu for p in presets.values())
 
     table = Table(

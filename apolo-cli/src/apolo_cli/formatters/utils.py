@@ -166,20 +166,25 @@ def format_multiple_gpus(entity: Union[_ResourcePoolType, Preset]) -> str:
     Each GPU make will be separated by a newline, e.g.:
 
     Nvidia: 10 x tesla
+    Nvidia MIG: 2 x 1g.5gb 5GB
     AMD: 5 x instinct
     Intel: 1
     """
     gpus = []
-    for gpu_make, gpu in (
-        ("Nvidia", entity.nvidia_gpu),
-        ("AMD", entity.amd_gpu),
-        ("Intel", entity.intel_gpu),
-    ):
-        if not gpu:
-            continue
-        gpus.append(
-            f"{gpu_make}: {format_gpu_string(gpu.count, gpu.model, gpu.memory)}"
-        )
+
+    if nvidia_gpu := entity.nvidia_gpu:
+        gpu = format_gpu_string(nvidia_gpu.count, nvidia_gpu.model, nvidia_gpu.memory)
+        gpus.append(f"Nvidia: {gpu}")
+    if entity.nvidia_migs:
+        for key, value in entity.nvidia_migs.items():
+            gpu = format_gpu_string(value.count, value.model or key, value.memory)
+            gpus.append(f"Nvidia MIG: {gpu}")
+    if amd_gpu := entity.amd_gpu:
+        gpu = format_gpu_string(amd_gpu.count, amd_gpu.model, amd_gpu.memory)
+        gpus.append(f"AMD: {gpu}")
+    if intel_gpu := entity.intel_gpu:
+        gpu = format_gpu_string(intel_gpu.count, intel_gpu.model, intel_gpu.memory)
+        gpus.append(f"Intel: {gpu}")
 
     return NEWLINE_SEP.join(gpus)
 
