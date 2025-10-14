@@ -6,7 +6,9 @@ import pytest
 
 from apolo_cli.click_types import (
     JOB_NAME,
+    NVIDIA_MIG,
     LocalRemotePortParamType,
+    NvidiaMIG,
     PlatformURIType,
     _merge_autocompletion_args,
 )
@@ -149,3 +151,41 @@ def test_merge_autocompletion_args() -> None:
         ],
         "storage:dir",
     )
+
+
+class TestNvidiaMIGType:
+    def test_ok(self) -> None:
+        value = "profile:model=1"
+        assert NVIDIA_MIG.convert(value, param=None, ctx=None) == NvidiaMIG(
+            profile_name="profile", count=1, model="model"
+        )
+
+    def test_ok_no_model(self) -> None:
+        value = "profile=1"
+        assert NVIDIA_MIG.convert(value, param=None, ctx=None) == NvidiaMIG(
+            profile_name="profile", count=1
+        )
+
+    def test_empty(self) -> None:
+        with pytest.raises(
+            click.exceptions.BadParameter, match="Value cannot be empty"
+        ):
+            NVIDIA_MIG.convert("", param=None, ctx=None)
+
+    def test_invalid_format(self) -> None:
+        with pytest.raises(
+            click.exceptions.BadParameter,
+            match=r"Value must be in format PROFILE\[:MODEL\]=COUNT",
+        ):
+            NVIDIA_MIG.convert("profile", param=None, ctx=None)
+
+    def test_invalid_count(self) -> None:
+        with pytest.raises(
+            click.exceptions.BadParameter, match="COUNT must be a positive integer"
+        ):
+            NVIDIA_MIG.convert("profile=a", param=None, ctx=None)
+
+        with pytest.raises(
+            click.exceptions.BadParameter, match="COUNT must be a positive integer"
+        ):
+            NVIDIA_MIG.convert("profile=-1", param=None, ctx=None)

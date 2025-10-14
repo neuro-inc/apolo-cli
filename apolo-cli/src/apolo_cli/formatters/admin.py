@@ -236,7 +236,7 @@ def _format_node_pools(node_pools: Iterable[_ResourcePoolType]) -> Table:
     table.add_column("Disk", justify="right")
     if has_preemptible:
         table.add_column("Preemptible", justify="center")
-    table.add_column("GPU", justify="right")
+    table.add_column("GPU", justify="left")
     if is_scalable:
         table.add_column("Min", justify="right")
         table.add_column("Max", justify="right")

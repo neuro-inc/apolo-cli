@@ -29,6 +29,7 @@ from apolo_sdk import (
     _ClusterUserRoleType,
     _ClusterUserWithInfo,
     _ConfigCluster,
+    _IntelGPU,
     _NvidiaGPU,
     _OrgCluster,
     _OrgUserRoleType,
@@ -192,8 +193,25 @@ class TestClustersFormatter:
                 if is_gpu
                 else None
             ),
+            nvidia_migs=(
+                {
+                    "1g.5gb": _NvidiaGPU(
+                        count=2, model="nvidia-tesla-k80-1g.5gb", memory=5 * 2**30
+                    ),
+                    "2g.10gb": _NvidiaGPU(
+                        count=1, model="nvidia-tesla-k80-2g.10gb", memory=10 * 2**30
+                    ),
+                }
+                if is_gpu
+                else {}
+            ),
             amd_gpu=(
                 _AMDGPU(count=1, model="instinct-mi25", memory=20 * 2**30)
+                if is_gpu
+                else None
+            ),
+            intel_gpu=(
+                _IntelGPU(count=1, model="flex-170", memory=20 * 2**30)
                 if is_gpu
                 else None
             ),

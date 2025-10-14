@@ -679,31 +679,59 @@ def _deserialize_clusters(payload: dict[str, Any]) -> dict[str, Cluster]:
 
 
 def _deserialize_resource_pool(payload: dict[str, Any]) -> tuple[str, ResourcePool]:
+    _migrate_gpu(payload, "nvidia_gpu")
+    _migrate_gpu(payload, "amd_gpu")
+    _migrate_gpu(payload, "intel_gpu")
+
     resource_pool = ResourcePool(
         min_size=payload["min_size"],
         max_size=payload["max_size"],
         cpu=payload["cpu"],
         memory=payload["memory"],
         disk_size=payload["disk_size"],
-        nvidia_gpu=_deserialize_nvidia_gpu(payload),
-        amd_gpu=_deserialize_amd_gpu(payload),
-        intel_gpu=_deserialize_intel_gpu(payload),
-        tpu=_deserialize_tpu(payload.get("tpu")),
+        nvidia_gpu=(
+            _deserialize_nvidia_gpu(nvidia_gpu_payload)
+            if (nvidia_gpu_payload := payload.get("nvidia_gpu"))
+            else None
+        ),
+        nvidia_migs=(
+            {
+                key: _deserialize_nvidia_gpu(value)
+                for key, value in nvidia_migs_payload.items()
+            }
+            if (nvidia_migs_payload := payload.get("nvidia_migs"))
+            else None
+        ),
+        amd_gpu=(
+            _deserialize_amd_gpu(amd_gpu_payload)
+            if (amd_gpu_payload := payload.get("amd_gpu"))
+            else None
+        ),
+        intel_gpu=(
+            _deserialize_intel_gpu(intel_gpu_payload)
+            if (intel_gpu_payload := payload.get("intel_gpu"))
+            else None
+        ),
+        tpu=(
+            _deserialize_tpu(tpu_payload)
+            if (tpu_payload := payload.get("tpu"))
+            else None
+        ),
         is_preemptible=payload.get("is_preemptible", False),
     )
     return (payload["name"], resource_pool)
 
 
-def _deserialize_nvidia_gpu(payload: dict[str, Any]) -> Optional[NvidiaGPU]:
-    nvidia_gpu = payload.get("nvidia_gpu")
-    if not nvidia_gpu:
-        return None
-    if isinstance(nvidia_gpu, int):
-        return NvidiaGPU(
-            count=nvidia_gpu,
-            model=payload["nvidia_gpu_model"],
-        )
-    payload = nvidia_gpu
+def _migrate_gpu(payload: dict[str, Any], gpu_key: str) -> None:
+    # Migrate old GPU field to new GPU field with count and model
+    if isinstance(payload.get(gpu_key), int):
+        payload[gpu_key] = {
+            "count": payload[gpu_key],
+            "model": payload.get(f"{gpu_key}_model", ""),
+        }
+
+
+def _deserialize_nvidia_gpu(payload: dict[str, Any]) -> NvidiaGPU:
     return NvidiaGPU(
         count=payload["count"],
         model=payload["model"],
@@ -711,16 +739,7 @@ def _deserialize_nvidia_gpu(payload: dict[str, Any]) -> Optional[NvidiaGPU]:
     )
 
 
-def _deserialize_amd_gpu(payload: dict[str, Any]) -> Optional[AMDGPU]:
-    amd_gpu = payload.get("amd_gpu")
-    if not amd_gpu:
-        return None
-    if isinstance(amd_gpu, int):
-        return AMDGPU(
-            count=amd_gpu,
-            model=payload["amd_gpu_model"],
-        )
-    payload = amd_gpu
+def _deserialize_amd_gpu(payload: dict[str, Any]) -> AMDGPU:
     return AMDGPU(
         count=payload["count"],
         model=payload["model"],
@@ -728,16 +747,7 @@ def _deserialize_amd_gpu(payload: dict[str, Any]) -> Optional[AMDGPU]:
     )
 
 
-def _deserialize_intel_gpu(payload: dict[str, Any]) -> Optional[IntelGPU]:
-    intel_gpu = payload.get("intel_gpu")
-    if not intel_gpu:
-        return None
-    if isinstance(intel_gpu, int):
-        return IntelGPU(
-            count=intel_gpu,
-            model=payload["intel_gpu_model"],
-        )
-    payload = intel_gpu
+def _deserialize_intel_gpu(payload: dict[str, Any]) -> IntelGPU:
     return IntelGPU(
         count=payload["count"],
         model=payload["model"],
@@ -745,9 +755,7 @@ def _deserialize_intel_gpu(payload: dict[str, Any]) -> Optional[IntelGPU]:
     )
 
 
-def _deserialize_tpu(payload: Optional[dict[str, Any]]) -> Optional[TPUResource]:
-    if not payload:
-        return None
+def _deserialize_tpu(payload: dict[str, Any]) -> TPUResource:
     return TPUResource(
         types=payload["types"],
         software_versions=payload["software_versions"],
@@ -762,10 +770,34 @@ def _deserialize_resource_preset(payload: dict[str, Any]) -> tuple[str, Preset]:
             credits_per_hour=Decimal(payload["credits_per_hour"]),
             cpu=payload["cpu"],
             memory=payload["memory"],
-            nvidia_gpu=_deserialize_nvidia_gpu_preset(payload),
-            amd_gpu=_deserialize_amd_gpu_preset(payload),
-            intel_gpu=_deserialize_intel_gpu_preset(payload),
-            tpu=_deserialize_tpu_preset(payload.get("tpu")),
+            nvidia_gpu=(
+                _deserialize_nvidia_gpu_preset(nvidia_gpu_payload)
+                if (nvidia_gpu_payload := payload.get("nvidia_gpu"))
+                else None
+            ),
+            nvidia_migs=(
+                {
+                    key: _deserialize_nvidia_gpu_preset(value)
+                    for key, value in nvidia_migs_payload.items()
+                }
+                if (nvidia_migs_payload := payload.get("nvidia_migs"))
+                else None
+            ),
+            amd_gpu=(
+                _deserialize_amd_gpu_preset(amd_gpu_payload)
+                if (amd_gpu_payload := payload.get("amd_gpu"))
+                else None
+            ),
+            intel_gpu=(
+                _deserialize_intel_gpu_preset(intel_gpu_payload)
+                if (intel_gpu_payload := payload.get("intel_gpu"))
+                else None
+            ),
+            tpu=(
+                _deserialize_tpu_preset(tpu_payload)
+                if (tpu_payload := payload.get("tpu"))
+                else None
+            ),
             scheduler_enabled=payload.get("scheduler_enabled", False),
             preemptible_node=payload.get("preemptible_node", False),
             resource_pool_names=tuple(payload.get("resource_pool_names", ())),
@@ -776,18 +808,7 @@ def _deserialize_resource_preset(payload: dict[str, Any]) -> tuple[str, Preset]:
     )
 
 
-def _deserialize_nvidia_gpu_preset(
-    payload: dict[str, Any],
-) -> Optional[NvidiaGPUPreset]:
-    nvidia_gpu = payload.get("nvidia_gpu")
-    if not nvidia_gpu:
-        return None
-    if isinstance(nvidia_gpu, int):
-        return NvidiaGPUPreset(
-            count=nvidia_gpu,
-            model=payload.get("nvidia_gpu_model"),
-        )
-    payload = nvidia_gpu
+def _deserialize_nvidia_gpu_preset(payload: dict[str, Any]) -> NvidiaGPUPreset:
     return NvidiaGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -795,16 +816,7 @@ def _deserialize_nvidia_gpu_preset(
     )
 
 
-def _deserialize_amd_gpu_preset(payload: dict[str, Any]) -> Optional[AMDGPUPreset]:
-    amd_gpu = payload.get("amd_gpu")
-    if not amd_gpu:
-        return None
-    if isinstance(amd_gpu, int):
-        return AMDGPUPreset(
-            count=amd_gpu,
-            model=payload.get("amd_gpu_model"),
-        )
-    payload = amd_gpu
+def _deserialize_amd_gpu_preset(payload: dict[str, Any]) -> AMDGPUPreset:
     return AMDGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -812,16 +824,7 @@ def _deserialize_amd_gpu_preset(payload: dict[str, Any]) -> Optional[AMDGPUPrese
     )
 
 
-def _deserialize_intel_gpu_preset(payload: dict[str, Any]) -> Optional[IntelGPUPreset]:
-    intel_gpu = payload.get("intel_gpu")
-    if not intel_gpu:
-        return None
-    if isinstance(intel_gpu, int):
-        return IntelGPUPreset(
-            count=intel_gpu,
-            model=payload.get("intel_gpu_model"),
-        )
-    payload = intel_gpu
+def _deserialize_intel_gpu_preset(payload: dict[str, Any]) -> IntelGPUPreset:
     return IntelGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -829,9 +832,7 @@ def _deserialize_intel_gpu_preset(payload: dict[str, Any]) -> Optional[IntelGPUP
     )
 
 
-def _deserialize_tpu_preset(payload: Optional[dict[str, Any]]) -> Optional[TPUPreset]:
-    if not payload:
-        return None
+def _deserialize_tpu_preset(payload: dict[str, Any]) -> TPUPreset:
     return TPUPreset(
         type=payload["type"],
         software_version=payload["software_version"],
@@ -981,6 +982,15 @@ def _serialize_resource_pool(name: str, resource_pool: ResourcePool) -> dict[str
             "model": resource_pool.nvidia_gpu.model,
             "memory": resource_pool.nvidia_gpu.memory,
         }
+    if resource_pool.nvidia_migs:
+        result["nvidia_migs"] = {
+            key: {
+                "count": mig.count,
+                "model": mig.model,
+                "memory": mig.memory,
+            }
+            for key, mig in resource_pool.nvidia_migs.items()
+        }
     if resource_pool.amd_gpu:
         result["amd_gpu"] = {
             "count": resource_pool.amd_gpu.count,
@@ -1018,6 +1028,15 @@ def _serialize_resource_preset(name: str, preset: Preset) -> dict[str, Any]:
             "count": preset.nvidia_gpu.count,
             "model": preset.nvidia_gpu.model,
             "memory": preset.nvidia_gpu.memory,
+        }
+    if preset.nvidia_migs:
+        result["nvidia_migs"] = {
+            key: {
+                "count": mig.count,
+                "model": mig.model,
+                "memory": mig.memory,
+            }
+            for key, mig in preset.nvidia_migs.items()
         }
     if preset.amd_gpu:
         result["amd_gpu"] = {

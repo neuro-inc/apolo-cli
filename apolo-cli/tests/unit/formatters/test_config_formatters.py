@@ -136,6 +136,12 @@ class TestConfigFormatter:
             nvidia_gpu=NvidiaGPUPreset(
                 count=1, model="nvidia-tesla-k80", memory=10**10
             ),
+            nvidia_migs={
+                "1g.5gb": NvidiaGPUPreset(count=2, memory=5 * 10**9),
+                "2g.10gb": NvidiaGPUPreset(
+                    count=1, model="nvidia-tesla-k80-2g.10gb", memory=10**10
+                ),
+            },
             amd_gpu=AMDGPUPreset(count=2, model="instinct-mi25", memory=2 * 10**10),
             intel_gpu=IntelGPUPreset(count=3, model="flex-170", memory=3 * 10**10),
             tpu=TPUPreset(
