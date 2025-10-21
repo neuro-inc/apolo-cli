@@ -1,5 +1,5 @@
 -r base.txt
-cmarkgfm==2024.11.20
+cmarkgfm==2025.10.20
 markdown-toc==1.2.6
 mypy==1.18.2
 pre-commit==4.3.0
