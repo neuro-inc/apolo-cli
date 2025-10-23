@@ -207,6 +207,7 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
             URL("storage://default/test-user"): ["folder", "file.txt"],
             URL("storage://default/org/test-user"): ["folder", "file.txt"],
             URL("storage://default/test-user/folder"): ["folder2", "file2.txt"],
+            URL("storage://default/org/test-user/folder"): ["folder2", "file2.txt"],
             URL("storage://default/other-user"): ["folder3", "file3.txt"],
             URL("storage://other-cluster"): ["test-user"],
         }
@@ -556,20 +557,20 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
             ["blob", "ls", "blob://default/org/project/"]
         )
         assert bash_out == (
-            "uri,bucket-4/,//default/org/project/\n"
-            "uri,apolo-my-org-bucket/,//default/org/project/\n"
-            "uri,bucket-5/,//default/org/project/\n"
-            "uri,apolo-public-org-bucket/,//default/org/project/\n"
-            "uri,bucket-6/,//default/org/project/\n"
-            "uri,apolo-shared-org-bucket/,//default/org/project/"
+            "uri,bucket-1/,//default/org/project/\n"
+            "uri,apolo-my-bucket/,//default/org/project/\n"
+            "uri,bucket-2/,//default/org/project/\n"
+            "uri,apolo-public-bucket/,//default/org/project/\n"
+            "uri,bucket-3/,//default/org/project/\n"
+            "uri,apolo-shared-bucket/,//default/org/project/"
         )
         assert zsh_out == (
-            "uri\nbucket-4/\n_\nblob://default/org/project/\n"
-            "uri\napolo-my-org-bucket/\n_\nblob://default/org/project/\n"
-            "uri\nbucket-5/\n_\nblob://default/org/project/\n"
-            "uri\napolo-public-org-bucket/\n_\nblob://default/org/project/\n"
-            "uri\nbucket-6/\n_\nblob://default/org/project/\n"
-            "uri\napolo-shared-org-bucket/\n_\nblob://default/org/project/"
+            "uri\nbucket-1/\n_\nblob://default/org/project/\n"
+            "uri\napolo-my-bucket/\n_\nblob://default/org/project/\n"
+            "uri\nbucket-2/\n_\nblob://default/org/project/\n"
+            "uri\napolo-public-bucket/\n_\nblob://default/org/project/\n"
+            "uri\nbucket-3/\n_\nblob://default/org/project/\n"
+            "uri\napolo-shared-bucket/\n_\nblob://default/org/project/"
         )
 
         zsh_out, bash_out = run_autocomplete(["blob", "ls", "blob:bucket-1/f"])

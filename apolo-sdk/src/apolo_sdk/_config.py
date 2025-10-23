@@ -592,23 +592,16 @@ def _load_recovery_data(path: Path) -> _ConfigRecoveryData:
         with _open_db_ro(path, skip_schema_check=True) as db:
             cur = db.cursor()
             # only one row is always present normally
-            try:
-                cur.execute(
-                    """
-                    SELECT refresh_token, url, cluster_name, org_name
-                    FROM main ORDER BY timestamp DESC LIMIT 1"""
-                )
-                payload = cur.fetchone()
-            except sqlite3.OperationalError:
-                # Maybe this config was created before org_name was added?
-                cur.execute(
-                    """
-                    SELECT refresh_token, url, cluster_name
-                    FROM main ORDER BY timestamp DESC LIMIT 1"""
-                )
-                payload = cur.fetchone()
+            cur.execute(
+                """
+                SELECT refresh_token, url, cluster_name, org_name
+                FROM main ORDER BY timestamp DESC LIMIT 1"""
+            )
+            payload = cur.fetchone()
 
-        org_name = payload.get("org_name") or "default-org"
+        org_name = payload["org_name"]
+        if not org_name:
+            raise ValueError("org_name is missing")
         return _ConfigRecoveryData(
             url=URL(payload["url"]),
             cluster_name=payload["cluster_name"],
