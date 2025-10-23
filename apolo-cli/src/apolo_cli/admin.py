@@ -62,7 +62,7 @@ UNLIMITED = "unlimited"
 
 def _get_org(root: Root, org: str | None) -> str:
     org_name = org or root.client.config.org_name
-    if not org_name or org_name == "NO_ORG":
+    if not org_name:
         raise ValueError("Org name is required")
     return org_name
 
