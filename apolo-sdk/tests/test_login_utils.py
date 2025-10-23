@@ -177,6 +177,13 @@ async def test_get_server_config_with_token(
                             "model": "nvidia-gpu",
                             "memory": 10**10,
                         },
+                        "nvidia_migs": {
+                            "1g.5gb": {
+                                "count": 1,
+                                "model": "nvidia-gpu-1g.5gb",
+                                "memory": 5 * 10**9,
+                            }
+                        },
                     },
                     {
                         "name": "amd-gpu",
@@ -219,6 +226,21 @@ async def test_get_server_config_with_token(
                         "nvidia_gpu": {"count": 1},
                         "resource_pool_names": ["nvidia-gpu"],
                         "available_resource_pool_names": ["nvidia-gpu"],
+                    },
+                    {
+                        "name": "nvidia-mig",
+                        "credits_per_hour": "10",
+                        "cpu": 7,
+                        "memory": 30 * 2**30,
+                        "nvidia_migs": {
+                            "1g.5gb": {
+                                "count": 1,
+                                "model": "nvidia-gpu-1g.5gb",
+                                "memory": 5 * 10**9,
+                            }
+                        },
+                        "resource_pool_names": ["nvidia-gpu"],
+                        "available_resource_pool_names": [],
                     },
                     {
                         "name": "amd-gpu-small",
@@ -346,6 +368,11 @@ async def test_get_server_config_with_token(
                         nvidia_gpu=NvidiaGPU(
                             count=1, model="nvidia-gpu", memory=10**10
                         ),
+                        nvidia_migs={
+                            "1g.5gb": NvidiaGPU(
+                                count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                            )
+                        },
                     ),
                     "amd-gpu": ResourcePool(
                         min_size=0,
@@ -382,6 +409,17 @@ async def test_get_server_config_with_token(
                         nvidia_gpu=NvidiaGPUPreset(count=1),
                         resource_pool_names=("nvidia-gpu",),
                         available_resource_pool_names=("nvidia-gpu",),
+                    ),
+                    "nvidia-mig": Preset(
+                        credits_per_hour=Decimal("10"),
+                        cpu=7,
+                        memory=30 * 2**30,
+                        nvidia_migs={
+                            "1g.5gb": NvidiaGPUPreset(
+                                count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                            )
+                        },
+                        resource_pool_names=("nvidia-gpu",),
                     ),
                     "amd-gpu-small": Preset(
                         credits_per_hour=Decimal("10"),

@@ -49,6 +49,7 @@ class Preset:
     cpu: float
     memory: int
     nvidia_gpu: Optional[NvidiaGPUPreset] = None
+    nvidia_migs: Optional[Mapping[str, NvidiaGPUPreset]] = None
     amd_gpu: Optional[AMDGPUPreset] = None
     intel_gpu: Optional[IntelGPUPreset] = None
     tpu: Optional[TPUPreset] = None
@@ -100,6 +101,7 @@ class ResourcePool:
     memory: int
     disk_size: int
     nvidia_gpu: Optional[NvidiaGPU] = None
+    nvidia_migs: Optional[Mapping[str, NvidiaGPU]] = None
     amd_gpu: Optional[AMDGPU] = None
     intel_gpu: Optional[IntelGPU] = None
     tpu: Optional[TPUResource] = None
@@ -189,10 +191,30 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
             cpu=data["cpu"],
             memory=data["memory"],
             disk_size=data["disk_size"],
-            nvidia_gpu=_parse_nvidia_gpu(data),
-            amd_gpu=_parse_amd_gpu(data),
-            intel_gpu=_parse_intel_gpu(data),
-            tpu=_parse_tpu(payload.get("tpu")),
+            nvidia_gpu=(
+                _parse_nvidia_gpu(nvidia_gpu_data)
+                if (nvidia_gpu_data := data.get("nvidia_gpu"))
+                else None
+            ),
+            nvidia_migs=(
+                {
+                    key: _parse_nvidia_gpu(value)
+                    for key, value in nvidia_migs_data.items()
+                }
+                if (nvidia_migs_data := data.get("nvidia_migs"))
+                else None
+            ),
+            amd_gpu=(
+                _parse_amd_gpu(amd_gpu_data)
+                if (amd_gpu_data := data.get("amd_gpu"))
+                else None
+            ),
+            intel_gpu=(
+                _parse_intel_gpu(intel_gpu_data)
+                if (intel_gpu_data := data.get("intel_gpu"))
+                else None
+            ),
+            tpu=(_parse_tpu(tpu_data) if (tpu_data := payload.get("tpu")) else None),
             is_preemptible=data.get("is_preemptible", False),
         )
     presets: Dict[str, Preset] = {}
@@ -201,10 +223,32 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
             credits_per_hour=Decimal(data["credits_per_hour"]),
             cpu=data["cpu"],
             memory=data["memory"],
-            nvidia_gpu=_parse_nvidia_gpu_preset(data),
-            amd_gpu=_parse_amd_gpu_preset(data),
-            intel_gpu=_parse_intel_gpu_preset(data),
-            tpu=_parse_tpu_preset(data.get("tpu")),
+            nvidia_gpu=(
+                _parse_nvidia_gpu_preset(nvidia_gpu_data)
+                if (nvidia_gpu_data := data.get("nvidia_gpu"))
+                else None
+            ),
+            nvidia_migs=(
+                {
+                    key: _parse_nvidia_gpu_preset(value)
+                    for key, value in nvidia_migs_data.items()
+                }
+                if (nvidia_migs_data := data.get("nvidia_migs"))
+                else None
+            ),
+            amd_gpu=(
+                _parse_amd_gpu_preset(amd_gpu_data)
+                if (amd_gpu_data := data.get("amd_gpu"))
+                else None
+            ),
+            intel_gpu=(
+                _parse_intel_gpu_preset(intel_gpu_data)
+                if (intel_gpu_data := data.get("intel_gpu"))
+                else None
+            ),
+            tpu=(
+                _parse_tpu_preset(tpu_data) if (tpu_data := data.get("tpu")) else None
+            ),
             scheduler_enabled=data.get("scheduler_enabled", False),
             preemptible_node=data.get("preemptible_node", False),
             resource_pool_names=tuple(data.get("resource_pool_names", ())),
@@ -239,16 +283,7 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
     return cluster_config
 
 
-def _parse_nvidia_gpu(payload: Dict[str, Any]) -> Optional[NvidiaGPU]:
-    nvidia_gpu = payload.get("nvidia_gpu")
-    if not nvidia_gpu:
-        return None
-    if isinstance(nvidia_gpu, int):
-        return NvidiaGPU(
-            count=nvidia_gpu,
-            model=payload["nvidia_gpu_model"],
-        )
-    payload = nvidia_gpu
+def _parse_nvidia_gpu(payload: Dict[str, Any]) -> NvidiaGPU:
     return NvidiaGPU(
         count=payload["count"],
         model=payload["model"],
@@ -256,16 +291,7 @@ def _parse_nvidia_gpu(payload: Dict[str, Any]) -> Optional[NvidiaGPU]:
     )
 
 
-def _parse_amd_gpu(payload: Dict[str, Any]) -> Optional[AMDGPU]:
-    amd_gpu = payload.get("amd_gpu")
-    if not amd_gpu:
-        return None
-    if isinstance(amd_gpu, int):
-        return AMDGPU(
-            count=amd_gpu,
-            model=payload["amd_gpu_model"],
-        )
-    payload = amd_gpu
+def _parse_amd_gpu(payload: Dict[str, Any]) -> AMDGPU:
     return AMDGPU(
         count=payload["count"],
         model=payload["model"],
@@ -273,16 +299,7 @@ def _parse_amd_gpu(payload: Dict[str, Any]) -> Optional[AMDGPU]:
     )
 
 
-def _parse_intel_gpu(payload: Dict[str, Any]) -> Optional[IntelGPU]:
-    intel_gpu = payload.get("intel_gpu")
-    if not intel_gpu:
-        return None
-    if isinstance(intel_gpu, int):
-        return IntelGPU(
-            count=intel_gpu,
-            model=payload["intel_gpu_model"],
-        )
-    payload = intel_gpu
+def _parse_intel_gpu(payload: Dict[str, Any]) -> IntelGPU:
     return IntelGPU(
         count=payload["count"],
         model=payload["model"],
@@ -290,9 +307,7 @@ def _parse_intel_gpu(payload: Dict[str, Any]) -> Optional[IntelGPU]:
     )
 
 
-def _parse_tpu(payload: Optional[Dict[str, Any]]) -> Optional[TPUResource]:
-    if not payload:
-        return None
+def _parse_tpu(payload: Dict[str, Any]) -> TPUResource:
     return TPUResource(
         types=payload["types"],
         software_versions=payload["software_versions"],
@@ -300,16 +315,7 @@ def _parse_tpu(payload: Optional[Dict[str, Any]]) -> Optional[TPUResource]:
     )
 
 
-def _parse_nvidia_gpu_preset(payload: Dict[str, Any]) -> Optional[NvidiaGPUPreset]:
-    nvidia_gpu = payload.get("nvidia_gpu")
-    if not nvidia_gpu:
-        return None
-    if isinstance(nvidia_gpu, int):
-        return NvidiaGPUPreset(
-            count=nvidia_gpu,
-            model=payload.get("nvidia_gpu_model"),
-        )
-    payload = nvidia_gpu
+def _parse_nvidia_gpu_preset(payload: Dict[str, Any]) -> NvidiaGPUPreset:
     return NvidiaGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -317,16 +323,7 @@ def _parse_nvidia_gpu_preset(payload: Dict[str, Any]) -> Optional[NvidiaGPUPrese
     )
 
 
-def _parse_amd_gpu_preset(payload: Dict[str, Any]) -> Optional[AMDGPUPreset]:
-    amd_gpu = payload.get("amd_gpu")
-    if not amd_gpu:
-        return None
-    if isinstance(amd_gpu, int):
-        return AMDGPUPreset(
-            count=amd_gpu,
-            model=payload.get("amd_gpu_model"),
-        )
-    payload = amd_gpu
+def _parse_amd_gpu_preset(payload: Dict[str, Any]) -> AMDGPUPreset:
     return AMDGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -334,16 +331,7 @@ def _parse_amd_gpu_preset(payload: Dict[str, Any]) -> Optional[AMDGPUPreset]:
     )
 
 
-def _parse_intel_gpu_preset(payload: Dict[str, Any]) -> Optional[IntelGPUPreset]:
-    intel_gpu = payload.get("intel_gpu")
-    if not intel_gpu:
-        return None
-    if isinstance(intel_gpu, int):
-        return IntelGPUPreset(
-            count=intel_gpu,
-            model=payload.get("intel_gpu_model"),
-        )
-    payload = intel_gpu
+def _parse_intel_gpu_preset(payload: Dict[str, Any]) -> IntelGPUPreset:
     return IntelGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -351,9 +339,7 @@ def _parse_intel_gpu_preset(payload: Dict[str, Any]) -> Optional[IntelGPUPreset]
     )
 
 
-def _parse_tpu_preset(payload: Optional[Dict[str, Any]]) -> Optional[TPUPreset]:
-    if not payload:
-        return None
+def _parse_tpu_preset(payload: Dict[str, Any]) -> TPUPreset:
     return TPUPreset(
         type=payload["type"],
         software_version=payload["software_version"],

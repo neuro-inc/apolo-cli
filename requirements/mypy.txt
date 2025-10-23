@@ -1,9 +1,9 @@
 -r base.txt
-cmarkgfm==2024.11.20
+cmarkgfm==2025.10.20
 markdown-toc==1.2.6
 mypy==1.18.2
 pre-commit==4.3.0
 types-certifi==2021.10.8.3
-types-python-dateutil==2.9.0.20250822
+types-python-dateutil==2.9.0.20251008
 types-PyYAML==6.0.12.20250915
 types-toml==0.10.8.20240310

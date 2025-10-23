@@ -391,6 +391,18 @@ async def test_presets(
                 nvidia_gpu=NvidiaGPUPreset(count=1, model="nvidia-gpu", memory=10**10),
                 resource_pool_names=("nvidia-gpu",),
             ),
+            "nvidia-mig": Preset(
+                credits_per_hour=Decimal("10"),
+                cpu=7,
+                memory=30720 * 2**20,
+                scheduler_enabled=False,
+                nvidia_migs={
+                    "1g.5gb": NvidiaGPUPreset(
+                        count=1, model="nvidia-gpu-1g.5gb", memory=5 * 10**9
+                    )
+                },
+                resource_pool_names=("nvidia-gpu",),
+            ),
             "amd-gpu-large": Preset(
                 credits_per_hour=Decimal("10"),
                 cpu=7,
