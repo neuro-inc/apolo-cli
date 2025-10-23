@@ -49,7 +49,7 @@ async def test_list(
             key="name1",
             owner="test",
             cluster_name="default",
-            org_name="NO_ORG",
+            org_name="test-org",
             project_name="test-project",
         ),
         Secret(
@@ -71,7 +71,7 @@ async def test_add(
             "key": "name",
             "value": base64.b64encode(b"data").decode("ascii"),
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         raise web.HTTPCreated
 
@@ -115,7 +115,7 @@ async def test_add_with_project(
             "key": "name",
             "value": base64.b64encode(b"data").decode("ascii"),
             "project_name": "project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         raise web.HTTPCreated
 

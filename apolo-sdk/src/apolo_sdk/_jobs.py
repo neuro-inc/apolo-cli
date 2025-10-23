@@ -341,6 +341,7 @@ class Jobs(metaclass=NoPublicConstructor):
         self,
         container: Container,
         *,
+        preset_name: Optional[str] = None,
         name: Optional[str] = None,
         tags: Sequence[str] = (),
         description: Optional[str] = None,
@@ -361,6 +362,7 @@ class Jobs(metaclass=NoPublicConstructor):
             cluster_name=self._config.cluster_name,
             project_name=project_name,
             name=name,
+            preset_name=preset_name,
             tags=tags,
             description=description,
             pass_config=pass_config,
@@ -517,7 +519,8 @@ class Jobs(metaclass=NoPublicConstructor):
         if _logs_removed is not None:
             params.add("logs_removed", str(_logs_removed))
         for org_name in org_names:
-            params.add("org_name", org_name or "NO_ORG")
+            if org_name is not None:
+                params.add("org_name", org_name)
         for project_name in project_names:
             params.add("project_name", project_name)
         auth = await self._config._api_auth()

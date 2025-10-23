@@ -22,7 +22,7 @@ def test_bucket_formatter(rich_cmp: Any) -> None:
         provider=Bucket.Provider.AWS,
         created_at=isoparse("2017-03-04T12:28:59.759433+00:00"),
         imported=False,
-        org_name="NO_ORG",
+        org_name="org",
         project_name="test-project",
     )
     fmtr = BucketFormatter(str, datetime_formatter=format_datetime_human)
@@ -56,7 +56,7 @@ def buckets_list() -> List[Bucket]:
             created_at=isoparse("2017-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(
@@ -67,7 +67,7 @@ def buckets_list() -> List[Bucket]:
             created_at=isoparse("2016-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(

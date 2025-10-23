@@ -106,7 +106,7 @@ async def mocked_get_quota_client(
 
     app = web.Application()
     app.router.add_get(
-        "/apis/admin/v1/clusters/{cluster_name}/orgs/NO_ORG/users/{username}",
+        "/apis/admin/v1/clusters/{cluster_name}/orgs/test-org/users/{username}",
         handle_get_cluster_user,
     )
 

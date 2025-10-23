@@ -200,8 +200,8 @@ def test_extract_secret_env(root: Root) -> None:
         "ENV_VAR_5": "secret://othercluster/otherproject/value5",
     }
     assert root.client.parse._extract_secret_env(env) == {
-        "ENV_VAR_1": URL(f"secret://{cluster_name}/NO_ORG/{project_name}/value1"),
-        "ENV_VAR_3": URL(f"secret://{cluster_name}/NO_ORG/otherproject/value3"),
+        "ENV_VAR_1": URL(f"secret://{cluster_name}/org/{project_name}/value1"),
+        "ENV_VAR_3": URL(f"secret://{cluster_name}/org/otherproject/value3"),
         "ENV_VAR_5": URL(f"secret://othercluster/otherproject/value5"),
     }
     assert env == {"ENV_VAR_2": "value2", "ENV_VAR_4": "value4"}

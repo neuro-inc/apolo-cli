@@ -114,6 +114,7 @@ async def mock_for_login_factory(
             ):
                 cluster_config: dict[str, Any] = {
                     "name": "default",
+                    "orgs": ["test-org"],
                     "registry_url": "https://registry-dev.test.com",
                     "storage_url": "https://storage-dev.test.com",
                     "users_url": "https://users-dev.test.com",
@@ -235,7 +236,7 @@ async def mock_for_login_factory(
                 }
                 project_config: Dict[str, Any] = {
                     "cluster_name": "default",
-                    "org_name": "NO_ORG",
+                    "org_name": "test-org",
                     "name": "default",
                     "role": "owner",
                 }
@@ -458,7 +459,7 @@ class TestLoginPassedConfig:
         def _make_config(
             token: str,
             project_name: Optional[str] = "default",
-            org_name: Optional[str] = "NO_ORG",
+            org_name: Optional[str] = "test-org",
         ) -> str:
             data = {
                 "token": token,
@@ -569,7 +570,7 @@ class TestLoginPassedConfig:
         rc_path = tmp_home / ".apolo"
         assert Path(rc_path).exists(), "Config file not written after login "
         assert client.config.project_name == "default2"
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
 
 
 class TestHeadlessLogin:

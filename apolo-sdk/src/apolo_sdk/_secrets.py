@@ -58,7 +58,7 @@ class Secrets(metaclass=NoPublicConstructor):
                     key=j["key"],
                     owner=j["owner"],
                     cluster_name=cluster_name or self._config.cluster_name,
-                    org_name=j.get("org_name") or "NO_ORG",
+                    org_name=j.get("org_name") or self._config.org_name,
                     project_name=j["project_name"],
                 )
 

@@ -161,10 +161,13 @@ class _ServerConfig:
 
 
 def _parse_project_config(payload: Dict[str, Any]) -> Project:
+    org_name = payload.get("org_name")
+    if not org_name:
+        raise ValueError("org_name is required for projects")
     return Project(
         name=payload["name"],
         cluster_name=payload["cluster_name"],
-        org_name=payload.get("org_name") or "NO_ORG",
+        org_name=org_name,
         role=payload["role"],
     )
 
@@ -209,11 +212,7 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
                 data.get("available_resource_pool_names", ())
             ),
         )
-    orgs = payload.get("orgs")
-    if not orgs:
-        orgs = ["NO_ORG"]
-    else:
-        orgs = [org if org is not None else "NO_ORG" for org in orgs]
+    orgs = payload.get("orgs") or []
 
     apps_payload = payload.get("apps", {})
     if apps_payload:

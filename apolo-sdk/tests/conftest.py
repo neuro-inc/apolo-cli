@@ -158,7 +158,7 @@ def cluster_config() -> Cluster:
             ),
         },
         name="default",
-        orgs=["NO_ORG"],
+        orgs=["test-org"],
         apps=AppsConfig(
             hostname_templates=["{app_name}.default.neu.ro"],
         ),
@@ -284,7 +284,7 @@ def make_client(
                     ),
                 },
                 name="default",
-                orgs=[org_name or "NO_ORG"],
+                orgs=[org_name or "test-org"],
                 apps=AppsConfig(hostname_templates=["{app_name}.default.neu.ro"]),
             )
             cluster2_config = Cluster(
@@ -317,7 +317,7 @@ def make_client(
                     ),
                 },
                 name="another",
-                orgs=["NO_ORG", "some_org"],
+                orgs=["test-org", "some_org"],
                 apps=AppsConfig(hostname_templates=["{app_name2}.default.neu.ro"]),
             )
             clusters = {
@@ -357,8 +357,8 @@ def make_client(
             cluster_name = next(iter(clusters))
             org_name = clusters[cluster_name].orgs[0]
         else:
-            cluster_name = None
-            org_name = "NO_ORG"
+            cluster_name = "default"
+            org_name = "test-org"
         config = _ConfigData(
             auth_config=real_auth_config,
             auth_token=_AuthToken.create_non_expiring(token),

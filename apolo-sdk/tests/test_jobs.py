@@ -898,7 +898,7 @@ async def test_job_start(
             "cluster_name": "default",
             "preset_name": "cpu-small",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -977,7 +977,7 @@ async def test_job_start_with_privileged_flag(
             "preset_name": "cpu-small",
             "privileged": True,
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1045,7 +1045,7 @@ async def test_job_start_with_priority(
             "preset_name": "cpu-small",
             "priority": "high",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1086,7 +1086,7 @@ async def test_job_start_with_project(
             "preset_name": "cpu-small",
             # if project_name is not provided, SDK falls back to current project
             "project_name": project_name or "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         return web.json_response(JSON)
 
@@ -1173,7 +1173,7 @@ async def test_job_run(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1267,7 +1267,7 @@ async def test_job_run_with_wait_for_quota(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1360,7 +1360,7 @@ async def test_job_run_with_name_and_description(
             "description": "job description",
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1466,7 +1466,7 @@ async def test_job_run_with_tags(
             "tags": ["t1", "t2", "t3"],
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1560,7 +1560,7 @@ async def test_job_run_no_volumes(
             "description": "job description",
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1638,12 +1638,16 @@ async def test_job_run_with_relative_volume_uris(
                 },
                 "volumes": [
                     {
-                        "src_storage_uri": "storage://default/NO_ORG/test-project/path",
+                        "src_storage_uri": (
+                            "storage://default/test-org/test-project/path"
+                        ),
                         "dst_path": "/container/my_path",
                         "read_only": False,
                     },
                     {
-                        "src_storage_uri": "storage://default/NO_ORG/otherproject/path",
+                        "src_storage_uri": (
+                            "storage://default/test-org/otherproject/path"
+                        ),
                         "dst_path": "/container/other_user_path",
                         "read_only": True,
                     },
@@ -1658,7 +1662,7 @@ async def test_job_run_with_relative_volume_uris(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1745,18 +1749,22 @@ async def test_job_run_with_secret_uris(
                 },
                 "env": {"VAR": "VAL"},
                 "secret_env": {
-                    "SECRET_VAR": "secret://default/NO_ORG/test-project/secret"
+                    "SECRET_VAR": ("secret://default/test-org/test-project/secret")
                 },
                 "volumes": [
                     {
-                        "src_storage_uri": "storage://default/NO_ORG/test-project/path",
+                        "src_storage_uri": (
+                            "storage://default/test-org/test-project/path"
+                        ),
                         "dst_path": "/container/my_path",
                         "read_only": False,
                     }
                 ],
                 "secret_volumes": [
                     {
-                        "src_secret_uri": "secret://default/NO_ORG/test-project/secret",
+                        "src_secret_uri": (
+                            "secret://default/test-org/test-project/secret"
+                        ),
                         "dst_path": "/secrets/my_path",
                     }
                 ],
@@ -1765,7 +1773,7 @@ async def test_job_run_with_secret_uris(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1855,7 +1863,7 @@ async def test_job_run_with_disk_volume_uris(
                 },
                 "disk_volumes": [
                     {
-                        "src_disk_uri": "disk://default/NO_ORG/test-project/disk-1",
+                        "src_disk_uri": "disk://default/test-org/test-project/disk-1",
                         "dst_path": "/container/my_path",
                         "read_only": False,
                     }
@@ -1865,7 +1873,7 @@ async def test_job_run_with_disk_volume_uris(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -1960,7 +1968,7 @@ async def test_job_run_preemptible(
             "description": "job description",
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -2016,7 +2024,7 @@ async def test_job_run_schedule_timeout(
         "owner": "owner",
         "project_name": "test-project",
         "cluster_name": "default",
-        "org_name": "NO_ORG",
+        "org_name": "test-org",
         "uri": "job://default/owner/job-cf519ed3-9ea5-48f6-a8c5-492b810eb56f",
         "total_price_credits": "10.01",
         "price_credits_per_hour": "20",
@@ -2054,7 +2062,7 @@ async def test_job_run_schedule_timeout(
             "schedule_timeout": 5,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -2093,7 +2101,7 @@ async def test_job_run_tpu(
         "owner": "owner",
         "project_name": "test-project",
         "cluster_name": "default",
-        "org_name": "NO_ORG",
+        "org_name": "test-org",
         "uri": "job://default/owner/job-cf519ed3-9ea5-48f6-a8c5-492b810eb56f",
         "total_price_credits": "10.01",
         "price_credits_per_hour": "20",
@@ -2132,7 +2140,7 @@ async def test_job_run_tpu(
             "schedule_timeout": 5,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -2182,7 +2190,7 @@ async def test_job_run_with_tty(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)
@@ -2228,7 +2236,7 @@ async def test_job_run_with_project(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": project_name or "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         return web.json_response(JSON)
 
@@ -2488,25 +2496,25 @@ class TestVolumeParsing:
         "volume_param,volume",
         [
             (
-                "storage://default/NO_ORG/test-project/dir:/var/www",
+                "storage://default/test-org/test-project/dir:/var/www",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project/dir"),
+                    storage_uri=URL("storage://default/test-org/test-project/dir"),
                     container_path="/var/www",
                     read_only=False,
                 ),
             ),
             (
-                "storage://default/NO_ORG/test-project/dir:/var/www:rw",
+                "storage://default/test-org/test-project/dir:/var/www:rw",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project/dir"),
+                    storage_uri=URL("storage://default/test-org/test-project/dir"),
                     container_path="/var/www",
                     read_only=False,
                 ),
             ),
             (
-                "storage://default/NO_ORG/test-project:/var/www:ro",
+                "storage://default/test-org/test-project:/var/www:ro",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project"),
+                    storage_uri=URL("storage://default/test-org/test-project"),
                     container_path="/var/www",
                     read_only=True,
                 ),
@@ -2514,7 +2522,7 @@ class TestVolumeParsing:
             (
                 "storage::/var/www:ro",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project"),
+                    storage_uri=URL("storage://default/test-org/test-project"),
                     container_path="/var/www",
                     read_only=True,
                 ),
@@ -2522,7 +2530,7 @@ class TestVolumeParsing:
             (
                 "storage:dir:/var/www:ro",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project/dir"),
+                    storage_uri=URL("storage://default/test-org/test-project/dir"),
                     container_path="/var/www",
                     read_only=True,
                 ),
@@ -2530,7 +2538,7 @@ class TestVolumeParsing:
             (
                 "storage::/var/www:ro",
                 Volume(
-                    storage_uri=URL("storage://default/NO_ORG/test-project"),
+                    storage_uri=URL("storage://default/test-org/test-project"),
                     container_path="/var/www",
                     read_only=True,
                 ),
@@ -2804,7 +2812,7 @@ async def test_job_run_life_span(
             "pass_config": False,
             "max_run_time_minutes": 10,
             "cluster_name": "default",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
             "project_name": "test-project",
         }
         return web.json_response(create_job_response("job-id-1", "running"))
@@ -2839,7 +2847,7 @@ async def test_job_run_restart_policy(
             "pass_config": False,
             "restart_policy": "always",
             "cluster_name": "default",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
             "project_name": "test-project",
         }
         return web.json_response(create_job_response("job-id-1", "running"))
@@ -2877,7 +2885,7 @@ async def test_job_run_working_dir(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         result = create_job_response("job-id-1", "running")
         result["container"]["working_dir"] = "/working/dir"
@@ -3029,7 +3037,7 @@ async def test_job_price_credits(
             "pass_config": False,
             "cluster_name": "default",
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
         api_responce = create_job_response(
             "job-id-1",
@@ -3138,7 +3146,7 @@ async def test_job_start_with_energy_schedule_name(
             "energy_schedule_name": "some-schedule",
             "pass_config": False,
             "project_name": "test-project",
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
         }
 
         return web.json_response(JSON)

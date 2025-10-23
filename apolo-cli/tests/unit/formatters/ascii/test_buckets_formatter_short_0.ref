@@ -1,6 +1,6 @@
-Id                                            Name            Provider   Uri                                               
- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
-  bucket-1                                      test-bucket     aws        blob://cluster/NO_ORG/test-project/test-bucket    
-  bucket-2                                      test-bucket-2   aws        blob://cluster/NO_ORG/test-project/test-bucket-2  
-  bucket-3                                                      aws        blob://cluster/test-org/test-project/bucket-3     
+Id                                            Name            Provider   Uri                                            
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+  bucket-1                                      test-bucket     aws        blob://cluster/org/test-project/test-bucket    
+  bucket-2                                      test-bucket-2   aws        blob://cluster/org/test-project/test-bucket-2  
+  bucket-3                                                      aws        blob://cluster/test-org/test-project/bucket-3  
   bucket-4                                                      aws        blob://cluster/test-org/test-project/bucket-4
