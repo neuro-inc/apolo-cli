@@ -2108,7 +2108,7 @@ class TestTabularJobRow:
             image_formatter=image_fmtr,
             datetime_formatter=datetime_formatter,
         )
-        assert row.image == "image:/NO_ORG/test-project/swiss-box:red"
+        assert row.image == "image:/org/test-project/swiss-box:red"
         assert row.name == ""
 
     def test_image_from_registry_parsing_long(
@@ -2124,7 +2124,7 @@ class TestTabularJobRow:
             image_formatter=str,
             datetime_formatter=datetime_formatter,
         )
-        assert row.image == "image://default/NO_ORG/bob/swiss-box:red"
+        assert row.image == "image://default/org/bob/swiss-box:red"
         assert row.name == ""
 
 

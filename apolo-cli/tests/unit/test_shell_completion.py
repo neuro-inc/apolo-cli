@@ -203,7 +203,7 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
     ):
         tree = {
             URL("storage://default/"): ["test-user", "other-user"],
-            URL("storage://default/NO_ORG"): ["test-user", "other-user"],
+            URL("storage://default/org"): ["test-user", "other-user"],
             URL("storage://default/test-user"): ["folder", "file.txt"],
             URL("storage://default/org/test-user"): ["folder", "file.txt"],
             URL("storage://default/test-user/folder"): ["folder2", "file2.txt"],
