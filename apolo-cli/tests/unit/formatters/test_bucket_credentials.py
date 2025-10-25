@@ -21,7 +21,7 @@ async def test_bucket_credentials_formatter(rich_cmp: Any) -> None:
         provider=Bucket.Provider.AWS,
         created_at=isoparse("2017-03-04T12:28:59.759433+00:00"),
         imported=False,
-        org_name="NO_ORG",
+        org_name="org",
         project_name="test-project",
     )
     credentials = PersistentBucketCredentials(
@@ -66,7 +66,7 @@ def credentials_list_fixture() -> CredListFixture:
             created_at=isoparse("2017-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(
@@ -77,7 +77,7 @@ def credentials_list_fixture() -> CredListFixture:
             created_at=isoparse("2016-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(
@@ -88,7 +88,7 @@ def credentials_list_fixture() -> CredListFixture:
             created_at=isoparse("2018-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(
@@ -99,7 +99,7 @@ def credentials_list_fixture() -> CredListFixture:
             created_at=isoparse("2019-03-04T12:28:59.759433+00:00"),
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
     ]

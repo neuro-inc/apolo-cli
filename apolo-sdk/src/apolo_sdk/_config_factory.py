@@ -276,16 +276,17 @@ class Factory:
     ) -> _ConfigData:
         from . import __version__
 
-        if server_config.clusters:
-            cluster_name = next(iter(server_config.clusters))
-            org_name = server_config.clusters[cluster_name].orgs[0]
-            project_name = self._get_first_project(
-                server_config.projects, cluster_name, org_name
-            )
+        if not server_config.clusters:
+            raise ConfigError("No clusters configured")
+        cluster_name = next(iter(server_config.clusters))
+        cluster = server_config.clusters[cluster_name]
+        if cluster.orgs:
+            org_name = cluster.orgs[0]
         else:
-            cluster_name = None
-            org_name = None
-            project_name = None
+            org_name = "default-org"
+        project_name = self._get_first_project(
+            server_config.projects, cluster_name, org_name
+        )
         config = _ConfigData(
             auth_config=server_config.auth_config,
             auth_token=token,

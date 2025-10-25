@@ -141,7 +141,7 @@ async def test_parse_remote(make_client: _MakeClient) -> None:
         tag="latest",
         registry="registry-api.dev.apolo.us",
         cluster_name="default",
-        org_name="NO_ORG",
+        org_name="test-org",
         project_name="project",
     )
 
@@ -158,7 +158,7 @@ async def test_parse_remote_registry_image(make_client: _MakeClient) -> None:
         tag="latest",
         registry="localhost:5000",
         cluster_name="default",
-        org_name="NO_ORG",
+        org_name="test-org",
         project_name="project",
     )
 
@@ -204,15 +204,15 @@ async def test_parse_secret_files_keeps_order(make_client: _MakeClient) -> None:
 
     assert volumes_parsed.secret_files == [
         SecretFile(
-            URL(f"secret://default/NO_ORG/{client.config.project_name}/first"),
+            URL(f"secret://default/test-org/{client.config.project_name}/first"),
             "/var/secrets/first",
         ),
         SecretFile(
-            URL(f"secret://default/NO_ORG/{client.config.project_name}/second"),
+            URL(f"secret://default/test-org/{client.config.project_name}/second"),
             "/var/secrets/second",
         ),
         SecretFile(
-            URL(f"secret://default/NO_ORG/{client.config.project_name}/third"),
+            URL(f"secret://default/test-org/{client.config.project_name}/third"),
             "/var/secrets/third",
         ),
     ]

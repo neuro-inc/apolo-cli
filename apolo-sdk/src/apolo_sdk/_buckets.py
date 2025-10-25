@@ -190,7 +190,7 @@ class Buckets(metaclass=NoPublicConstructor):
             imported=payload.get("imported", False),
             public=payload.get("public", False),
             cluster_name=self._config.cluster_name,
-            org_name=payload.get("org_name") or "NO_ORG",
+            org_name=payload.get("org_name") or "",
             project_name=payload["project_name"],
         )
 
@@ -215,7 +215,7 @@ class Buckets(metaclass=NoPublicConstructor):
     ) -> Dict[str, Any]:
         org_name_val = org_name or self._config.org_name
         params = {
-            "org_name": org_name_val or "NO_ORG",
+            "org_name": org_name_val or "",
             "project_name": project_name or self._config.project_name_or_raise,
         }
         return params

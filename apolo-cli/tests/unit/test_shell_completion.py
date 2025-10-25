@@ -203,10 +203,11 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
     ):
         tree = {
             URL("storage://default/"): ["test-user", "other-user"],
-            URL("storage://default/NO_ORG"): ["test-user", "other-user"],
+            URL("storage://default/org"): ["test-user", "other-user"],
             URL("storage://default/test-user"): ["folder", "file.txt"],
-            URL("storage://default/NO_ORG/test-user"): ["folder", "file.txt"],
+            URL("storage://default/org/test-user"): ["folder", "file.txt"],
             URL("storage://default/test-user/folder"): ["folder2", "file2.txt"],
+            URL("storage://default/org/test-user/folder"): ["folder2", "file2.txt"],
             URL("storage://default/other-user"): ["folder3", "file3.txt"],
             URL("storage://other-cluster"): ["test-user"],
         }
@@ -215,7 +216,9 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
             return ".txt" not in uri.name
 
         async def stat(uri: URL) -> FileStatus:
-            uri = normalize_storage_path_uri(uri, "test-user", "default", org_name=None)
+            uri = normalize_storage_path_uri(
+                uri, "test-user", "default", org_name="org"
+            )
             if uri.path.endswith("/") and uri.path != "/":
                 uri = uri.with_path(uri.path.rstrip("/"))
             return FileStatus(
@@ -229,7 +232,9 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
 
         @asyncgeneratorcontextmanager
         async def list(uri: URL) -> AsyncIterator[FileStatus]:
-            uri = normalize_storage_path_uri(uri, "test-user", "default", org_name=None)
+            uri = normalize_storage_path_uri(
+                uri, "test-user", "default", org_name="org"
+            )
             for name in tree[uri]:
                 child = uri / name
                 yield FileStatus(
@@ -272,25 +277,25 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
 
         zsh_out, bash_out = run_autocomplete(["storage", "cp", "storage:/"])
         assert bash_out == (
-            "uri,test-user/,//default/NO_ORG/\n" "uri,other-user/,//default/NO_ORG/"
+            "uri,test-user/,//default/org/\n" "uri,other-user/,//default/org/"
         )
         assert zsh_out == (
-            "uri\ntest-user/\n_\nstorage://default/NO_ORG/\n"
-            "uri\nother-user/\n_\nstorage://default/NO_ORG/"
+            "uri\ntest-user/\n_\nstorage://default/org/\n"
+            "uri\nother-user/\n_\nstorage://default/org/"
         )
 
         zsh_out, bash_out = run_autocomplete(["storage", "cp", "storage:/t"])
-        assert bash_out == "uri,test-user/,//default/NO_ORG/"
-        assert zsh_out == "uri\ntest-user/\n_\nstorage://default/NO_ORG/"
+        assert bash_out == "uri,test-user/,//default/org/"
+        assert zsh_out == "uri\ntest-user/\n_\nstorage://default/org/"
 
         zsh_out, bash_out = run_autocomplete(["storage", "cp", "storage:/test-user/"])
         assert bash_out == (
-            "uri,folder/,//default/NO_ORG/test-user/\n"
-            "uri,file.txt,//default/NO_ORG/test-user/"
+            "uri,folder/,//default/org/test-user/\n"
+            "uri,file.txt,//default/org/test-user/"
         )
         assert zsh_out == (
-            "uri\nfolder/\n_\nstorage://default/NO_ORG/test-user/\n"
-            "uri\nfile.txt\n_\nstorage://default/NO_ORG/test-user/"
+            "uri\nfolder/\n_\nstorage://default/org/test-user/\n"
+            "uri\nfile.txt\n_\nstorage://default/org/test-user/"
         )
 
         zsh_out, bash_out = run_autocomplete(["storage", "cp", "storage://"])
@@ -333,7 +338,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="user",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="project",
             )
             yield Bucket(
@@ -344,7 +349,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="public",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="project",
             )
             yield Bucket(
@@ -355,7 +360,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="another-user",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="project",
             )
             yield Bucket(
@@ -366,7 +371,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="user",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="org",
+                org_name="other-org",
                 project_name="project",
             )
             yield Bucket(
@@ -377,7 +382,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="public",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="org",
+                org_name="other-org",
                 project_name="project",
             )
             yield Bucket(
@@ -388,7 +393,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                 owner="another-user",
                 provider=Bucket.Provider.AWS,
                 imported=False,
-                org_name="org",
+                org_name="other-org",
                 project_name="project",
             )
 
@@ -516,8 +521,8 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
         # )
 
         zsh_out, bash_out = run_autocomplete(["blob", "ls", "blob:/p"])
-        assert bash_out == "uri,project/,//default/NO_ORG/"
-        assert zsh_out == "uri\nproject/\n_\nblob://default/NO_ORG/"
+        assert bash_out == "uri,project/,//default/org/"
+        assert zsh_out == "uri\nproject/\n_\nblob://default/org/"
 
         zsh_out, bash_out = run_autocomplete(["blob", "ls", "blob:/project/"])
         assert bash_out == (
@@ -552,20 +557,20 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
             ["blob", "ls", "blob://default/org/project/"]
         )
         assert bash_out == (
-            "uri,bucket-4/,//default/org/project/\n"
-            "uri,apolo-my-org-bucket/,//default/org/project/\n"
-            "uri,bucket-5/,//default/org/project/\n"
-            "uri,apolo-public-org-bucket/,//default/org/project/\n"
-            "uri,bucket-6/,//default/org/project/\n"
-            "uri,apolo-shared-org-bucket/,//default/org/project/"
+            "uri,bucket-1/,//default/org/project/\n"
+            "uri,apolo-my-bucket/,//default/org/project/\n"
+            "uri,bucket-2/,//default/org/project/\n"
+            "uri,apolo-public-bucket/,//default/org/project/\n"
+            "uri,bucket-3/,//default/org/project/\n"
+            "uri,apolo-shared-bucket/,//default/org/project/"
         )
         assert zsh_out == (
-            "uri\nbucket-4/\n_\nblob://default/org/project/\n"
-            "uri\napolo-my-org-bucket/\n_\nblob://default/org/project/\n"
-            "uri\nbucket-5/\n_\nblob://default/org/project/\n"
-            "uri\napolo-public-org-bucket/\n_\nblob://default/org/project/\n"
-            "uri\nbucket-6/\n_\nblob://default/org/project/\n"
-            "uri\napolo-shared-org-bucket/\n_\nblob://default/org/project/"
+            "uri\nbucket-1/\n_\nblob://default/org/project/\n"
+            "uri\napolo-my-bucket/\n_\nblob://default/org/project/\n"
+            "uri\nbucket-2/\n_\nblob://default/org/project/\n"
+            "uri\napolo-public-bucket/\n_\nblob://default/org/project/\n"
+            "uri\nbucket-3/\n_\nblob://default/org/project/\n"
+            "uri\napolo-shared-bucket/\n_\nblob://default/org/project/"
         )
 
         zsh_out, bash_out = run_autocomplete(["blob", "ls", "blob:bucket-1/f"])
@@ -615,7 +620,7 @@ def make_job(
         owner=owner,
         project_name=project_name,
         cluster_name=cluster_name,
-        org_name=org_name or "NO_ORG",
+        org_name=org_name or "org",
         namespace="",
         id=job_id,
         name=name,
@@ -1213,7 +1218,7 @@ def test_disk_autocomplete(run_autocomplete: _RunAC) -> None:
                     project_name="test-project",
                     status=Disk.Status.READY,
                     cluster_name="default",
-                    org_name="NO_ORG",
+                    org_name="org",
                     created_at=created_at,
                     timeout_unused=None,
                     name=None,
@@ -1298,7 +1303,7 @@ def test_bucket_autocomplete(run_autocomplete: _RunAC) -> None:
                     created_at=created_at,
                     provider=Bucket.Provider.AWS,
                     imported=False,
-                    org_name="NO_ORG",
+                    org_name="org",
                     project_name="test-project",
                 ),
                 Bucket(
@@ -1309,7 +1314,7 @@ def test_bucket_autocomplete(run_autocomplete: _RunAC) -> None:
                     created_at=created_at,
                     provider=Bucket.Provider.AWS,
                     imported=False,
-                    org_name="NO_ORG",
+                    org_name="org",
                     project_name="test-project",
                 ),
                 Bucket(
@@ -1345,7 +1350,7 @@ def test_bucket_autocomplete(run_autocomplete: _RunAC) -> None:
                     created_at=created_at,
                     provider=Bucket.Provider.AWS,
                     imported=False,
-                    org_name="NO_ORG",
+                    org_name="org",
                     project_name="test-project",
                 ),
             ],

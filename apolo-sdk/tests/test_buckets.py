@@ -29,7 +29,7 @@ async def test_list(
                     "imported": False,
                     # support None for backward compatibility
                     # all new buckets should have real org name
-                    "org_name": None,
+                    "org_name": "test-org",
                     "project_name": "test-project",
                 },
                 {
@@ -66,7 +66,7 @@ async def test_list(
             created_at=created_at,
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="test-org",
             project_name="test-project",
         ),
         Bucket(
@@ -189,7 +189,7 @@ async def test_import(
             "provider": "aws",
             "provider_bucket_name": "test-external",
             "credentials": {"key": "value"},
-            "org_name": "NO_ORG",
+            "org_name": "test-org",
             "project_name": "test-project",
         }
         return web.json_response(

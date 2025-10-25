@@ -304,12 +304,13 @@ async def test_get_server_config_with_token(
                 "apps": {
                     "apps_hostname_templates": "customtemplate",
                 },
+                "orgs": ["test-org"],
             }
         ],
         "projects": [
             {
                 "cluster_name": "default",
-                "org_name": None,
+                "org_name": "test-org",
                 "name": "test-project",
                 "role": "owner",
             }
@@ -328,7 +329,7 @@ async def test_get_server_config_with_token(
         client.session, client.make_url("/"), token="bananatoken"
     )
     project = Project(
-        cluster_name="default", org_name="NO_ORG", name="test-project", role="owner"
+        cluster_name="default", org_name="test-org", name="test-project", role="owner"
     )
     assert config == _ServerConfig(
         auth_config=_AuthConfig(
@@ -474,7 +475,7 @@ async def test_get_server_config_with_token(
                     ),
                 },
                 name="default",
-                orgs=["NO_ORG"],
+                orgs=["test-org"],
                 apps=AppsConfig(hostname_templates="customtemplate"),
             )
         },

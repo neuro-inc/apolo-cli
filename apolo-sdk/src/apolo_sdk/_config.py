@@ -79,9 +79,8 @@ class _ConfigData:
     admin_url: Optional[URL]
     version: str
     project_name: Optional[str]
-    # TODO: make org and cluster mandatory, forbid None values
-    cluster_name: Optional[str]
-    org_name: Optional[str]
+    cluster_name: str
+    org_name: str
     clusters: Mapping[str, Cluster]
     projects: Mapping[Project.Key, Project]
 
@@ -171,7 +170,9 @@ class Config(metaclass=NoPublicConstructor):
         name = self._get_user_org_name()
         if name is None:
             name = self._config_data.org_name
-        return name or "NO_ORG"
+        if not name:
+            raise RuntimeError("org_name is required but not configured")
+        return name
 
     def _get_user_org_name(self) -> Optional[str]:
         config = self._get_user_config()
@@ -328,9 +329,7 @@ class Config(metaclass=NoPublicConstructor):
                     await self.switch_cluster(cluster.name)
                     break
             else:
-                raise RuntimeError(
-                    f"Cannot find available cluster for org {name or 'NO_ORG'}. "
-                )
+                raise RuntimeError(f"Cannot find available cluster for org {name}. ")
         self.__config_data = replace(
             self._config_data,
             org_name=name,
@@ -593,27 +592,21 @@ def _load_recovery_data(path: Path) -> _ConfigRecoveryData:
         with _open_db_ro(path, skip_schema_check=True) as db:
             cur = db.cursor()
             # only one row is always present normally
-            try:
-                cur.execute(
-                    """
-                    SELECT refresh_token, url, cluster_name, org_name
-                    FROM main ORDER BY timestamp DESC LIMIT 1"""
-                )
-                payload = cur.fetchone()
-            except sqlite3.OperationalError:
-                # Maybe this config was created before org_name was added?
-                cur.execute(
-                    """
-                    SELECT refresh_token, url, cluster_name
-                    FROM main ORDER BY timestamp DESC LIMIT 1"""
-                )
-                payload = cur.fetchone()
+            cur.execute(
+                """
+                SELECT refresh_token, url, cluster_name, org_name
+                FROM main ORDER BY timestamp DESC LIMIT 1"""
+            )
+            payload = cur.fetchone()
 
+        org_name = payload["org_name"]
+        if not org_name:
+            raise ValueError("org_name is missing")
         return _ConfigRecoveryData(
             url=URL(payload["url"]),
             cluster_name=payload["cluster_name"],
             refresh_token=payload["refresh_token"],
-            org_name=payload["org_name"] if "org_name" in payload else "NO_ORG",
+            org_name=org_name,
         )
     except (AttributeError, KeyError, TypeError, ValueError, sqlite3.DatabaseError):
         raise ConfigError(MALFORMED_CONFIG_MSG)
@@ -656,7 +649,7 @@ def _deserialize_clusters(payload: dict[str, Any]) -> dict[str, Cluster]:
     for cluster_config in clusters:
         cluster = Cluster(
             name=cluster_config["name"],
-            orgs=cluster_config.get("orgs", [None]),
+            orgs=cluster_config.get("orgs", ["test-org"]),
             registry_url=URL(cluster_config["registry_url"]),
             storage_url=URL(cluster_config["storage_url"]),
             users_url=URL(cluster_config["users_url"]),

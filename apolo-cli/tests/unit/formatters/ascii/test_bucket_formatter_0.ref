@@ -1,9 +1,9 @@
-Id            bucket                                         
- Uri           blob://cluster/NO_ORG/test-project/test-bucket 
- Name          test-bucket                                    
- Org name      NO_ORG                                         
- Project name  test-project                                   
- Created at    Mar 04 2017                                    
- Provider      aws                                            
- Imported      False                                          
+Id            bucket                                      
+ Uri           blob://cluster/org/test-project/test-bucket 
+ Name          test-bucket                                 
+ Org name      org                                         
+ Project name  test-project                                
+ Created at    Mar 04 2017                                 
+ Provider      aws                                         
+ Imported      False                                       
  Public        False

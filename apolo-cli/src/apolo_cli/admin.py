@@ -60,13 +60,8 @@ log = logging.getLogger(__name__)
 UNLIMITED = "unlimited"
 
 
-def _get_org_or_none(root: Root, org: str | None) -> str | None:
-    org_name = org or root.client.config.org_name
-    return None if org_name == "NO_ORG" else org_name
-
-
 def _get_org(root: Root, org: str | None) -> str:
-    org_name = _get_org_or_none(root, org)
+    org_name = org or root.client.config.org_name
     if not org_name:
         raise ValueError("Org name is required")
     return org_name
@@ -262,7 +257,7 @@ async def get_cluster_users(
         users = await root.client._admin.list_cluster_users(  # type: ignore
             cluster_name=cluster_name,
             with_user_info=details,
-            org_name=_get_org_or_none(root, org),
+            org_name=_get_org(root, org),
         )
         users = sorted(users, key=lambda user: (user.user_name, user.org_name or ""))
     with root.pager():
@@ -321,7 +316,7 @@ async def add_cluster_user(
         cluster_name,
         user_name,
         _ClusterUserRoleType(role),
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         quota=quota,
     )
     assert user.role
@@ -365,7 +360,7 @@ async def update_cluster_user(
     org: str | None,
 ) -> None:
     cluster_user = await root.client._admin.get_cluster_user(
-        cluster_name, user_name, org_name=_get_org_or_none(root, org)
+        cluster_name, user_name, org_name=_get_org(root, org)
     )
     cluster_user = replace(cluster_user, role=_ClusterUserRoleType(role))
     await root.client._admin.update_cluster_user(cluster_user)
@@ -430,7 +425,7 @@ async def remove_cluster_user(
     Remove user access from the cluster.
     """
     await root.client._admin.delete_cluster_user(
-        cluster_name, user_name, org_name=_get_org_or_none(root, org)
+        cluster_name, user_name, org_name=_get_org(root, org)
     )
     if not root.quiet:
         root.print(
@@ -515,7 +510,7 @@ async def set_user_quota(
         cluster_name=cluster_name,
         user_name=user_name,
         quota=_Quota(total_running_jobs=_parse_jobs_value(jobs)),
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
     )
     fmt = AdminQuotaFormatter()
     root.print(
@@ -1613,7 +1608,7 @@ async def get_projects(root: Root, cluster_name: str, org: str | None = None) ->
     fmt = ProjectsFormatter()
     with root.status(f"Fetching the list of projects of cluster [b]{cluster_name}[/b]"):
         org_clusters = await root.client._admin.list_projects(
-            cluster_name=cluster_name, org_name=_get_org_or_none(root, org)
+            cluster_name=cluster_name, org_name=_get_org(root, org)
         )
     with root.pager():
         root.print(fmt(org_clusters))
@@ -1659,7 +1654,7 @@ async def add_project(
     project = await root.client._admin.create_project(
         name=name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         default_role=_ProjectUserRoleType(default_role),
         is_default=default,
     )
@@ -1723,7 +1718,7 @@ async def update_project(
     project = _Project(
         name=name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         default_role=_ProjectUserRoleType(default_role),
         is_default=default,
     )
@@ -1771,7 +1766,7 @@ async def remove_project(
     await root.client._admin.delete_project(
         project_name=name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
     )
 
 
@@ -1798,7 +1793,7 @@ async def get_project_users(
         users = await root.client._admin.list_project_users(
             project_name=project_name,
             cluster_name=cluster_name,
-            org_name=_get_org_or_none(root, org),
+            org_name=_get_org(root, org),
             with_user_info=True,
         )
     with root.pager():
@@ -1839,7 +1834,7 @@ async def add_project_user(
     user = await root.client._admin.create_project_user(
         project_name=project_name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         user_name=user_name,
         role=_ProjectUserRoleType(role) if role else None,
     )
@@ -1885,7 +1880,7 @@ async def update_project_user(
     user = _ProjectUser(
         project_name=project_name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         user_name=user_name,
         role=_ProjectUserRoleType(role),
     )
@@ -1924,7 +1919,7 @@ async def remove_project_user(
     await root.client._admin.delete_project_user(
         project_name=project_name,
         cluster_name=cluster_name,
-        org_name=_get_org_or_none(root, org),
+        org_name=_get_org(root, org),
         user_name=user_name,
     )
     if not root.quiet:

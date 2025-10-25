@@ -111,7 +111,7 @@ async def test_add(
             "name": "test-account",
             "default_cluster": "cluster",
             "default_project": "test-project",
-            "default_org": "NO_ORG",
+            "default_org": "test-org",
         }
         return web.json_response(
             {

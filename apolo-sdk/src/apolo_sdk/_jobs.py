@@ -517,7 +517,8 @@ class Jobs(metaclass=NoPublicConstructor):
         if _logs_removed is not None:
             params.add("logs_removed", str(_logs_removed))
         for org_name in org_names:
-            params.add("org_name", org_name or "NO_ORG")
+            if org_name is not None:
+                params.add("org_name", org_name)
         for project_name in project_names:
             params.add("project_name", project_name)
         auth = await self._config._api_auth()

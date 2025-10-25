@@ -72,7 +72,7 @@ class Users(metaclass=NoPublicConstructor):
         )
 
     async def get_org_quota(self) -> Optional[Quota]:
-        if self._config.org_name in (None, "NO_ORG"):
+        if self._config.org_name is None:
             return None
         try:
             ret = await self._admin.get_org_cluster(

@@ -265,7 +265,7 @@ class _ImageNameParser:
             org_name = self._default_org_name
         else:
             cluster_name = url.host
-            org_name = "NO_ORG"
+            org_name = self._default_org_name
         if url.path.startswith("/"):
             project_name, _, name = name.partition("/")
             if project_name == self._default_org_name and url.host:

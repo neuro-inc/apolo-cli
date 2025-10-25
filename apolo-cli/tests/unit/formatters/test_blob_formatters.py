@@ -22,7 +22,7 @@ class TestBlobFormatter:
             owner="test-user",
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(
@@ -33,7 +33,7 @@ class TestBlobFormatter:
             owner="public",
             provider=Bucket.Provider.AWS,
             imported=False,
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Bucket(

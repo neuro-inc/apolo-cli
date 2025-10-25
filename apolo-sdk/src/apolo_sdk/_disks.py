@@ -62,6 +62,9 @@ class Disks(metaclass=NoPublicConstructor):
             timeout_unused: Optional[timedelta] = timedelta(seconds=life_span_raw)
         else:
             timeout_unused = None
+        org_name = payload.get("org_name")
+        if not org_name:
+            raise ValueError("org_name is required for disks")
         return Disk(
             id=payload["id"],
             storage=payload["storage"],
@@ -71,7 +74,7 @@ class Disks(metaclass=NoPublicConstructor):
             name=payload.get("name"),
             status=Disk.Status(payload["status"]),
             cluster_name=self._config.cluster_name,
-            org_name=payload.get("org_name") or "NO_ORG",
+            org_name=org_name,
             created_at=isoparse(payload["created_at"]),
             last_usage=last_usage,
             timeout_unused=timeout_unused,

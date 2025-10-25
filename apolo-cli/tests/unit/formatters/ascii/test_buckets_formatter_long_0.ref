@@ -1,6 +1,6 @@
 Id                                            Name            Provider   Uri                                  Org name   Project name   Created at    Public  
  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
-  bucket-1                                      test-bucket     aws        blob://cluster/NO_ORG/test-projec…   NO_ORG     test-project   Mar 04 2017   ×       
-  bucket-2                                      test-bucket-2   aws        blob://cluster/NO_ORG/test-projec…   NO_ORG     test-project   Mar 04 2016   ×       
+  bucket-1                                      test-bucket     aws        blob://cluster/org/test-project/t…   org        test-project   Mar 04 2017   ×       
+  bucket-2                                      test-bucket-2   aws        blob://cluster/org/test-project/t…   org        test-project   Mar 04 2016   ×       
   bucket-3                                                      aws        blob://cluster/test-org/test-proj…   test-org   test-project   Mar 04 2018   ×       
   bucket-4                                                      aws        blob://cluster/test-org/test-proj…   test-org   test-project   Mar 04 2019   √

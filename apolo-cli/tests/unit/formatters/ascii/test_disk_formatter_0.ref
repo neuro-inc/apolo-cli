@@ -1,12 +1,12 @@
-Id              disk                                    
- Storage         12.8 GB                                 
- Used                                                    
- Uri             disk://cluster/NO_ORG/test-project/disk 
- Name            test-disk                               
- Org name        NO_ORG                                  
- Project name    test-project                            
- Owner           user                                    
- Status          Ready                                   
- Created at      Mar 04 2017                             
- Last used       Apr 04 2017                             
+Id              disk                                 
+ Storage         12.8 GB                              
+ Used                                                 
+ Uri             disk://cluster/org/test-project/disk 
+ Name            test-disk                            
+ Org name        org                                  
+ Project name    test-project                         
+ Owner           user                                 
+ Status          Ready                                
+ Created at      Mar 04 2017                          
+ Last used       Apr 04 2017                          
  Timeout unused  1d2h3m4s

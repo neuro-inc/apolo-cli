@@ -14,7 +14,7 @@ def secrets_list() -> List[Secret]:
             key="key1",
             owner="user",
             cluster_name="cluster",
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
         Secret(
@@ -28,7 +28,7 @@ def secrets_list() -> List[Secret]:
             key="key3",
             owner="anotheruser",
             cluster_name="cluster",
-            org_name="NO_ORG",
+            org_name="org",
             project_name="test-project",
         ),
     ]

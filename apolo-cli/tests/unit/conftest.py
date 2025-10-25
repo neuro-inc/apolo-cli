@@ -132,7 +132,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
             ),
         },
         name="default",
-        orgs=["NO_ORG", "org"],
+        orgs=["org"],
         apps=AppsConfig(),
     )
     cluster2_config = Cluster(
@@ -160,7 +160,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
             ),
         },
         name="other",
-        orgs=["NO_ORG"],
+        orgs=["org"],
         apps=AppsConfig(),
     )
     config = _ConfigData(
@@ -188,31 +188,31 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
             ),
             Project.Key(
                 cluster_name=cluster_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="user",
             ): Project(
                 cluster_name=cluster_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 name="user",
                 role="admin",
             ),
             Project.Key(
                 cluster_name=cluster_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="otherproject",
             ): Project(
                 cluster_name=cluster_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 name="otherproject",
                 role="admin",
             ),
             Project.Key(
                 cluster_name=cluster2_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 project_name="user",
             ): Project(
                 cluster_name=cluster2_config.name,
-                org_name="NO_ORG",
+                org_name="org",
                 name="user",
                 role="admin",
             ),

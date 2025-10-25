@@ -1,6 +1,6 @@
 Id                                          Name   Storage    Used   Uri                                              Status   
  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
-  disk-1                                             53.7 GB           disk://cluster/NO_ORG/test-project/disk-1        Pending  
-  disk-2                                             52.4 MB           disk://cluster/NO_ORG/another-project/disk-2     Ready    
+  disk-1                                             53.7 GB           disk://cluster/org/test-project/disk-1           Pending  
+  disk-2                                             52.4 MB           disk://cluster/org/another-project/disk-2        Ready    
   disk-3                                             51.2 kB           disk://cluster/test-org/another-project/disk-3   Ready    
-  disk-4                                             50 Bytes          disk://cluster/NO_ORG/test-project/disk-4        Broken
+  disk-4                                             50 Bytes          disk://cluster/org/test-project/disk-4           Broken

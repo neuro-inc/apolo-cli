@@ -173,7 +173,7 @@ def multiple_clusters_config() -> Dict[str, Cluster]:
     return {
         "default": Cluster(
             name="default",
-            orgs=["NO_ORG", "test-org"],
+            orgs=["test-org", "test-org"],
             registry_url=URL("https://registry-api.dev.apolo.us"),
             storage_url=URL("https://storage-api.dev.apolo.us"),
             users_url=URL("https://users-api.dev.apolo.us"),
@@ -201,7 +201,7 @@ def multiple_clusters_config() -> Dict[str, Cluster]:
         ),
         "another": Cluster(
             name="another",
-            orgs=["some-org", "NO_ORG"],
+            orgs=["some-org", "test-org"],
             registry_url=URL("https://registry2-api.dev.apolo.us"),
             storage_url=URL("https://storage2-api.dev.apolo.us"),
             users_url=URL("https://users2-api.dev.apolo.us"),
@@ -469,7 +469,7 @@ async def test_clusters(
         assert dict(client.config.clusters) == {
             "default": Cluster(
                 name="default",
-                orgs=["NO_ORG"],
+                orgs=["test-org"],
                 registry_url=URL("https://registry-api.dev.apolo.us"),
                 storage_url=srv.make_url("/storage"),
                 users_url=srv.make_url("/"),
@@ -483,7 +483,7 @@ async def test_clusters(
             ),
             "another": Cluster(
                 name="another",
-                orgs=["NO_ORG", "some_org"],
+                orgs=["test-org", "some_org"],
                 registry_url=srv.make_url("/registry2"),
                 storage_url=srv.make_url("/storage2"),
                 users_url=srv.make_url("/"),
@@ -505,7 +505,7 @@ async def test_org_names(
     srv = await aiohttp_server(app)
 
     async with make_client(srv.make_url("/")) as client:
-        assert client.config.available_orgs == ("NO_ORG", "some_org")
+        assert client.config.available_orgs == ("some_org", "test-org")
 
 
 async def test_project_name(
@@ -575,7 +575,7 @@ async def test_fetch(
         "clusters": [
             {
                 "name": "default",
-                "orgs": [None, "some-org"],
+                "orgs": ["test-org", "some-org"],
                 "registry_url": registry_url,
                 "storage_url": storage_url,
                 "users_url": users_url,
@@ -607,7 +607,7 @@ async def test_fetch(
             {
                 "name": "some-project",
                 "cluster_name": "default",
-                "org_name": None,
+                "org_name": "test-org",
                 "role": "admin",
             }
         ],
@@ -625,7 +625,7 @@ async def test_fetch(
         assert client.config.clusters == {
             "default": Cluster(
                 name="default",
-                orgs=["NO_ORG", "some-org"],
+                orgs=["test-org", "some-org"],
                 registry_url=URL(registry_url),
                 storage_url=URL(storage_url),
                 users_url=URL(users_url),
@@ -657,7 +657,7 @@ async def test_fetch(
         project = Project(
             name="some-project",
             cluster_name="default",
-            org_name="NO_ORG",
+            org_name="test-org",
             role="admin",
         )
         assert client.config.projects == {project.key: project}
@@ -692,7 +692,7 @@ async def test_fetch_without_admin_url(
         "clusters": [
             {
                 "name": "default",
-                "orgs": [None, "some-org"],
+                "orgs": ["test-org", "some-org"],
                 "registry_url": registry_url,
                 "storage_url": storage_url,
                 "users_url": users_url,
@@ -845,7 +845,7 @@ async def test_switch_cluster_cant_keep_org_use_none(
         assert client.config.org_name == "test-org"
         await client.config.switch_cluster("another")
         assert client.config.cluster_name == "another"
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
 
 
 async def test_switch_cluster_cant_keep_org_use_alphabetical(
@@ -906,7 +906,7 @@ async def test_switch_org(
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
     ) as client:
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
         await client.config.switch_org("test-org")
         assert client.config.org_name == "test-org"
 
@@ -917,7 +917,7 @@ async def test_switch_org_select_first_available_cluster(
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
     ) as client:
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
         await client.config.switch_org("some-org")
         assert client.config.org_name == "some-org"
         assert client.config.cluster_name == "another"
@@ -926,7 +926,7 @@ async def test_switch_org_select_first_available_cluster(
 async def test_switch_org_keep_project_use_none(make_client: _MakeClient) -> None:
     async with make_client("https://example.org") as client:
         await client.config.switch_cluster("another")
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
         assert client.config.project_name == "test-project"
         await client.config.switch_org("some_org")
         assert client.config.org_name == "some_org"
@@ -941,8 +941,8 @@ async def test_switch_org_keep_project_use_alphabetical(
         await client.config.switch_org("some_org")
         assert client.config.org_name == "some_org"
         assert client.config.project_name is None
-        await client.config.switch_org("NO_ORG")
-        assert client.config.org_name == "NO_ORG"
+        await client.config.switch_org("test-org")
+        assert client.config.org_name == "test-org"
         assert client.config.project_name == "other-test-project"
 
 
@@ -960,12 +960,12 @@ async def test_switch_org_unknown(
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
     ) as client:
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
         with pytest.raises(
             RuntimeError, match="Cannot find available cluster for org unknown"
         ):
             await client.config.switch_org("unknown")
-        assert client.config.org_name == "NO_ORG"
+        assert client.config.org_name == "test-org"
 
 
 async def test_switch_clusters_local(
@@ -1036,8 +1036,8 @@ async def test_no_org_local(
         local_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.chdir(local_dir)
         local_conf = proj_dir / ".apolo.toml"
-        local_conf.write_text(toml.dumps({"job": {"org-name": "NO_ORG"}}))
-        assert client.config.org_name == "NO_ORG"
+        local_conf.write_text(toml.dumps({"job": {"org-name": "test-org"}}))
+        assert client.config.org_name == "test-org"
 
 
 async def test_switch_project(make_client: _MakeClient) -> None:

@@ -1,1 +1,1 @@
-obj         1024001  2018-01-01 14:00:00  blob://test-cluster/NO_ORG/test-project/apolo-public-bucket/file_bigger.txt
+obj         1024001  2018-01-01 14:00:00  blob://test-cluster/org/test-project/apolo-public-bucket/file_bigger.txt
