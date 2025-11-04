@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.9.1 (2025-11-04)
+
+## Features
+
+- Support resource presets with Nvidia MIG. ([#3369](https://github.com/neuro-inc/apolo-cli/issues/3369))
+
+
 # Apolo SDK/CLI 25.9.1 (2025-09-30)
 
 ## Features
