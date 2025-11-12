@@ -19,6 +19,7 @@ Operations with applications.
 | [_logs_](app.md#logs) | Print the logs for an app |
 | [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
+| [_update_](app.md#update) | Update app instance using YAML file |
 
 
 ### get-values
@@ -92,9 +93,11 @@ List apps.
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _-a, --all_ | Show apps in all states. |
 | _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled\]_ | Filter out apps by state \(multiple option\). |
 
 
 
@@ -142,9 +145,11 @@ Alias to list
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _-a, --all_ | Show apps in all states. |
 | _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled\]_ | Filter out apps by state \(multiple option\). |
 
 
 
@@ -172,5 +177,27 @@ Uninstall an app.
 | _-f, --force_ | Force uninstall the app. |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+
+
+
+### update
+
+Update app instance using YAML file
+
+
+#### Usage
+
+```bash
+apolo app update [OPTIONS] APP_ID
+```
+
+Update app instance using `YAML` file.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
 
 

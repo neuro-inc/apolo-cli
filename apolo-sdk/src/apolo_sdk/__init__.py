@@ -42,7 +42,7 @@ from ._admin import (
     _Quota,
     _UserInfo,
 )
-from ._apps import App, Apps, AppTemplate, AppValue
+from ._apps import App, Apps, AppState, AppTemplate, AppValue
 from ._bucket_base import (
     BlobCommonPrefix,
     BlobObject,
@@ -139,6 +139,7 @@ __all__ = (
     "AbstractRecursiveFileProgress",
     "Action",
     "App",
+    "AppState",
     "AppTemplate",
     "AppValue",
     "Apps",

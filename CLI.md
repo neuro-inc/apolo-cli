@@ -56,6 +56,7 @@
 		* [apolo app logs](#apolo-app-logs)
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
+		* [apolo app update](#apolo-app-update)
 	* [apolo app-template](#apolo-app-template)
 		* [apolo app-template get](#apolo-app-template-get)
 		* [apolo app-template list](#apolo-app-template-list)
@@ -1360,6 +1361,7 @@ Name | Description|
 | _[apolo app logs](#apolo-app-logs)_| Print the logs for an app |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
+| _[apolo app update](#apolo-app-update)_| Update app instance using YAML file |
 
 
 
@@ -1426,9 +1428,11 @@ apolo app list [OPTIONS]
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_\-a, --all_|Show apps in all states.|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_\-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled]_|Filter out apps by state \(multiple option).|
 
 
 
@@ -1472,9 +1476,11 @@ apolo app ls [OPTIONS]
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_\-a, --all_|Show apps in all states.|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_\-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled]_|Filter out apps by state \(multiple option).|
 
 
 
@@ -1498,6 +1504,26 @@ Name | Description|
 |_\-f, --force_|Force uninstall the app.|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo app update
+
+Update app instance using YAML file.
+
+**Usage:**
+
+```bash
+apolo app update [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
 
 
 

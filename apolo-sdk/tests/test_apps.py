@@ -22,7 +22,12 @@ def app_payload() -> dict[str, Any]:
                 "template_version": "master",
                 "project_name": "test3",
                 "org_name": "superorg",
+                "cluster_name": "default",
+                "creator": "test-user",
+                "created_at": "2025-05-07T11:00:00+00:00",
+                "updated_at": "2025-05-07T11:00:00+00:00",
                 "state": "errored",
+                "endpoints": [],
             },
             {
                 "id": "a4723404-f5e2-48b5-b709-629754b5056f",
@@ -32,7 +37,12 @@ def app_payload() -> dict[str, Any]:
                 "template_version": "master",
                 "project_name": "test3",
                 "org_name": "superorg",
+                "cluster_name": "default",
+                "creator": "test-user",
+                "created_at": "2025-05-07T11:00:00+00:00",
+                "updated_at": "2025-05-07T11:00:00+00:00",
                 "state": "errored",
+                "endpoints": [],
             },
         ],
         "total": 2,
@@ -48,16 +58,11 @@ async def test_apps_list(
     app_payload: dict[str, Any],
 ) -> None:
     async def handler(request: web.Request) -> web.Response:
-        assert (
-            request.path
-            == "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
-        )
+        assert request.path == "/apis/apps/v2/instances"
         return web.json_response(app_payload)
 
     web_app = web.Application()
-    web_app.router.add_get(
-        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances", handler
-    )
+    web_app.router.add_get("/apis/apps/v2/instances", handler)
     srv = await aiohttp_server(web_app)
 
     async with make_client(srv.make_url("/")) as client:
@@ -77,6 +82,7 @@ async def test_apps_list(
         assert apps[0].template_version == "master"
         assert apps[0].project_name == "test3"
         assert apps[0].org_name == "superorg"
+        assert apps[0].cluster_name == "default"
         assert apps[0].state == "errored"
 
 
@@ -99,7 +105,12 @@ async def test_apps_install(
             "template_version": "template_version",
             "project_name": "project_name",
             "org_name": "org_name",
+            "cluster_name": "cluster_name",
             "state": "state",
+            "creator": "creator",
+            "created_at": "created_at",
+            "updated_at": "updated_at",
+            "endpoints": [],
         }
         assert request.method == "POST"
         url = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
@@ -120,6 +131,89 @@ async def test_apps_install(
             org_name="superorg",
             project_name="test3",
         )
+
+
+async def test_apps_update(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_data = {
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "input": {},
+    }
+    app_update_data = {
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "display_name": "new display name",
+        "input": {"some": "input", "value": {"is": "nested"}},
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        response_data = {
+            "id": "someid",
+            "name": "name",
+            "display_name": "display_name",
+            "template_name": "stable-diffusion",
+            "template_version": "master",
+            "project_name": "test3",
+            "org_name": "superorg",
+            "cluster_name": "default",
+            "state": "state",
+            "creator": "creator",
+            "created_at": "created_at",
+            "updated_at": "updated_at",
+            "endpoints": [],
+        }
+        if request.method == "POST":
+            url = "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances"
+            assert request.path == url
+            assert await request.json() == app_data
+            return web.json_response(data=response_data, status=201)
+        elif request.method == "GET":
+            url = "/apis/apps/v2/instances/someid"
+            assert request.path == url
+            return web.json_response(data=response_data, status=200)
+        elif request.method == "PUT":
+            url = (
+                "/apis/apps/v1/cluster/default/org/superorg/"
+                "project/test3/instances/someid"
+            )
+            assert request.path == url
+            app_update_data_copy = app_update_data.copy()
+            del app_update_data_copy["template_name"]
+            del app_update_data_copy["template_version"]
+            assert await request.json() == app_update_data_copy
+            response_data["display_name"] = "new display name"
+            return web.json_response(data=response_data, status=200)
+        else:
+            raise ValueError(f"Unexpected method: {request.method}")
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    web_app.router.add_post(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances", handler
+    )
+    web_app.router.add_put(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/someid",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        app = await client.apps.install(
+            app_data=app_data,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        updated_app = await client.apps.update(
+            app_id=app.id,
+            app_data=app_update_data,
+        )
+
+        assert updated_app.display_name == "new display name"
 
 
 async def test_apps_uninstall(

@@ -2,9 +2,10 @@ import codecs
 import sys
 from typing import List, Optional
 
+import click
 import yaml
 
-from apolo_sdk import AppValue, IllegalArgumentError
+from apolo_sdk import AppState, AppValue, IllegalArgumentError
 
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.app_values import (
@@ -41,11 +42,26 @@ def app() -> None:
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
+@option(
+    "-s",
+    "--state",
+    multiple=True,
+    type=click.Choice([item.value for item in AppState]),
+    help="Filter out apps by state (multiple option).",
+)
+@option(
+    "-a",
+    "--all",
+    is_flag=True,
+    help="Show apps in all states.",
+)
 async def list(
     root: Root,
     cluster: Optional[str],
     org: Optional[str],
     project: Optional[str],
+    state: Optional[List[AppState]],
+    all: bool,
 ) -> None:
     """
     List apps.
@@ -56,9 +72,13 @@ async def list(
         apps_fmtr = AppsFormatter()
 
     apps = []
+    if not state:
+        state = AppState.get_active_states()
+    if all:
+        state = None
     with root.status("Fetching apps") as status:
         async with root.client.apps.list(
-            cluster_name=cluster, org_name=org, project_name=project
+            cluster_name=cluster, org_name=org, project_name=project, states=state
         ) as it:
             async for app in it:
                 apps.append(app)
@@ -182,6 +202,58 @@ async def install(
 
     if not root.quiet:
         root.print(f"App installed from [bold]{file_path}[/bold].", markup=True)
+
+
+@command()
+@argument("app_id")
+@option(
+    "-f",
+    "--file",
+    "file_path",
+    type=str,
+    required=True,
+    help="Path to the app configuration YAML file.",
+)
+async def update(
+    root: Root,
+    app_id: str,
+    file_path: str,
+) -> None:
+    """
+    Update app instance using YAML file.
+    """
+    if root.quiet:
+        apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
+    else:
+        apps_fmtr = AppsFormatter()
+
+    with open(file_path) as file:
+        app_data = yaml.safe_load(file)
+
+    try:
+        with root.status(
+            f"Updating app instance [bold]{app_id}[/bold] from [bold]{file_path}[/bold]"
+        ):
+            resp = await root.client.apps.update(
+                app_id=app_id,
+                app_data=app_data,
+            )
+            root.print(apps_fmtr([resp]))
+    except IllegalArgumentError as e:
+        if e.payload and e.payload.get("errors") and root.verbosity >= 0:
+            root.print("[red]Input validation error:[/red]", markup=True)
+            for error in e.payload["errors"]:
+                path = ".".join(error.get("path", []))
+                msg = error.get("message", "")
+                root.print(f"  - [bold]{path}[/bold]: {msg}", markup=True)
+            sys.exit(1)
+        raise e
+
+    if not root.quiet:
+        root.print(
+            f"App [bold]{app_id}[/bold] updated using [bold]{file_path}[/bold].",
+            markup=True,
+        )
 
 
 @command()
@@ -318,6 +390,7 @@ async def logs(
 app.add_command(list)
 app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
+app.add_command(update)
 app.add_command(uninstall)
 app.add_command(get_values)
 app.add_command(logs)
