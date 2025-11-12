@@ -638,3 +638,128 @@ async def test_apps_get_template_not_found(
         )
 
         assert template is None
+
+
+@pytest.fixture
+def app_output_payload() -> dict[str, Any]:
+    return {
+        "admin_password": "secure_password_123",
+        "database_url": "postgresql://localhost:5432/mydb",
+        "api_key": "abc123xyz789",
+        "instance_url": "https://app.example.com",
+        "port": 8080,
+        "enabled": True,
+    }
+
+
+async def test_apps_get_output(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_output_payload: dict[str, Any],
+) -> None:
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/output"
+        assert request.path == expected_path
+        return web.json_response(app_output_payload)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/output",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        output = await client.apps.get_output(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert output == app_output_payload
+        assert output["admin_password"] == "secure_password_123"
+        assert output["database_url"] == "postgresql://localhost:5432/mydb"
+        assert output["api_key"] == "abc123xyz789"
+        assert output["instance_url"] == "https://app.example.com"
+        assert output["port"] == 8080
+        assert output["enabled"] is True
+
+
+async def test_apps_get_output_not_found(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_id = "nonexistent-app-id"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/output"
+        assert request.path == expected_path
+        return web.Response(
+            status=404,
+            text="App instance not found or no output records exist",
+        )
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/output",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        from apolo_sdk import ResourceNotFound
+
+        with pytest.raises(ResourceNotFound) as exc_info:
+            await client.apps.get_output(
+                app_id=app_id,
+                cluster_name="default",
+                org_name="superorg",
+                project_name="test3",
+            )
+
+        assert "App instance not found or no output records exist" in str(
+            exc_info.value
+        )
+
+
+async def test_apps_get_output_empty(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """Test getting output when the response is an empty object."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/output"
+        assert request.path == expected_path
+        return web.json_response({})
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/output",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        output = await client.apps.get_output(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert output == {}
+        assert len(output) == 0

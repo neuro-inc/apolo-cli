@@ -350,6 +350,43 @@ class Apps(metaclass=NoPublicConstructor):
                 description=data.get("description", ""),
             )
 
+    async def get_output(
+        self,
+        app_id: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Get output parameters from an app instance.
+
+        Args:
+            app_id: The ID of the app instance
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            A dictionary containing output parameters as key-value pairs
+
+        Raises:
+            ResourceNotFound: If app instance not found or no output records exist
+        """
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "instances"
+            / app_id
+            / "output"
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
     @asyncgeneratorcontextmanager
     async def logs(
         self,
