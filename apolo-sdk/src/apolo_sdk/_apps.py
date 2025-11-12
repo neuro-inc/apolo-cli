@@ -34,14 +34,14 @@ class AppValue:
 
 
 @rewrite_module
-class AppState(enum.StrEnum):
-    QUEUED = enum.auto()
-    PROGRESSING = enum.auto()
-    HEALTHY = enum.auto()
-    DEGRADED = enum.auto()
-    ERRORED = enum.auto()
-    UNINSTALLING = enum.auto()
-    UNINSTALLED = enum.auto()
+class AppState(str, enum.Enum):
+    QUEUED = "queued"
+    PROGRESSING = "progressing"
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    ERRORED = "errored"
+    UNINSTALLING = "uninstalling"
+    UNINSTALLED = "uninstalled"
 
     @classmethod
     def get_active_states(cls) -> List["AppState"]:

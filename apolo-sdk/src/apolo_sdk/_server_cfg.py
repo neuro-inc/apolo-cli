@@ -162,7 +162,7 @@ class _ServerConfig:
     projects: Mapping[Project.Key, Project]
 
 
-def _parse_project_config(payload: Dict[str, Any]) -> Project | None:
+def _parse_project_config(payload: Dict[str, Any]) -> Optional[Project]:
     org_name = payload.get("org_name")
     if not org_name:
         # ignore old-fashioned projects without org_name,
