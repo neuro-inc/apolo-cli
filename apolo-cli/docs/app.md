@@ -13,13 +13,35 @@ Operations with applications.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
+| [_configure_](app.md#configure) | Reconfigure an app instance using YAML file |
 | [_get-values_](app.md#get-values) | Get application values |
 | [_install_](app.md#install) | Install an app from a YAML file |
 | [_list_](app.md#list) | List apps |
 | [_logs_](app.md#logs) | Print the logs for an app |
 | [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
-| [_update_](app.md#update) | Update app instance using YAML file |
+
+
+### configure
+
+Reconfigure an app instance using YAML file
+
+
+#### Usage
+
+```bash
+apolo app configure [OPTIONS] APP_ID
+```
+
+Reconfigure an app instance using `YAML` file.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
+
 
 
 ### get-values
@@ -177,27 +199,5 @@ Uninstall an app.
 | _-f, --force_ | Force uninstall the app. |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
-
-
-
-### update
-
-Update app instance using YAML file
-
-
-#### Usage
-
-```bash
-apolo app update [OPTIONS] APP_ID
-```
-
-Update app instance using `YAML` file.
-
-#### Options
-
-| Name | Description |
-| :--- | :--- |
-| _--help_ | Show this message and exit. |
-| _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
 
 

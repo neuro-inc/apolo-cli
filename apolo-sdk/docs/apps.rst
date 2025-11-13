@@ -95,13 +95,13 @@ Apps
       :param datetime since: Optional timestamp to start logs from.
       :param bool timestamps: Include timestamps in the logs output.
 
-   .. method:: update(app_id: str, app_data: dict) -> App
+   .. method:: configure(app_id: str, app_data: dict) -> App
       :async:
 
-      Update the application with new input data and display name.
+      Reconfigure an application instance with new input data and display name.
 
-      :param str app_id: The ID of the application instance to update.
-      :param dict app_data: Dictionary containing application update data. You can pass the same data as in :meth:`install`.
+      :param str app_id: The ID of the application instance to reconfigure.
+      :param dict app_data: Dictionary containing application update data. The structure is the same as in :meth:`install`.
 
 ===
 

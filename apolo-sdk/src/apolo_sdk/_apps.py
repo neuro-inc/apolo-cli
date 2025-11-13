@@ -213,20 +213,20 @@ class Apps(metaclass=NoPublicConstructor):
                 endpoints=[],
             )
 
-    def _can_update_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
+    def _can_configure_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
         if existing_app.template_name != app_data["template_name"]:
             return False
         elif existing_app.template_version != app_data["template_version"]:
             return False
         return True
 
-    async def update(
+    async def configure(
         self,
         app_id: str,
         app_data: dict[str, Any],
     ) -> App:
         existing_app = await self.get(app_id)
-        if not self._can_update_app(existing_app, app_data):
+        if not self._can_configure_app(existing_app, app_data):
             raise ValueError("Cannot update app: template name or version mismatch")
 
         url = (
@@ -239,15 +239,15 @@ class Apps(metaclass=NoPublicConstructor):
             / app_id
         )
 
-        update_payload = {}
+        configure_payload = {}
         if "display_name" in app_data:
-            update_payload["display_name"] = app_data["display_name"]
+            configure_payload["display_name"] = app_data["display_name"]
         if "input" in app_data:
-            update_payload["input"] = app_data["input"]
+            configure_payload["input"] = app_data["input"]
 
         auth = await self._config._api_auth()
         async with self._core.request(
-            "PUT", url, json=update_payload, auth=auth
+            "PUT", url, json=configure_payload, auth=auth
         ) as resp:
             resp.raise_for_status()
             item = await resp.json()
