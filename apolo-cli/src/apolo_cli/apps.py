@@ -214,13 +214,13 @@ async def install(
     required=True,
     help="Path to the app configuration YAML file.",
 )
-async def update(
+async def configure(
     root: Root,
     app_id: str,
     file_path: str,
 ) -> None:
     """
-    Update app instance using YAML file.
+    Reconfigure an app instance using YAML file.
     """
     if root.quiet:
         apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
@@ -232,9 +232,9 @@ async def update(
 
     try:
         with root.status(
-            f"Updating app instance [bold]{app_id}[/bold] from [bold]{file_path}[/bold]"
+            f"Configuring the app [bold]{app_id}[/bold] with [bold]{file_path}[/bold]"
         ):
-            resp = await root.client.apps.update(
+            resp = await root.client.apps.configure(
                 app_id=app_id,
                 app_data=app_data,
             )
@@ -251,7 +251,7 @@ async def update(
 
     if not root.quiet:
         root.print(
-            f"App [bold]{app_id}[/bold] updated using [bold]{file_path}[/bold].",
+            f"App [bold]{app_id}[/bold] configured using [bold]{file_path}[/bold].",
             markup=True,
         )
 
@@ -390,7 +390,7 @@ async def logs(
 app.add_command(list)
 app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
-app.add_command(update)
+app.add_command(configure)
 app.add_command(uninstall)
 app.add_command(get_values)
 app.add_command(logs)

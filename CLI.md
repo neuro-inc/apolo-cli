@@ -50,13 +50,13 @@
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
+		* [apolo app configure](#apolo-app-configure)
 		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
 		* [apolo app logs](#apolo-app-logs)
 		* [apolo app ls](#apolo-app-ls)
 		* [apolo app uninstall](#apolo-app-uninstall)
-		* [apolo app update](#apolo-app-update)
 	* [apolo app-template](#apolo-app-template)
 		* [apolo app-template get](#apolo-app-template-get)
 		* [apolo app-template list](#apolo-app-template-list)
@@ -1355,13 +1355,33 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
+| _[apolo app configure](#apolo-app-configure)_| Reconfigure an app instance using YAML file |
 | _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
 | _[apolo app logs](#apolo-app-logs)_| Print the logs for an app |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
-| _[apolo app update](#apolo-app-update)_| Update app instance using YAML file |
+
+
+
+
+### apolo app configure
+
+Reconfigure an app instance using YAML file.
+
+**Usage:**
+
+```bash
+apolo app configure [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
 
 
 
@@ -1504,26 +1524,6 @@ Name | Description|
 |_\-f, --force_|Force uninstall the app.|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
-
-
-
-
-### apolo app update
-
-Update app instance using YAML file.
-
-**Usage:**
-
-```bash
-apolo app update [OPTIONS] APP_ID
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
 
 
 

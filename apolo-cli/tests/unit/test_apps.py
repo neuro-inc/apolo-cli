@@ -40,14 +40,14 @@ def mock_apps_install() -> Iterator[None]:
 
 
 @contextmanager
-def mock_apps_update() -> Iterator[None]:
+def mock_apps_configure() -> Iterator[None]:
     """Context manager to mock the Apps.install method."""
-    with mock.patch.object(Apps, "update") as mocked:
+    with mock.patch.object(Apps, "configure") as mocked:
 
-        async def update(**kwargs: Any) -> App:
+        async def configure(**kwargs: Any) -> App:
             return _app_factory(state="queued")
 
-        mocked.side_effect = update
+        mocked.side_effect = configure
         yield
 
 
@@ -144,11 +144,11 @@ def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
     """
     )
 
-    with mock_apps_update():
-        capture = run_cli(["app", "update", "app-id-123", "-f", str(app_yaml)])
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
 
     assert not capture.err
-    assert "updated using" in capture.out
+    assert "configured using" in capture.out
     assert capture.code == 0
 
 

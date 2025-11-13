@@ -133,7 +133,7 @@ async def test_apps_install(
         )
 
 
-async def test_apps_update(
+async def test_apps_configure(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
 ) -> None:
@@ -142,7 +142,7 @@ async def test_apps_update(
         "template_version": "master",
         "input": {},
     }
-    app_update_data = {
+    app_configure_data = {
         "template_name": "stable-diffusion",
         "template_version": "master",
         "display_name": "new display name",
@@ -180,10 +180,10 @@ async def test_apps_update(
                 "project/test3/instances/someid"
             )
             assert request.path == url
-            app_update_data_copy = app_update_data.copy()
-            del app_update_data_copy["template_name"]
-            del app_update_data_copy["template_version"]
-            assert await request.json() == app_update_data_copy
+            app_configure_data_copy = app_configure_data.copy()
+            del app_configure_data_copy["template_name"]
+            del app_configure_data_copy["template_version"]
+            assert await request.json() == app_configure_data_copy
             response_data["display_name"] = "new display name"
             return web.json_response(data=response_data, status=200)
         else:
@@ -208,9 +208,9 @@ async def test_apps_update(
             project_name="test3",
         )
 
-        updated_app = await client.apps.update(
+        updated_app = await client.apps.configure(
             app_id=app.id,
-            app_data=app_update_data,
+            app_data=app_configure_data,
         )
 
         assert updated_app.display_name == "new display name"
