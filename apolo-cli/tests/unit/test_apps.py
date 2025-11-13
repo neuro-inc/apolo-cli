@@ -148,7 +148,7 @@ def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
         capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
 
     assert not capture.err
-    assert "updated using" in capture.out
+    assert "configured using" in capture.out
     assert capture.code == 0
 
 
