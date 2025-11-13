@@ -5,6 +5,14 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.11.1 (2025-11-13)
+
+## Features
+
+- Add `apolo app configure` command to update inputs and/or display name of installed application. ([#3387](https://github.com/neuro-inc/apolo-cli/issues/3387))
+- Add `Apps.get_output()` SDK method to retrieve output parameters from installed applications. ([#3388](https://github.com/neuro-inc/apolo-cli/issues/3388))
+
+
 # Apolo SDK/CLI 25.11.0 (2025-11-04)
 
 ## Features
