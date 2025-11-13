@@ -16,6 +16,7 @@ Reference
    client_reference
    config_reference
    jobs_reference
+   apps
    storage_reference
    images_reference
    users_reference

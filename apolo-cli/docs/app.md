@@ -13,12 +13,35 @@ Operations with applications.
 **Commands:**
 | Usage | Description |
 | :--- | :--- |
+| [_configure_](app.md#configure) | Reconfigure an app instance using YAML file |
 | [_get-values_](app.md#get-values) | Get application values |
 | [_install_](app.md#install) | Install an app from a YAML file |
 | [_list_](app.md#list) | List apps |
 | [_logs_](app.md#logs) | Print the logs for an app |
 | [_ls_](app.md#ls) | Alias to list |
 | [_uninstall_](app.md#uninstall) | Uninstall an app |
+
+
+### configure
+
+Reconfigure an app instance using YAML file
+
+
+#### Usage
+
+```bash
+apolo app configure [OPTIONS] APP_ID
+```
+
+Reconfigure an app instance using `YAML` file.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
+
 
 
 ### get-values
@@ -92,9 +115,11 @@ List apps.
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _-a, --all_ | Show apps in all states. |
 | _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled\]_ | Filter out apps by state \(multiple option\). |
 
 
 
@@ -142,9 +167,11 @@ Alias to list
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _-a, --all_ | Show apps in all states. |
 | _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
 | _--org ORG_ | Look on a specified org \(the current org by default\). |
 | _--project PROJECT_ | Look on a specified project \(the current project by default\). |
+| _-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled\]_ | Filter out apps by state \(multiple option\). |
 
 
 

@@ -1,6 +1,6 @@
-=================
+==================
 Apps API Reference
-=================
+==================
 
 
 .. currentmodule:: apolo_sdk
@@ -112,15 +112,13 @@ Apps
       :param datetime since: Optional timestamp to start logs from.
       :param bool timestamps: Include timestamps in the logs output.
 
-   .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> None
+   .. method:: configure(app_id: str, app_data: dict) -> App
       :async:
 
-      Uninstall an application instance.
+      Reconfigure an application instance with new input data and display name.
 
-      :param str app_id: The ID of the application instance to uninstall.
-      :param str cluster_name: cluster where the application is deployed. Default is current cluster.
-      :param str org_name: org where the application is deployed. Default is current org.
-      :param str project_name: project where the application is deployed. Default is current project.
+      :param str app_id: The ID of the application instance to reconfigure.
+      :param dict app_data: Dictionary containing application update data. The structure is the same as in :meth:`install`.
 
 ===
 

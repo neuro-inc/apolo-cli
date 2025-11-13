@@ -1,3 +1,4 @@
+import enum
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, AsyncIterator, List, Optional
@@ -33,6 +34,21 @@ class AppValue:
 
 
 @rewrite_module
+class AppState(str, enum.Enum):
+    QUEUED = "queued"
+    PROGRESSING = "progressing"
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    ERRORED = "errored"
+    UNINSTALLING = "uninstalling"
+    UNINSTALLED = "uninstalled"
+
+    @classmethod
+    def get_active_states(cls) -> List["AppState"]:
+        return [state for state in cls if state != cls.UNINSTALLED]
+
+
+@rewrite_module
 @dataclass(frozen=True)
 class App:
     id: str
@@ -42,7 +58,12 @@ class App:
     template_version: str
     project_name: str
     org_name: str
+    cluster_name: str
     state: str
+    creator: str
+    created_at: datetime
+    updated_at: datetime
+    endpoints: list[str]
 
 
 @rewrite_module
@@ -80,6 +101,12 @@ class Apps(metaclass=NoPublicConstructor):
         )
         return url
 
+    def _build_v2_base_url(
+        self,
+    ) -> URL:
+        base_url = self._config.api_url.with_path("")
+        return base_url / "apis/apps/v2"
+
     def _get_monitoring_url(self, cluster_name: Optional[str]) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
@@ -90,18 +117,22 @@ class Apps(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list(
         self,
+        states: Optional[List[AppState]] = None,
         cluster_name: Optional[str] = None,
         org_name: Optional[str] = None,
         project_name: Optional[str] = None,
     ) -> AsyncIterator[App]:
-        url = (
-            self._build_base_url(
-                cluster_name=cluster_name,
-                org_name=org_name,
-                project_name=project_name,
-            )
-            / "instances"
+        url = self._build_v2_base_url() / "instances"
+        cluster_name = cluster_name or self._config.cluster_name
+        org_name = org_name or self._config.org_name
+        project_name = project_name or self._config.project_name_or_raise
+        url = url.update_query(
+            cluster=cluster_name,
+            org=org_name,
+            project=project_name,
         )
+        if states:
+            url = url.update_query(states=[state.value for state in states])
 
         auth = await self._config._api_auth()
         async with self._core.request("GET", url, auth=auth) as resp:
@@ -115,8 +146,36 @@ class Apps(metaclass=NoPublicConstructor):
                     template_version=item["template_version"],
                     project_name=item["project_name"],
                     org_name=item["org_name"],
+                    cluster_name=item["cluster_name"],
                     state=item["state"],
+                    creator=item["creator"],
+                    created_at=item["created_at"],
+                    updated_at=item["updated_at"],
+                    endpoints=item["endpoints"],
                 )
+
+    async def get(self, app_id: str) -> App:
+        url = self._build_v2_base_url() / "instances" / app_id
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
+            item = await resp.json()
+            return App(
+                id=item["id"],
+                name=item["name"],
+                display_name=item["display_name"],
+                template_name=item["template_name"],
+                template_version=item["template_version"],
+                project_name=item["project_name"],
+                org_name=item["org_name"],
+                cluster_name=item["cluster_name"],
+                creator=item["creator"],
+                created_at=item["created_at"],
+                updated_at=item["updated_at"],
+                endpoints=item["endpoints"],
+                state=item["state"],
+            )
 
     async def install(
         self,
@@ -146,7 +205,66 @@ class Apps(metaclass=NoPublicConstructor):
                 template_version=item.get("template_version"),
                 project_name=item.get("project_name"),
                 org_name=item.get("org_name"),
+                cluster_name=cluster_name or self._config.cluster_name,
+                creator=item.get("creator"),
+                created_at=item.get("created_at"),
+                updated_at=item.get("updated_at"),
                 state=item.get("state"),
+                endpoints=[],
+            )
+
+    def _can_configure_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
+        if existing_app.template_name != app_data["template_name"]:
+            return False
+        elif existing_app.template_version != app_data["template_version"]:
+            return False
+        return True
+
+    async def configure(
+        self,
+        app_id: str,
+        app_data: dict[str, Any],
+    ) -> App:
+        existing_app = await self.get(app_id)
+        if not self._can_configure_app(existing_app, app_data):
+            raise ValueError("Cannot update app: template name or version mismatch")
+
+        url = (
+            self._build_base_url(
+                cluster_name=existing_app.cluster_name,
+                org_name=existing_app.org_name,
+                project_name=existing_app.project_name,
+            )
+            / "instances"
+            / app_id
+        )
+
+        configure_payload = {}
+        if "display_name" in app_data:
+            configure_payload["display_name"] = app_data["display_name"]
+        if "input" in app_data:
+            configure_payload["input"] = app_data["input"]
+
+        auth = await self._config._api_auth()
+        async with self._core.request(
+            "PUT", url, json=configure_payload, auth=auth
+        ) as resp:
+            resp.raise_for_status()
+            item = await resp.json()
+            return App(
+                id=item["id"],
+                name=item["name"],
+                display_name=item["display_name"],
+                template_name=item["template_name"],
+                template_version=item["template_version"],
+                project_name=existing_app.project_name,
+                org_name=existing_app.org_name,
+                cluster_name=existing_app.cluster_name,
+                state=item["state"],
+                creator=item["creator"],
+                created_at=item["created_at"],
+                updated_at=item["updated_at"],
+                endpoints=[],
             )
 
     async def uninstall(

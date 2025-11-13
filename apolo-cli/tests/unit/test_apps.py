@@ -5,6 +5,8 @@ from unittest import mock
 from apolo_sdk import App, AppValue
 from apolo_sdk._apps import Apps
 
+from .factories import _app_factory
+
 _RunCli = Any
 
 
@@ -31,18 +33,21 @@ def mock_apps_install() -> Iterator[None]:
     with mock.patch.object(Apps, "install") as mocked:
 
         async def install(**kwargs: Any) -> App:
-            return App(
-                id="app-123",
-                name="test-app-1",
-                display_name="Test App 1",
-                template_name="test-template",
-                template_version="1.0",
-                project_name="test-project",
-                org_name="test-org",
-                state="running",
-            )
+            return _app_factory()
 
         mocked.side_effect = install
+        yield
+
+
+@contextmanager
+def mock_apps_configure() -> Iterator[None]:
+    """Context manager to mock the Apps.install method."""
+    with mock.patch.object(Apps, "configure") as mocked:
+
+        async def configure(**kwargs: Any) -> App:
+            return _app_factory(state="queued")
+
+        mocked.side_effect = configure
         yield
 
 
@@ -61,25 +66,9 @@ def mock_apps_uninstall() -> Iterator[None]:
 def test_app_ls_with_apps(run_cli: _RunCli) -> None:
     """Test the app ls command when apps are returned."""
     apps = [
-        App(
-            id="app-123",
-            name="test-app-1",
-            display_name="Test App 1",
-            template_name="test-template",
-            template_version="1.0",
-            project_name="test-project",
-            org_name="test-org",
-            state="running",
-        ),
-        App(
-            id="app-456",
-            name="test-app-2",
-            display_name="Test App 2",
-            template_name="test-template",
-            template_version="1.0",
-            project_name="test-project",
-            org_name="test-org",
-            state="errored",
+        _app_factory(),
+        _app_factory(
+            id="app-456", name="test-app-2", display_name="Test App 2", state="errored"
         ),
     ]
 
@@ -109,25 +98,9 @@ def test_app_ls_no_apps(run_cli: _RunCli) -> None:
 def test_app_ls_quiet_mode(run_cli: _RunCli) -> None:
     """Test the app ls command in quiet mode."""
     apps = [
-        App(
-            id="app-123",
-            name="test-app-1",
-            display_name="Test App 1",
-            template_name="test-template",
-            template_version="1.0",
-            project_name="test-project",
-            org_name="test-org",
-            state="running",
-        ),
-        App(
-            id="app-456",
-            name="test-app-2",
-            display_name="Test App 2",
-            template_name="test-template",
-            template_version="1.0",
-            project_name="test-project",
-            org_name="test-org",
-            state="errored",
+        _app_factory(),
+        _app_factory(
+            id="app-456", name="test-app-2", display_name="Test App 2", state="errored"
         ),
     ]
 
@@ -158,6 +131,24 @@ def test_app_install(run_cli: _RunCli, tmp_path: Any) -> None:
 
     assert not capture.err
     assert "App installed" in capture.out
+    assert capture.code == 0
+
+
+def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
+    """Test the app update command."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        """
+    display_name: New app name
+    input: {}
+    """
+    )
+
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert not capture.err
+    assert "configured using" in capture.out
     assert capture.code == 0
 
 
