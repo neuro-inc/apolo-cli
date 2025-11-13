@@ -26,6 +26,7 @@ class AppsFormatter(BaseAppsFormatter):
         table.add_column("Name")
         table.add_column("Display Name")
         table.add_column("Template")
+        table.add_column("Creator")
         table.add_column("Version")
         table.add_column("State")
 
@@ -35,6 +36,7 @@ class AppsFormatter(BaseAppsFormatter):
                 app.name,
                 app.display_name,
                 app.template_name,
+                app.creator,
                 app.template_version,
                 app.state,
             )

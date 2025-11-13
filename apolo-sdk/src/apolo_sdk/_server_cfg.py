@@ -162,10 +162,12 @@ class _ServerConfig:
     projects: Mapping[Project.Key, Project]
 
 
-def _parse_project_config(payload: Dict[str, Any]) -> Project:
+def _parse_project_config(payload: Dict[str, Any]) -> Optional[Project]:
     org_name = payload.get("org_name")
     if not org_name:
-        raise ValueError("org_name is required for projects")
+        # ignore old-fashioned projects without org_name,
+        # since they still might be in db
+        return None
     return Project(
         name=payload["name"],
         cluster_name=payload["cluster_name"],
@@ -178,7 +180,8 @@ def _parse_projects(payload: Dict[str, Any]) -> Dict[Project.Key, Project]:
     ret: Dict[Project.Key, Project] = {}
     for item in payload.get("projects", []):
         project = _parse_project_config(item)
-        ret[project.key] = project
+        if project:
+            ret[project.key] = project
     return ret
 
 
