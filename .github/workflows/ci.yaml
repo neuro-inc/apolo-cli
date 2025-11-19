@@ -198,7 +198,7 @@ jobs:
           ref: ${{ github.sha }}
       #Temporarily disable, the fresh codecov requires TOKEN passed
       - name: Upload coverage
-        uses: aio-libs/upload-coverage@v24.10.1
+        uses: aio-libs/upload-coverage@v25.11.0
 
   deploy:
     name: Deploy
