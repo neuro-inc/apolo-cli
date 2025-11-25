@@ -61,7 +61,7 @@ repos:
         apolo-sdk/docs/spelling_wordlist.txt
       )$
 - repo: https://github.com/asottile/pyupgrade
-  rev: 'v3.21.1'
+  rev: 'v3.21.2'
   hooks:
   - id: pyupgrade
     args: ['--py37-plus']
@@ -71,7 +71,7 @@ repos:
   - id: flake8
     exclude: "^apolo-sdk/docs/"
 - repo: https://github.com/rhysd/actionlint
-  rev: v1.7.8
+  rev: v1.7.9
   hooks:
   - id: actionlint-docker
     args:
@@ -82,7 +82,7 @@ repos:
     - -ignore
     - 'SC1004:'
 - repo: https://github.com/sirosen/check-jsonschema
-  rev: 0.34.1
+  rev: 0.35.0
   hooks:
   - id: check-github-actions
 ci:
