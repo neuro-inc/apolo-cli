@@ -181,7 +181,7 @@ async def _exec_tty(
         finally:
             await root.cancel_with_logging(resize_task)
             await root.cancel_with_logging(input_task)
-            return await _cancel_exec_output(root, output_task)
+        return await _cancel_exec_output(root, output_task)
 
 
 async def _exec_non_tty(
@@ -217,7 +217,7 @@ async def _exec_non_tty(
         finally:
             if input_task:
                 await root.cancel_with_logging(input_task)
-            return await _cancel_exec_output(root, output_task)
+        return await _cancel_exec_output(root, output_task)
 
 
 async def _cancel_exec_output(root: Root, output_task: "asyncio.Task[Any]") -> int:
