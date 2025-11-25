@@ -5,6 +5,17 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.11.2 (2025-11-25)
+
+## Deprecations and Removals
+
+- Drop Python 3.9 support.
+
+## Misc
+
+- Bump `neuro-admin-client`
+
+
 # Apolo SDK/CLI 25.11.1 (2025-11-13)
 
 ## Features
