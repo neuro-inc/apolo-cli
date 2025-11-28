@@ -5,7 +5,7 @@ import pytest
 from aiohttp import web
 from aiohttp.web_ws import WebSocketResponse
 
-from apolo_sdk import App, Client
+from apolo_sdk import App, AppEvent, AppEventResource, Client
 
 from tests import _TestServerFactory
 
@@ -857,3 +857,155 @@ async def test_apps_get_output_empty(
 
         assert output == {}
         assert len(output) == 0
+
+
+@pytest.fixture
+def app_events_payload() -> dict[str, Any]:
+    return {
+        "items": [
+            {
+                "created_at": "2025-11-27T12:23:47.555539Z",
+                "state": "healthy",
+                "reason": "Autoupdated",
+                "message": None,
+                "resources": [
+                    {
+                        "kind": "Deployment",
+                        "name": "apolo-test-deployment",
+                        "uid": "abc-123",
+                        "health_status": "Healthy",
+                        "health_message": None,
+                    },
+                    {
+                        "kind": "Service",
+                        "name": "apolo-test-service",
+                        "uid": "def-456",
+                        "health_status": "Healthy",
+                        "health_message": None,
+                    },
+                ],
+            },
+            {
+                "created_at": "2025-11-27T12:22:17.441916Z",
+                "state": "progressing",
+                "reason": "Autoupdated",
+                "message": "Deployment is in progress",
+                "resources": [],
+            },
+            {
+                "created_at": "2025-11-27T12:21:53.385617Z",
+                "state": "queued",
+                "reason": "App instance created",
+                "message": None,
+                "resources": [],
+            },
+        ],
+        "total": 3,
+        "page": 1,
+        "size": 50,
+        "pages": 1,
+    }
+
+
+async def test_apps_get_events(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_events_payload: dict[str, Any],
+) -> None:
+    """Test getting events for an app instance."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/events"
+        assert request.path == expected_path
+        return web.json_response(app_events_payload)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/events",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        events = []
+        async with client.apps.get_events(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        ) as it:
+            async for event in it:
+                events.append(event)
+
+        assert len(events) == 3
+
+        # Check first event (healthy state with resources)
+        assert isinstance(events[0], AppEvent)
+        assert events[0].created_at == "2025-11-27T12:23:47.555539Z"
+        assert events[0].state == "healthy"
+        assert events[0].reason == "Autoupdated"
+        assert events[0].message is None
+        assert len(events[0].resources) == 2
+
+        # Check resources of first event
+        assert isinstance(events[0].resources[0], AppEventResource)
+        assert events[0].resources[0].kind == "Deployment"
+        assert events[0].resources[0].name == "apolo-test-deployment"
+        assert events[0].resources[0].uid == "abc-123"
+        assert events[0].resources[0].health_status == "Healthy"
+        assert events[0].resources[0].health_message is None
+
+        assert events[0].resources[1].kind == "Service"
+        assert events[0].resources[1].name == "apolo-test-service"
+        assert events[0].resources[1].uid == "def-456"
+        assert events[0].resources[1].health_status == "Healthy"
+        assert events[0].resources[1].health_message is None
+
+        # Check second event (progressing state)
+        assert events[1].state == "progressing"
+        assert events[1].reason == "Autoupdated"
+        assert events[1].message == "Deployment is in progress"
+        assert len(events[1].resources) == 0
+
+        # Check third event (queued state)
+        assert events[2].state == "queued"
+        assert events[2].reason == "App instance created"
+        assert events[2].message is None
+        assert len(events[2].resources) == 0
+
+
+async def test_apps_get_events_empty(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """Test getting events when there are no events."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        return web.json_response({"items": [], "total": 0, "page": 1, "size": 50})
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/events",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        events = []
+        async with client.apps.get_events(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        ) as it:
+            async for event in it:
+                events.append(event)
+
+        assert len(events) == 0

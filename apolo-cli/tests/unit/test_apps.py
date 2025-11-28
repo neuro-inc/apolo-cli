@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
 
-from apolo_sdk import App, AppValue
+from apolo_sdk import App, AppEvent, AppEventResource, AppValue
 from apolo_sdk._apps import Apps
 
 from .factories import _app_factory
@@ -358,4 +358,145 @@ def test_app_logs_with_timestamps(run_cli: _RunCli) -> None:
 
     assert not capture.err
     assert "Starting app..." in capture.out
+    assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_get_events(events: List[AppEvent]) -> Iterator[None]:
+    """Context manager to mock the Apps.get_events method."""
+    with mock.patch.object(Apps, "get_events") as mocked:
+
+        @asynccontextmanager
+        async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[AppEvent]]:
+            async def async_iterator() -> AsyncIterator[AppEvent]:
+                for event in events:
+                    yield event
+
+            yield async_iterator()
+
+        mocked.side_effect = async_cm
+        yield
+
+
+def test_app_get_status(run_cli: _RunCli) -> None:
+    """Test the app get-status command."""
+    events = [
+        AppEvent(
+            created_at="2025-11-27T12:23:47.555539Z",
+            state="healthy",
+            reason="Autoupdated",
+            message=None,
+            resources=[
+                AppEventResource(
+                    kind="Deployment",
+                    name="test-deployment",
+                    uid="abc-123",
+                    health_status="Healthy",
+                    health_message=None,
+                ),
+            ],
+        ),
+        AppEvent(
+            created_at="2025-11-27T12:22:17.441916Z",
+            state="progressing",
+            reason="Autoupdated",
+            message="Deployment is in progress",
+            resources=[],
+        ),
+    ]
+
+    with mock_apps_get_events(events):
+        capture = run_cli(["app", "get-status", "app-123"])
+
+    assert not capture.err
+    assert "Event:" in capture.out
+    assert "healthy" in capture.out
+    assert "Autoupdated" in capture.out
+    assert "progressing" in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_status_no_events(run_cli: _RunCli) -> None:
+    """Test the app get-status command when no events are returned."""
+    with mock_apps_get_events([]):
+        capture = run_cli(["app", "get-status", "app-123"])
+
+    assert not capture.err
+    assert "No events found." in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_status_json_output(run_cli: _RunCli) -> None:
+    """Test the app get-status command with JSON output."""
+    events = [
+        AppEvent(
+            created_at="2025-11-27T12:23:47.555539Z",
+            state="healthy",
+            reason="Autoupdated",
+            message=None,
+            resources=[
+                AppEventResource(
+                    kind="Deployment",
+                    name="test-deployment",
+                    uid="abc-123",
+                    health_status="Healthy",
+                    health_message=None,
+                ),
+            ],
+        ),
+    ]
+
+    with mock_apps_get_events(events):
+        capture = run_cli(["app", "get-status", "app-123", "--output", "json"])
+
+    assert not capture.err
+    assert '"state": "healthy"' in capture.out
+    assert '"reason": "Autoupdated"' in capture.out
+    assert '"kind": "Deployment"' in capture.out
+    assert '"name": "test-deployment"' in capture.out
+    assert '"health_status": "Healthy"' in capture.out
+    assert '"total": 1' in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_status_quiet_mode(run_cli: _RunCli) -> None:
+    """Test the app get-status command in quiet mode."""
+    events = [
+        AppEvent(
+            created_at="2025-11-27T12:23:47.555539Z",
+            state="healthy",
+            reason="Autoupdated",
+            message=None,
+            resources=[],
+        ),
+    ]
+
+    with mock_apps_get_events(events):
+        capture = run_cli(["-q", "app", "get-status", "app-123"])
+
+    assert not capture.err
+    assert "healthy" in capture.out
+    assert "Autoupdated" in capture.out
+    assert capture.code == 0
+
+
+def test_app_get_status_with_message(run_cli: _RunCli) -> None:
+    """Test the app get-status command with event message."""
+    events = [
+        AppEvent(
+            created_at="2025-11-27T12:23:47.555539Z",
+            state="degraded",
+            reason="DeploymentFailed",
+            message="Deployment exceeded its progress deadline",
+            resources=[],
+        ),
+    ]
+
+    with mock_apps_get_events(events):
+        capture = run_cli(["app", "get-status", "app-123"])
+
+    assert not capture.err
+    assert "degraded" in capture.out
+    assert "DeploymentFailed" in capture.out
+    assert "Deployment exceeded its progress deadline" in capture.out
     assert capture.code == 0

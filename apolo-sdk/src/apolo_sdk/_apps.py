@@ -67,6 +67,26 @@ class App:
 
 
 @rewrite_module
+@dataclass(frozen=True)
+class AppEventResource:
+    kind: Optional[str] = None
+    name: Optional[str] = None
+    uid: Optional[str] = None
+    health_status: Optional[str] = None
+    health_message: Optional[str] = None
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class AppEvent:
+    created_at: datetime
+    state: str
+    reason: str
+    message: Optional[str]
+    resources: List[AppEventResource]
+
+
+@rewrite_module
 class Apps(metaclass=NoPublicConstructor):
     def __init__(self, core: _Core, config: Config) -> None:
         self._core = core
@@ -559,3 +579,57 @@ class Apps(metaclass=NoPublicConstructor):
                     raise ws.exception()  # type: ignore
                 else:  # pragma: no cover
                     raise RuntimeError(f"Incorrect WebSocket message: {msg!r}")
+
+    @asyncgeneratorcontextmanager
+    async def get_events(
+        self,
+        app_id: str,
+        cluster_name: Optional[str] = None,
+        org_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+    ) -> AsyncIterator[AppEvent]:
+        """Get events for an app instance.
+
+        Args:
+            app_id: The ID of the app instance
+            cluster_name: Optional cluster name override
+            org_name: Optional organization name override
+            project_name: Optional project name override
+
+        Returns:
+            An async iterator of AppEvent objects
+        """
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name,
+                org_name=org_name,
+                project_name=project_name,
+            )
+            / "instances"
+            / app_id
+            / "events"
+        )
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+            for item in data.get("items", []):
+                resources = []
+                for res in item.get("resources", []):
+                    resources.append(
+                        AppEventResource(
+                            kind=res.get("kind"),
+                            name=res.get("name"),
+                            uid=res.get("uid"),
+                            health_status=res.get("health_status"),
+                            health_message=res.get("health_message"),
+                        )
+                    )
+                yield AppEvent(
+                    created_at=item["created_at"],
+                    state=item["state"],
+                    reason=item["reason"],
+                    message=item.get("message"),
+                    resources=resources,
+                )
