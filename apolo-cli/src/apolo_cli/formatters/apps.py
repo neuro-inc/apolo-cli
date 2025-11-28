@@ -118,9 +118,7 @@ class AppEventsFormatter(BaseAppEventsFormatter):
             return "yellow"
         return ""
 
-    def _format_resource(
-        self, res: AppEventResource, renderables: List[Any]
-    ) -> None:
+    def _format_resource(self, res: AppEventResource, renderables: List[Any]) -> None:
         # Resource name line
         name_line = Text()
         name_line.append("└─ ")
