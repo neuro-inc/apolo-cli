@@ -50,7 +50,6 @@
 		* [apolo admin update-project-user](#apolo-admin-update-project-user)
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
-		* [apolo app configure](#apolo-app-configure)
 		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
@@ -125,7 +124,6 @@
 		* [apolo job top](#apolo-job-top)
 	* [apolo secret](#apolo-secret)
 		* [apolo secret add](#apolo-secret-add)
-		* [apolo secret get](#apolo-secret-get)
 		* [apolo secret ls](#apolo-secret-ls)
 		* [apolo secret rm](#apolo-secret-rm)
 	* [apolo service-account](#apolo-service-account)
@@ -697,15 +695,17 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\--amd-gpu NUMBER_|Number of AMD GPUs|
+|_\--amd-gpu-memory AMOUNT_|AMD GPU memory amount|
 |_\--amd-gpu-model GPU\_MODEL_FREE_TEXT_|AMD GPU model|
 |_\-c, --cpu NUMBER_|Number of CPUs  \[default: 0.1]|
 |_\--credits-per-hour AMOUNT_|Price of running job of this preset for an hour in credits  \[default: 0]|
 |_\--intel-gpu NUMBER_|Number of Intel GPUs|
+|_\--intel-gpu-memory AMOUNT_|Intel GPU memory amount|
 |_\--intel-gpu-model GPU\_MODEL_FREE_TEXT_|Intel GPU model|
 |_\-m, --memory AMOUNT_|Memory amount  \[default: 1GB]|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
+|_\--nvidia-gpu-memory AMOUNT_|Nvidia GPU memory amount|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
-|_\--nvidia-mig NVIDIA_MIG_|Nvidia MIG configuration in format PROFILE\[:MODEL]=COUNT|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower\-cost preemptible instance  \[default: non-preemptible-node]|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|
 |_\-p, --scheduler / -P, --no-scheduler_|Use round robin scheduler for jobs  \[default: no-scheduler]|
@@ -1316,15 +1316,17 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\--amd-gpu NUMBER_|Number of AMD GPUs|
+|_\--amd-gpu-memory AMOUNT_|AMD GPU memory amount|
 |_\--amd-gpu-model GPU\_MODEL_FREE_TEXT_|AMD GPU model|
 |_\-c, --cpu NUMBER_|Number of CPUs|
 |_\--credits-per-hour AMOUNT_|Price of running job of this preset for an hour in credits|
 |_\--intel-gpu NUMBER_|Number of Intel GPUs|
+|_\--intel-gpu-memory AMOUNT_|Intel GPU memory amount|
 |_\--intel-gpu-model GPU\_MODEL_FREE_TEXT_|Intel GPU model|
 |_\-m, --memory AMOUNT_|Memory amount|
 |_\-g, --nvidia-gpu NUMBER_|Number of Nvidia GPUs|
+|_\--nvidia-gpu-memory AMOUNT_|Nvidia GPU memory amount|
 |_\--nvidia-gpu-model GPU\_MODEL_FREE_TEXT_|Nvidia GPU model|
-|_\--nvidia-mig NVIDIA_MIG_|Nvidia MIG configuration, PROFILE\[:MODEL]=COUNT|
 |_\--preemptible-node / --non-preemptible-node_|Use a lower-cost preemptible instance|
 |_\-r, --resource-pool TEXT_|Name of the resource pool where job will be scheduled \(multiple values are supported)|
 |_\-p, --scheduler / -P, --no-scheduler_|Use round robin scheduler for jobs|
@@ -1355,33 +1357,12 @@ Name | Description|
 
 |Usage|Description|
 |---|---|
-| _[apolo app configure](#apolo-app-configure)_| Reconfigure an app instance using YAML file |
 | _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
 | _[apolo app logs](#apolo-app-logs)_| Print the logs for an app |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
-
-
-
-
-### apolo app configure
-
-Reconfigure an app instance using YAML file.
-
-**Usage:**
-
-```bash
-apolo app configure [OPTIONS] APP_ID
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
 
 
 
@@ -1448,11 +1429,9 @@ apolo app list [OPTIONS]
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
-|_\-a, --all_|Show apps in all states.|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
-|_\-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled]_|Filter out apps by state \(multiple option).|
 
 
 
@@ -1496,11 +1475,9 @@ apolo app ls [OPTIONS]
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
-|_\-a, --all_|Show apps in all states.|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
-|_\-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled]_|Filter out apps by state \(multiple option).|
 
 
 
@@ -1521,7 +1498,6 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
-|_\-f, --force_|Force uninstall the app.|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
 
@@ -3250,7 +3226,6 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo secret add](#apolo-secret-add)_| Add secret KEY with data VALUE |
-| _[apolo secret get](#apolo-secret-get)_| Get secret KEY |
 | _[apolo secret ls](#apolo-secret-ls)_| List secrets |
 | _[apolo secret rm](#apolo-secret-rm)_| Remove secret KEY |
 
@@ -3283,38 +3258,6 @@ Name | Description|
 |_--help_|Show this message and exit.|
 |_--cluster CLUSTER_|Perform on a specified cluster \(the current cluster by default).|
 |_--org ORG_|Look on a specified org \(the current org by default).|
-|_--project PROJECT_|Look on a specified project \(the current project by default).|
-
-
-
-
-### apolo secret get
-
-Get secret KEY.<br/><br/>If --file is specified, the secret content will be saved to the file.<br/>Otherwise, it will be displayed on stdout.<br/>
-
-**Usage:**
-
-```bash
-apolo secret get [OPTIONS] KEY
-```
-
-**Examples:**
-
-```bash
-
-apolo secret get KEY_NAME
-apolo secret get KEY_NAME --file secret.txt
-
-```
-
-**Options:**
-
-Name | Description|
-|----|------------|
-|_--help_|Show this message and exit.|
-|_--cluster CLUSTER_|Perform on a specified cluster \(the current cluster by default).|
-|_--org ORG_|Look on a specified org \(the current org by default).|
-|_\-f, --file PATH_|Save secret to file instead of displaying it.|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
