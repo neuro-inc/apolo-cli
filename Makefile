@@ -112,7 +112,7 @@ clean: ### Cleanup temporary files
 	rm -rf .mypy_cache
 
 .PHONY: docs
-docs: ### Generate CLI docs
+docs: ### Generate CLI docs and site help pages
 	build-tools/cli-help-generator.py CLI.in.md CLI.md
 	markdown-toc -t github -h 6 CLI.md
 	build-tools/site-help-generator.py
