@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, List
 
 import pytest
@@ -62,7 +63,7 @@ class TestAppEventsFormatter:
     def events(self) -> List[AppEvent]:
         return [
             AppEvent(
-                created_at="2025-11-27T12:23:47.555539Z",
+                created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
                 state="healthy",
                 reason="Autoupdated",
                 message=None,
@@ -84,7 +85,7 @@ class TestAppEventsFormatter:
                 ],
             ),
             AppEvent(
-                created_at="2025-11-27T12:22:17.441916Z",
+                created_at=datetime.fromisoformat("2025-11-27T12:22:17.441916"),
                 state="progressing",
                 reason="Autoupdated",
                 message="Deployment is in progress",
@@ -113,7 +114,7 @@ class TestAppEventsFormatter:
     def test_app_events_formatter_with_message(self, rich_cmp: Any) -> None:
         events = [
             AppEvent(
-                created_at="2025-11-27T12:23:47.555539Z",
+                created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
                 state="degraded",
                 reason="DeploymentFailed",
                 message="Deployment exceeded its progress deadline",

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager, contextmanager
+from datetime import datetime
 from typing import Any, AsyncIterator, Iterator, List
 from unittest import mock
 
@@ -382,7 +383,7 @@ def test_app_get_status(run_cli: _RunCli) -> None:
     """Test the app get-status command."""
     events = [
         AppEvent(
-            created_at="2025-11-27T12:23:47.555539Z",
+            created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
             state="healthy",
             reason="Autoupdated",
             message=None,
@@ -397,7 +398,7 @@ def test_app_get_status(run_cli: _RunCli) -> None:
             ],
         ),
         AppEvent(
-            created_at="2025-11-27T12:22:17.441916Z",
+            created_at=datetime.fromisoformat("2025-11-27T12:22:17.441916"),
             state="progressing",
             reason="Autoupdated",
             message="Deployment is in progress",
@@ -430,7 +431,7 @@ def test_app_get_status_json_output(run_cli: _RunCli) -> None:
     """Test the app get-status command with JSON output."""
     events = [
         AppEvent(
-            created_at="2025-11-27T12:23:47.555539Z",
+            created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
             state="healthy",
             reason="Autoupdated",
             message=None,
@@ -463,7 +464,7 @@ def test_app_get_status_quiet_mode(run_cli: _RunCli) -> None:
     """Test the app get-status command in quiet mode."""
     events = [
         AppEvent(
-            created_at="2025-11-27T12:23:47.555539Z",
+            created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
             state="healthy",
             reason="Autoupdated",
             message=None,
@@ -484,7 +485,7 @@ def test_app_get_status_with_message(run_cli: _RunCli) -> None:
     """Test the app get-status command with event message."""
     events = [
         AppEvent(
-            created_at="2025-11-27T12:23:47.555539Z",
+            created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
             state="degraded",
             reason="DeploymentFailed",
             message="Deployment exceeded its progress deadline",

@@ -1,7 +1,7 @@
 import codecs
 import json
 import sys
-from typing import Optional
+from typing import List, Optional
 
 import click
 import yaml
@@ -68,7 +68,7 @@ async def list(
     cluster: Optional[str],
     org: Optional[str],
     project: Optional[str],
-    state: Optional[list[AppState]],
+    state: Optional[List[AppState]],
     all: bool,
 ) -> None:
     """
@@ -313,7 +313,7 @@ async def get_values(
     else:
         values_fmtr = AppValuesFormatter()
 
-    values: list[AppValue] = []
+    values: List[AppValue] = []
     with root.status("Fetching app values") as status:
         async with root.client.apps.get_values(
             app_id=app_id,
@@ -433,7 +433,7 @@ async def get_status(
 
     APP_ID: ID of the app to get status for status events.
     """
-    events: list[AppEvent] = []
+    events: List[AppEvent] = []
     with root.status("Fetching app events") as status:
         async with root.client.apps.get_events(
             app_id=app_id,
