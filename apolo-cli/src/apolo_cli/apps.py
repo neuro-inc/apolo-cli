@@ -431,7 +431,7 @@ async def get_status(
     """
     Get status events for an app.
 
-    APP_ID: ID of the app to get status for
+    APP_ID: ID of the app to get status for status events.
     """
     events: list[AppEvent] = []
     with root.status("Fetching app events") as status:
