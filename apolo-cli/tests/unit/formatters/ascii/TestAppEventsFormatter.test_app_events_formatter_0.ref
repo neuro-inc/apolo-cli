@@ -1,0 +1,21 @@
+================================================================================
+Event @ 2025-11-27 12:23:47.555539
+STATE: healthy
+REASON: Autoupdated
+
+Resources
+----------------------------------------
+ Deployment:
+   - apolo-test-deployment  (Healthy)
+
+ Service:
+   - apolo-test-service  (Healthy)
+
+
+================================================================================
+Event @ 2025-11-27 12:22:17.441916
+STATE: progressing
+REASON: Autoupdated
+
+Message:
+  Deployment is in progress

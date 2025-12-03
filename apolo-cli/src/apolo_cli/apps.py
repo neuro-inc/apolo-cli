@@ -1,11 +1,12 @@
 import codecs
+import json
 import sys
 from typing import List, Optional
 
 import click
 import yaml
 
-from apolo_sdk import AppState, AppValue, IllegalArgumentError
+from apolo_sdk import AppEvent, AppState, AppValue, IllegalArgumentError
 
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.app_values import (
@@ -13,10 +14,17 @@ from .formatters.app_values import (
     BaseAppValuesFormatter,
     SimpleAppValuesFormatter,
 )
-from .formatters.apps import AppsFormatter, BaseAppsFormatter, SimpleAppsFormatter
+from .formatters.apps import (
+    AppEventsFormatter,
+    AppsFormatter,
+    BaseAppEventsFormatter,
+    BaseAppsFormatter,
+    SimpleAppEventsFormatter,
+    SimpleAppsFormatter,
+)
 from .job import _parse_date
 from .root import Root
-from .utils import alias, argument, command, group, option
+from .utils import alias, argument, command, group, json_default, option
 
 
 @group()
@@ -387,6 +395,72 @@ async def logs(
             sys.stdout.flush()
 
 
+@command()
+@argument("app_id")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+@option(
+    "-o",
+    "--output",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    help="Output format (default: table).",
+)
+async def get_status(
+    root: Root,
+    app_id: str,
+    cluster: Optional[str],
+    org: Optional[str],
+    project: Optional[str],
+    output_format: str,
+) -> None:
+    """
+    Get status events for an app.
+
+    APP_ID: ID of the app to get status for status events.
+    """
+    events: List[AppEvent] = []
+    with root.status("Fetching app events") as status:
+        async with root.client.apps.get_events(
+            app_id=app_id,
+            cluster_name=cluster,
+            org_name=org,
+            project_name=project,
+        ) as it:
+            async for event in it:
+                events.append(event)
+                status.update(f"Fetching app events ({len(events)} loaded)")
+
+    if output_format == "json":
+        output = {"items": events, "total": len(events)}
+        root.print(json.dumps(output, indent=2, default=json_default))
+    else:
+        if root.quiet:
+            events_fmtr: BaseAppEventsFormatter = SimpleAppEventsFormatter()
+        else:
+            events_fmtr = AppEventsFormatter()
+
+        with root.pager():
+            if events:
+                root.print(events_fmtr(events))
+            else:
+                root.print("No events found.")
+
+
 app.add_command(list)
 app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
@@ -394,3 +468,4 @@ app.add_command(configure)
 app.add_command(uninstall)
 app.add_command(get_values)
 app.add_command(logs)
+app.add_command(get_status)

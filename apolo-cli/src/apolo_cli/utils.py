@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import functools
 import inspect
 import itertools
@@ -9,7 +10,7 @@ import shlex
 import shutil
 import sys
 import textwrap
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import (
     Any,
     Awaitable,
@@ -710,3 +711,12 @@ async def calc_timeout_unused(
     return await _calc_timedelta_key(
         client, value, default, config_section, "timeout-unused"
     )
+
+
+def json_default(obj: Any) -> Any:
+    """Default JSON serializer for objects not serializable by default."""
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return dataclasses.asdict(obj)
+    if isinstance(obj, datetime):
+        return str(obj)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")

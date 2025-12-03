@@ -14,6 +14,7 @@ Operations with applications.
 | Usage | Description |
 | :--- | :--- |
 | [_configure_](app.md#configure) | Reconfigure an app instance using YAML file |
+| [_get-status_](app.md#get-status) | Get status events for an app |
 | [_get-values_](app.md#get-values) | Get application values |
 | [_install_](app.md#install) | Install an app from a YAML file |
 | [_list_](app.md#list) | List apps |
@@ -41,6 +42,34 @@ Reconfigure an app instance using `YAML` file.
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
 | _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
+
+
+
+### get-status
+
+Get status events for an app
+
+
+#### Usage
+
+```bash
+apolo app get-status [OPTIONS] APP_ID
+```
+
+Get status events for an app.
+
+`APP`_ID: ID of the app to get status for
+status events.
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--cluster CLUSTER_ | Look on a specified cluster \(the current cluster by default\). |
+| _--org ORG_ | Look on a specified org \(the current org by default\). |
+| _-o, --output \[table &#124; json\]_ | Output format \(default: table\). |
+| _--project PROJECT_ | Look on a specified project \(the current project by default\). |
 
 
 

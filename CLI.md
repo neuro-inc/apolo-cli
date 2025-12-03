@@ -51,6 +51,7 @@
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
 		* [apolo app configure](#apolo-app-configure)
+		* [apolo app get-status](#apolo-app-get-status)
 		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
@@ -1356,6 +1357,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app configure](#apolo-app-configure)_| Reconfigure an app instance using YAML file |
+| _[apolo app get-status](#apolo-app-get-status)_| Get status events for an app |
 | _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
@@ -1382,6 +1384,29 @@ Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
 |_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
+
+
+
+
+### apolo app get-status
+
+Get status events for an app.<br/><br/>APP_ID: ID of the app to get status for status events.
+
+**Usage:**
+
+```bash
+apolo app get-status [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_\-o, --output \[table &#124; json]_|Output format \(default: table).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 

@@ -1,0 +1,12 @@
+================================================================================
+Event @ 2025-11-27 12:23:47.555539
+STATE: degraded
+REASON: DeploymentFailed
+
+Message:
+  Deployment exceeded its progress deadline
+
+Resources
+----------------------------------------
+ Deployment:
+   - test-deployment  (Degraded)
