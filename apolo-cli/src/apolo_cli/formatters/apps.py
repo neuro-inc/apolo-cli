@@ -138,6 +138,8 @@ class AppEventsFormatter(BaseAppEventsFormatter):
             line.append(res.name)
         if res.health_status:
             line.append("  (")
-            line.append(res.health_status, style=self._get_state_style(res.health_status))
+            line.append(
+                res.health_status, style=self._get_state_style(res.health_status)
+            )
             line.append(")")
         renderables.append(line)
