@@ -5,7 +5,6 @@
 
 [comment]: # (towncrier release notes start)
 
-
 # Apolo SDK/CLI 25.11.2 (2025-11-25)
 
 ## Deprecations and Removals
