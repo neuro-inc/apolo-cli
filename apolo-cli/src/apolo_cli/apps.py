@@ -1,9 +1,7 @@
 import codecs
-import dataclasses
 import json
 import sys
-from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 import click
 import yaml
@@ -26,7 +24,7 @@ from .formatters.apps import (
 )
 from .job import _parse_date
 from .root import Root
-from .utils import alias, argument, command, group, option
+from .utils import alias, argument, command, group, json_default, option
 
 
 @group()
@@ -397,15 +395,6 @@ async def logs(
             sys.stdout.flush()
 
 
-def _json_default(obj: Any) -> Any:
-    """Default JSON serializer for objects not serializable by default."""
-    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
-        return dataclasses.asdict(obj)
-    if isinstance(obj, datetime):
-        return str(obj)
-    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
-
-
 @command()
 @argument("app_id")
 @option(
@@ -458,7 +447,7 @@ async def get_status(
 
     if output_format == "json":
         output = {"items": events, "total": len(events)}
-        root.print(json.dumps(output, indent=2, default=_json_default))
+        root.print(json.dumps(output, indent=2, default=json_default))
     else:
         if root.quiet:
             events_fmtr: BaseAppEventsFormatter = SimpleAppEventsFormatter()
