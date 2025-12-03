@@ -1,7 +1,9 @@
 import codecs
+import dataclasses
 import json
 import sys
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Optional
 
 import click
 import yaml
@@ -68,7 +70,7 @@ async def list(
     cluster: Optional[str],
     org: Optional[str],
     project: Optional[str],
-    state: Optional[List[AppState]],
+    state: Optional[list[AppState]],
     all: bool,
 ) -> None:
     """
@@ -313,7 +315,7 @@ async def get_values(
     else:
         values_fmtr = AppValuesFormatter()
 
-    values: List[AppValue] = []
+    values: list[AppValue] = []
     with root.status("Fetching app values") as status:
         async with root.client.apps.get_values(
             app_id=app_id,
@@ -395,24 +397,13 @@ async def logs(
             sys.stdout.flush()
 
 
-def _event_to_dict(event: AppEvent) -> Dict[str, Any]:
-    """Convert an AppEvent to a JSON-serializable dictionary."""
-    return {
-        "created_at": str(event.created_at),
-        "state": event.state,
-        "reason": event.reason,
-        "message": event.message,
-        "resources": [
-            {
-                "kind": res.kind,
-                "name": res.name,
-                "uid": res.uid,
-                "health_status": res.health_status,
-                "health_message": res.health_message,
-            }
-            for res in event.resources
-        ],
-    }
+def _json_default(obj: Any) -> Any:
+    """Default JSON serializer for objects not serializable by default."""
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return dataclasses.asdict(obj)
+    if isinstance(obj, datetime):
+        return str(obj)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
 @command()
@@ -453,7 +444,7 @@ async def get_status(
 
     APP_ID: ID of the app to get status for
     """
-    events: List[AppEvent] = []
+    events: list[AppEvent] = []
     with root.status("Fetching app events") as status:
         async with root.client.apps.get_events(
             app_id=app_id,
@@ -466,8 +457,8 @@ async def get_status(
                 status.update(f"Fetching app events ({len(events)} loaded)")
 
     if output_format == "json":
-        output = {"items": [_event_to_dict(e) for e in events], "total": len(events)}
-        root.print(json.dumps(output, indent=2))
+        output = {"items": events, "total": len(events)}
+        root.print(json.dumps(output, indent=2, default=_json_default))
     else:
         if root.quiet:
             events_fmtr: BaseAppEventsFormatter = SimpleAppEventsFormatter()

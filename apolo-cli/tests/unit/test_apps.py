@@ -409,7 +409,7 @@ def test_app_get_status(run_cli: _RunCli) -> None:
         capture = run_cli(["app", "get-status", "app-123"])
 
     assert not capture.err
-    assert "Event:" in capture.out
+    assert "Event @" in capture.out
     assert "healthy" in capture.out
     assert "Autoupdated" in capture.out
     assert "progressing" in capture.out
