@@ -1,1 +1,0 @@
-Add apps get_status command

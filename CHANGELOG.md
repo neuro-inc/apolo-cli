@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 25.12.0 (2025-12-04)
+
+## Features
+
+- Add apps get_status command ([#3389](https://github.com/neuro-inc/apolo-cli/issues/3389))
+
+
 # Apolo SDK/CLI 25.11.2 (2025-11-25)
 
 ## Deprecations and Removals
