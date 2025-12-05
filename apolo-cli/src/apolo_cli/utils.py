@@ -352,7 +352,7 @@ def print_help(ctx: click.Context) -> None:
     ctx.exit()
 
 
-class DeprecatedGroup(NeuroGroupMixin, click.MultiCommand):
+class DeprecatedGroup(NeuroGroupMixin, click.Group):
     def __init__(
         self, origin: click.MultiCommand, name: Optional[str] = None, **attrs: Any
     ) -> None:
