@@ -34,7 +34,7 @@ def app() -> None:
     """
 
 
-@command()
+@command(name="list")
 @option(
     "--cluster",
     type=CLUSTER,
@@ -63,7 +63,7 @@ def app() -> None:
     is_flag=True,
     help="Show apps in all states.",
 )
-async def list(
+async def list_cmd(
     root: Root,
     cluster: str | None,
     org: str | None,
@@ -461,8 +461,8 @@ async def get_status(
                 root.print("No events found.")
 
 
-app.add_command(list)
-app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
+app.add_command(list_cmd)
+app.add_command(alias(list_cmd, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
 app.add_command(configure)
 app.add_command(uninstall)
