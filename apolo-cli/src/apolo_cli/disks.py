@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from datetime import timedelta
-from typing import Optional, Sequence, Union
 
 from yarl import URL
 
@@ -59,10 +59,10 @@ async def ls(
     root: Root,
     full_uri: bool,
     long_format: bool,
-    cluster: Optional[str],
-    org: Optional[str],
+    cluster: str | None,
+    org: str | None,
     all_orgs: bool,
-    project: Optional[str],
+    project: str | None,
     all_projects: bool,
 ) -> None:
     """
@@ -146,11 +146,11 @@ async def ls(
 async def create(
     root: Root,
     storage: str,
-    timeout_unused: Optional[str] = None,
-    name: Optional[str] = None,
-    cluster: Optional[str] = None,
-    org: Optional[str] = None,
-    project: Optional[str] = None,
+    timeout_unused: str | None = None,
+    name: str | None = None,
+    cluster: str | None = None,
+    org: str | None = None,
+    project: str | None = None,
 ) -> None:
     """
     Create a disk
@@ -217,10 +217,10 @@ async def create(
 @option("--full-uri", is_flag=True, help="Output full disk URI.")
 async def get(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
-    disk: Union[str, URL],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    disk: str | URL,
     full_uri: bool,
 ) -> None:
     """
@@ -275,9 +275,9 @@ async def get(
 )
 async def rm(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     disks: Sequence[str],
 ) -> None:
     """

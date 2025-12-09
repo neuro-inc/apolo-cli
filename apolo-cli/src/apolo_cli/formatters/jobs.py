@@ -3,9 +3,9 @@ import datetime
 import itertools
 import sys
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from types import TracebackType
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type
 
 import humanize
 from rich import box
@@ -54,7 +54,7 @@ def fmt_status(status: JobStatus) -> Text:
     return Text(status.value, style=color)
 
 
-def get_lifespan_ends(job: JobDescription) -> Optional[datetime.datetime]:
+def get_lifespan_ends(job: JobDescription) -> datetime.datetime | None:
     if (
         job.status
         in [
@@ -308,7 +308,7 @@ class LifeSpanUpdateFormatter:
         return res
 
 
-def format_life_span(life_span: Optional[float]) -> str:
+def format_life_span(life_span: float | None) -> str:
     if life_span is None:
         return ""
     if life_span == 0:
@@ -321,11 +321,11 @@ class JobTelemetryFormatter(RenderHook):
         self,
         console: Console,
         username: str,
-        sort_keys: List[Tuple[JobTelemetryKeyFunc, bool]],
+        sort_keys: list[tuple[JobTelemetryKeyFunc, bool]],
         columns: JobTableFormat,
         image_formatter: ImageFormatter,
         datetime_formatter: DatetimeFormatter,
-        maxrows: Optional[int] = None,
+        maxrows: int | None = None,
     ) -> None:
         self._console = console
         self._username = username
@@ -335,7 +335,7 @@ class JobTelemetryFormatter(RenderHook):
         self._datetime_formatter = datetime_formatter
         self._maxrows = maxrows
         self._live_render = LiveRender(Table.grid())
-        self._data: Dict[str, Tuple[JobDescription, JobTelemetry]] = {}
+        self._data: dict[str, tuple[JobDescription, JobTelemetry]] = {}
         self.changed = True
 
     def update(self, job: JobDescription, info: JobTelemetry) -> None:
@@ -365,12 +365,12 @@ class JobTelemetryFormatter(RenderHook):
                 image_formatter=self._image_formatter,
                 datetime_formatter=self._datetime_formatter,
             )
-            telemetry_data = dict(
-                cpu=f"{info.cpu:.3f}",
-                memory=f"{info.memory:.3f}",
-                gpu=f"{info.gpu_duty_cycle}" if info.gpu_duty_cycle else "0",
-                gpu_memory=f"{info.gpu_memory:.3f}" if info.gpu_memory else "0",
-            )
+            telemetry_data = {
+                "cpu": f"{info.cpu:.3f}",
+                "memory": f"{info.memory:.3f}",
+                "gpu": f"{info.gpu_duty_cycle}" if info.gpu_duty_cycle else "0",
+                "gpu_memory": f"{info.gpu_memory:.3f}" if info.gpu_memory else "0",
+            }
 
             def get(id: str) -> TextType:
                 if id in telemetry_data:
@@ -389,8 +389,8 @@ class JobTelemetryFormatter(RenderHook):
         self.changed = False
 
     def process_renderables(
-        self, renderables: List[ConsoleRenderable]
-    ) -> List[ConsoleRenderable]:
+        self, renderables: list[ConsoleRenderable]
+    ) -> list[ConsoleRenderable]:
         """Process renderables to restore cursor and display progress."""
         if self._console.is_terminal:
             renderables = [
@@ -407,7 +407,7 @@ class JobTelemetryFormatter(RenderHook):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -481,17 +481,17 @@ class TabularJobRow:
             project_name=job.project_name or "",
         )
 
-    def to_list(self, columns: JobTableFormat) -> List[TextType]:
+    def to_list(self, columns: JobTableFormat) -> list[TextType]:
         return _format_row(columns, lambda id: getattr(self, id))
 
 
 def _format_row(
     columns: JobTableFormat, get: Callable[[str], TextType]
-) -> List[TextType]:
-    result: List[TextType] = []
+) -> list[TextType]:
+    result: list[TextType] = []
     for column in columns:
         if "/" in column.id:
-            cell: List[TextType] = []
+            cell: list[TextType] = []
             for id in column.id.split("/"):
                 value = get(id)
                 if cell:
@@ -575,7 +575,7 @@ class JobStartProgress:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -671,8 +671,8 @@ class DetailedJobStartProgress(JobStartProgress, RenderHook):
             self._console.print("\n".join(out), markup=True)
 
     def process_renderables(
-        self, renderables: List[ConsoleRenderable]
-    ) -> List[ConsoleRenderable]:
+        self, renderables: list[ConsoleRenderable]
+    ) -> list[ConsoleRenderable]:
         """Process renderables to restore cursor and display progress."""
         if self._console.is_terminal:
             renderables = [
@@ -689,7 +689,7 @@ class DetailedJobStartProgress(JobStartProgress, RenderHook):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -773,7 +773,7 @@ class JobStopProgress:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -788,7 +788,7 @@ class DetailedJobStopProgress(JobStopProgress, RenderHook):
         self._live_render = LiveRender(Text())
         self._restarting = False
 
-    def _hint(self, hints: Iterable[Tuple[str, str]]) -> None:
+    def _hint(self, hints: Iterable[tuple[str, str]]) -> None:
         for title, hint in hints:
             self._console.print(f"{title}:", style="dim yellow")
             self._console.print(f"  {hint}", style="dim")
@@ -865,8 +865,8 @@ class DetailedJobStopProgress(JobStopProgress, RenderHook):
         )
 
     def process_renderables(
-        self, renderables: List[ConsoleRenderable]
-    ) -> List[ConsoleRenderable]:
+        self, renderables: list[ConsoleRenderable]
+    ) -> list[ConsoleRenderable]:
         """Process renderables to restore cursor and display progress."""
         if self._console.is_terminal:
             renderables = [
@@ -883,7 +883,7 @@ class DetailedJobStopProgress(JobStopProgress, RenderHook):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -976,7 +976,7 @@ class ExecStopProgress:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -1016,8 +1016,8 @@ class DetailedExecStopProgress(ExecStopProgress, RenderHook):
         )
 
     def process_renderables(
-        self, renderables: List[ConsoleRenderable]
-    ) -> List[ConsoleRenderable]:
+        self, renderables: list[ConsoleRenderable]
+    ) -> list[ConsoleRenderable]:
         """Process renderables to restore cursor and display progress."""
         if self._console.is_terminal:
             renderables = [
@@ -1034,7 +1034,7 @@ class DetailedExecStopProgress(ExecStopProgress, RenderHook):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:

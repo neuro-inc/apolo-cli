@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 import pytest
 from dateutil.parser import isoparse
@@ -46,7 +46,7 @@ def test_bucket_formatter_with_org(rich_cmp: Any) -> None:
 
 
 @pytest.fixture
-def buckets_list() -> List[Bucket]:
+def buckets_list() -> list[Bucket]:
     return [
         Bucket(
             id="bucket-1",
@@ -96,17 +96,17 @@ def buckets_list() -> List[Bucket]:
     ]
 
 
-def test_buckets_formatter_simple(buckets_list: List[Bucket], rich_cmp: Any) -> None:
+def test_buckets_formatter_simple(buckets_list: list[Bucket], rich_cmp: Any) -> None:
     fmtr = SimpleBucketsFormatter()
     rich_cmp(fmtr(buckets_list))
 
 
-def test_buckets_formatter_short(buckets_list: List[Bucket], rich_cmp: Any) -> None:
+def test_buckets_formatter_short(buckets_list: list[Bucket], rich_cmp: Any) -> None:
     fmtr = BucketsFormatter(str, datetime_formatter=format_datetime_human)
     rich_cmp(fmtr(buckets_list))
 
 
-def test_buckets_formatter_long(buckets_list: List[Bucket], rich_cmp: Any) -> None:
+def test_buckets_formatter_long(buckets_list: list[Bucket], rich_cmp: Any) -> None:
     fmtr = BucketsFormatter(
         str, long_format=True, datetime_formatter=format_datetime_human
     )

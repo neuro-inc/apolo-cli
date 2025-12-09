@@ -1,6 +1,6 @@
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import ExitStack, contextmanager
 from decimal import Decimal
-from typing import Callable, Iterator, List, Mapping, Optional
 from unittest import mock
 
 from apolo_sdk import (
@@ -31,7 +31,7 @@ from apolo_sdk._server_cfg import (
 
 from .conftest import SysCapWithCode
 
-_RunCli = Callable[[List[str]], SysCapWithCode]
+_RunCli = Callable[[list[str]], SysCapWithCode]
 
 
 @contextmanager
@@ -43,7 +43,7 @@ def mock_create_cluster_user() -> Iterator[None]:
             user_name: str,
             role: _ClusterUserRoleType,
             quota: _Quota,
-            org_name: Optional[str] = None,
+            org_name: str | None = None,
         ) -> _ClusterUserWithInfo:
             # NOTE: We return a different role to check that we print it to user
             return _ClusterUserWithInfo(
@@ -150,7 +150,7 @@ def test_update_cluster_user(run_cli: _RunCli) -> None:
         async def get_cluster_user(
             cluster_name: str,
             user_name: str,
-            org_name: Optional[str] = None,
+            org_name: str | None = None,
         ) -> _ClusterUserWithInfo:
             return _ClusterUserWithInfo(
                 cluster_name=cluster_name,
@@ -209,7 +209,7 @@ def test_set_user_credits(run_cli: _RunCli) -> None:
         async def update_org_user_balance(
             org_name: str,
             user_name: str,
-            credits: Optional[Decimal],
+            credits: Decimal | None,
         ) -> _OrgUserWithInfo:
             return _OrgUserWithInfo(
                 org_name=org_name,
@@ -305,7 +305,7 @@ def test_set_user_quota(run_cli: _RunCli) -> None:
             cluster_name: str,
             user_name: str,
             quota: _Quota,
-            org_name: Optional[str] = None,
+            org_name: str | None = None,
         ) -> _ClusterUserWithInfo:
             return _ClusterUserWithInfo(
                 cluster_name=cluster_name,
@@ -348,7 +348,7 @@ def test_remove_cluster_user_print_result(run_cli: _RunCli) -> None:
         async def delete_cluster_user(
             cluster_name: str,
             user_name: str,
-            org_name: Optional[str] = None,
+            org_name: str | None = None,
         ) -> None:
             return
 
@@ -466,7 +466,7 @@ def test_add_existing_resource_preset_not_allowed(run_cli: _RunCli) -> None:
 
 
 def test_update_resource_preset(run_cli: _RunCli) -> None:
-    preset: Optional[Preset] = None
+    preset: Preset | None = None
 
     with ExitStack() as exit_stack:
         clusters_mocked = exit_stack.enter_context(

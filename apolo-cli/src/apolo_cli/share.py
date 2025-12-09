@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import click
 from rich.table import Table
@@ -112,8 +112,8 @@ async def revoke(root: Root, uri: str, user: str) -> None:
 @option("--full-uri", is_flag=True, help="Output full URI.")
 async def ls(
     root: Root,
-    uri: Optional[str],
-    username: Optional[str],
+    uri: str | None,
+    username: str | None,
     shared: bool,
     full_uri: bool,
 ) -> None:
@@ -205,7 +205,7 @@ def _fmt_action(action: Action) -> Text:
     default=None,
     help="Fetch roles of specified user or role.",
 )
-async def list_roles(root: Root, username: Optional[str]) -> None:
+async def list_roles(root: Root, username: str | None) -> None:
     """
     List roles.
 

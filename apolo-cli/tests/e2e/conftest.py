@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 from collections import namedtuple
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager, suppress
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
@@ -20,17 +21,8 @@ from pathlib import Path
 from time import sleep, time
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
     ContextManager,
-    Dict,
     Final,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
 )
 from urllib.parse import urlencode
 from uuid import uuid4 as uuid
@@ -104,13 +96,13 @@ def run_async(coro: Any) -> Callable[..., Any]:
 
 
 class Helper:
-    def __init__(self, nmrc_path: Optional[Path], tmp_path: Path) -> None:
+    def __init__(self, nmrc_path: Path | None, tmp_path: Path) -> None:
         self._nmrc_path = nmrc_path
         self._tmp = tmp_path
         self.tmpstoragename = f"test_e2e/{uuid()}"
         self._tmpstorage = URL(f"storage:{self.tmpstoragename}")
         self._closed = False
-        self._executed_jobs: List[str] = []
+        self._executed_jobs: list[str] = []
         self.DEFAULT_PRESET = os.environ.get("E2E_PRESET", "cpu-small")
 
     def close(self) -> None:
@@ -133,7 +125,7 @@ class Helper:
         return config.cluster_name
 
     @cached_property
-    def org_name(self) -> Optional[str]:
+    def org_name(self) -> str | None:
         config = self.get_config()
         return config.org_name
 
@@ -326,7 +318,7 @@ class Helper:
                 self.tmpstorage / path_from, self.tmpstorage / path_to
             )
 
-    def hash_hex(self, file: Union[str, Path]) -> str:
+    def hash_hex(self, file: str | Path) -> str:
         __tracebackhide__ = True
         _hash = sha1()
         with open(file, "rb") as f:
@@ -337,7 +329,7 @@ class Helper:
 
     @run_async
     async def wait_job_change_state_from(
-        self, job_id: str, wait_state: JobStatus, stop_state: Optional[JobStatus] = None
+        self, job_id: str, wait_state: JobStatus, stop_state: JobStatus | None = None
     ) -> None:
         __tracebackhide__ = True
         start_time = time()
@@ -356,7 +348,7 @@ class Helper:
         self,
         job_id: str,
         target_state: JobStatus,
-        stop_state: Optional[JobStatus] = None,
+        stop_state: JobStatus | None = None,
         timeout: float = JOB_TIMEOUT,
     ) -> None:
         __tracebackhide__ = True
@@ -428,7 +420,7 @@ class Helper:
             f"Output of job {job_id} does not satisfy to expected regexp: {expected}"
         )
 
-    def _default_args(self, verbosity: int, network_timeout: float) -> List[str]:
+    def _default_args(self, verbosity: int, network_timeout: float) -> list[str]:
         args = [
             "--show-traceback",
             "--disable-pypi-version-check",
@@ -449,7 +441,7 @@ class Helper:
 
     async def acli(
         self,
-        arguments: List[str],
+        arguments: list[str],
         *,
         verbosity: int = 0,
         network_timeout: float = NETWORK_TIMEOUT,
@@ -470,11 +462,11 @@ class Helper:
 
     def run_cli(
         self,
-        arguments: List[Any],
+        arguments: list[Any],
         *,
         verbosity: int = 0,
         network_timeout: float = NETWORK_TIMEOUT,
-        input: Optional[str] = None,
+        input: str | None = None,
         timeout: float = 300,
     ) -> SysCap:
         __tracebackhide__ = True
@@ -512,11 +504,11 @@ class Helper:
 
     def run_cli_run_job(
         self,
-        arguments: List[Any],
+        arguments: list[Any],
         *,
         verbosity: int = 0,
         network_timeout: float = NETWORK_TIMEOUT,
-        input: Optional[str] = None,
+        input: str | None = None,
         timeout: float = 300,
     ) -> SysCap:
         if self.DEFAULT_PRESET:
@@ -529,13 +521,13 @@ class Helper:
             timeout=timeout,
         )
 
-    def find_job_id(self, arg: str) -> Optional[str]:
+    def find_job_id(self, arg: str) -> str | None:
         match = JOB_ID_PATTERN.search(arg)
         return match.group(1) if match else None
 
     def pexpect(
         self,
-        arguments: List[str],
+        arguments: list[str],
         *,
         verbosity: int = 0,
         network_timeout: float = NETWORK_TIMEOUT,
@@ -554,7 +546,7 @@ class Helper:
 
     def autocomplete(
         self,
-        arguments: List[str],
+        arguments: list[str],
         *,
         verbosity: int = 0,
         network_timeout: float = NETWORK_TIMEOUT,
@@ -582,7 +574,7 @@ class Helper:
         assert not proc.stderr
         return proc.stdout
 
-    def parse_completions(self, raw: str) -> List[Tuple[str, str, str, str]]:
+    def parse_completions(self, raw: str) -> list[tuple[str, str, str, str]]:
         parts = raw.split("\n")
         return list(zip(*[iter(parts)] * 4))
 
@@ -591,10 +583,10 @@ class Helper:
         image: str,
         command: str = "",
         *,
-        description: Optional[str] = None,
-        name: Optional[str] = None,
+        description: str | None = None,
+        name: str | None = None,
         tty: bool = False,
-        env: Optional[Dict[str, str]] = None,
+        env: dict[str, str] | None = None,
         wait_state: JobStatus = JobStatus.RUNNING,
         stop_state: JobStatus = JobStatus.FAILED,
     ) -> str:
@@ -636,7 +628,7 @@ class Helper:
     run_job_and_wait_state = run_async(arun_job_and_wait_state)
 
     @run_async
-    async def check_http_get(self, url: Union[URL, str]) -> str:
+    async def check_http_get(self, url: URL | str) -> str:
         """
         Try to fetch given url few times.
         """
@@ -651,7 +643,7 @@ class Helper:
                 raise aiohttp.ClientResponseError(
                     status=resp.status,
                     message=f"Server return {resp.status}",
-                    history=tuple(),
+                    history=(),
                     request_info=resp.request_info,
                 )
 
@@ -757,9 +749,7 @@ class Helper:
                             print(e)
 
     @run_async
-    async def upload_blob(
-        self, bucket_name: str, key: str, file: Union[Path, str]
-    ) -> None:
+    async def upload_blob(self, bucket_name: str, key: str, file: Path | str) -> None:
         __tracebackhide__ = True
         async with api_get(timeout=CLIENT_TIMEOUT, path=self._nmrc_path) as client:
             await client.buckets.upload_file(
@@ -797,7 +787,7 @@ _nmrc_path_user = _nmrc_path_admin = None
 
 
 @pytest.fixture
-def nmrc_path(tmp_path_factory: Any, request: Any) -> Optional[Path]:
+def nmrc_path(tmp_path_factory: Any, request: Any) -> Path | None:
     global _nmrc_path_user
     global _nmrc_path_admin
     require_admin = request.keywords.get("require_admin", False)
@@ -848,7 +838,7 @@ async def _get_refresh_token(
             return data["access_token"]
 
 
-def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Optional[Path]:
+def _get_nmrc_path(tmp_path: Any, require_admin: bool) -> Path | None:
     if require_admin:
         token_env = "E2E_TOKEN"
         refresh_token_env = "E2E_REFRESH_TOKEN"
@@ -902,7 +892,7 @@ def helper(tmp_path: Path, nmrc_path: Path) -> Iterator[Helper]:
         ret.close()
 
 
-def generate_random_file(path: Path, size: int) -> Tuple[str, str]:
+def generate_random_file(path: Path, size: int) -> tuple[str, str]:
     name = f"{uuid()}.tmp"
     path_and_name = path / name
     hasher = hashlib.sha1()
@@ -923,28 +913,28 @@ def static_path(tmp_path_factory: Any) -> Path:
 
 
 @pytest.fixture(scope="session")
-def data(static_path: Path) -> Tuple[str, str]:
+def data(static_path: Path) -> tuple[str, str]:
     folder = static_path / "data"
     folder.mkdir()
     return generate_random_file(folder, FILE_SIZE_B)
 
 
 @pytest.fixture(scope="session")
-def data2(static_path: Path) -> Tuple[str, str]:
+def data2(static_path: Path) -> tuple[str, str]:
     folder = static_path / "data2"
     folder.mkdir()
     return generate_random_file(folder, FILE_SIZE_B // 3)
 
 
 @pytest.fixture(scope="session")
-def data3(static_path: Path) -> Tuple[str, str]:
+def data3(static_path: Path) -> tuple[str, str]:
     folder = static_path / "data3"
     folder.mkdir()
     return generate_random_file(folder, FILE_SIZE_B // 5)
 
 
 @pytest.fixture(scope="session")
-def nested_data(static_path: Path) -> Tuple[str, str, str]:
+def nested_data(static_path: Path) -> tuple[str, str, str]:
     root_dir = static_path / "neested_data" / "nested"
     nested_dir = root_dir / "directory" / "for" / "test"
     nested_dir.mkdir(parents=True, exist_ok=True)
@@ -955,7 +945,7 @@ def nested_data(static_path: Path) -> Tuple[str, str, str]:
 @pytest.fixture(scope="session")
 def _tmp_bucket_create(
     tmp_path_factory: Any, request: Any
-) -> Iterator[Tuple[Bucket, Helper]]:
+) -> Iterator[tuple[Bucket, Helper]]:
     tmp_path = tmp_path_factory.mktemp("tmp_bucket" + str(uuid()))
     tmpbucketname = f"apolo-e2e-{secrets.token_hex(10)}"
     nmrc_path = _get_nmrc_path(tmp_path_factory.mktemp("config"), require_admin=False)
@@ -978,7 +968,7 @@ def _tmp_bucket_create(
 
 
 @pytest.fixture
-def tmp_bucket(_tmp_bucket_create: Tuple[Bucket, Helper]) -> Iterator[str]:
+def tmp_bucket(_tmp_bucket_create: tuple[Bucket, Helper]) -> Iterator[str]:
     bucket, helper = _tmp_bucket_create
     yield bucket.name or bucket.id
     try:
@@ -992,17 +982,17 @@ def tmp_bucket(_tmp_bucket_create: Tuple[Bucket, Helper]) -> Iterator[str]:
 
 
 @pytest.fixture
-def secret_job(helper: Helper) -> Callable[[bool, bool, Optional[str]], Dict[str, Any]]:
+def secret_job(helper: Helper) -> Callable[[bool, bool, str | None], dict[str, Any]]:
     def go(
-        http_port: bool, http_auth: bool = False, description: Optional[str] = None
-    ) -> Dict[str, Any]:
+        http_port: bool, http_auth: bool = False, description: str | None = None
+    ) -> dict[str, Any]:
         secret = str(uuid())
         # Run http job
         command = (
             f"bash -c \"echo -n '{secret}' > /usr/share/nginx/html/secret.txt; "
             f"timeout -k 1m 15m /usr/sbin/nginx -g 'daemon off;'\""
         )
-        args: List[str] = []
+        args: list[str] = []
         if http_port:
             args += ["--http-port", "80"]
             if http_auth:
@@ -1047,7 +1037,7 @@ async def docker() -> AsyncIterator[aiodocker.Docker]:
 @pytest.fixture
 def disk_factory(helper: Helper) -> Callable[[str], ContextManager[str]]:
     @contextmanager
-    def _make_disk(storage: str, name: Optional[str] = None) -> Iterator[str]:
+    def _make_disk(storage: str, name: str | None = None) -> Iterator[str]:
         # Create disk
         args = ["disk", "create", storage]
         if name:
@@ -1101,7 +1091,7 @@ def drop_old_test_images() -> Iterator[None]:
 
 
 @pytest.fixture()
-def test_user_names() -> List[str]:
+def test_user_names() -> list[str]:
     # This is real users in dev cluster.
     # This values are used for testing `apolo admin ...` commands
     return [

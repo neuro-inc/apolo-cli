@@ -1,6 +1,6 @@
+from collections.abc import AsyncIterator, Callable
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import AsyncIterator, Callable
 
 import pytest
 from aiohttp import web

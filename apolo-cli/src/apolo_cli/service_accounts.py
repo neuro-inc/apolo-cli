@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from apolo_cli.click_types import CLUSTER, ORG, PROJECT, SERVICE_ACCOUNT
 from apolo_cli.formatters.service_accounts import (
@@ -75,10 +75,10 @@ async def ls(root: Root) -> None:
 )
 async def create(
     root: Root,
-    name: Optional[str],
-    default_cluster: Optional[str],
-    default_org: Optional[str],
-    default_project: Optional[str],
+    name: str | None,
+    default_cluster: str | None,
+    default_org: str | None,
+    default_project: str | None,
 ) -> None:
     """
     Create a service account.

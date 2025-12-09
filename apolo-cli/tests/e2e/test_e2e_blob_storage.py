@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path, PurePath
-from typing import Tuple
 
 import pytest
 
@@ -11,13 +10,13 @@ from apolo_cli.const import EX_OSFILE
 from tests.e2e import Helper
 from tests.e2e.utils import FILE_SIZE_B
 
-_Data = Tuple[str, str]
+_Data = tuple[str, str]
 
 
 @pytest.mark.e2e
 @pytest.mark.skip(reason="ERROR: apolo_sdk.BadGateway: Bad Gateway")
 def test_e2e_blob_storage_upload_download(
-    data: Tuple[Path, str], tmp_path: Path, helper: Helper, tmp_bucket: str
+    data: tuple[Path, str], tmp_path: Path, helper: Helper, tmp_bucket: str
 ) -> None:
     srcfile, checksum = data
     key = "folder/foo"
@@ -163,7 +162,7 @@ def test_e2e_blob_storage_copy_no_target_directory_extra_operand(
     reason="Unexpected exception: [SSL: WRONG_VERSION_NUMBER] wrong version number"
 )
 def test_e2e_blob_storage_copy_recursive_folder(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     srcfile, checksum, dir_path = nested_data
     target_file_name = Path(srcfile).name
@@ -188,7 +187,7 @@ def test_e2e_blob_storage_copy_recursive_folder(
     reason="Unexpected exception: [SSL: WRONG_VERSION_NUMBER] wrong version number"
 )
 def test_e2e_blob_storage_copy_recursive_file(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     srcfile = tmp_path / "testfile"
     dstfile = tmp_path / "copyfile"
@@ -207,7 +206,7 @@ def test_e2e_blob_storage_copy_recursive_file(
 
 @pytest.mark.e2e
 def test_e2e_blob_storage_glob_copy(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     # Create files and directories and copy them with pattern
     folder = tmp_path / "folder"
@@ -248,7 +247,7 @@ def test_e2e_blob_storage_glob_copy(
     reason="Unexpected exception: [SSL: WRONG_VERSION_NUMBER] wrong version number"
 )
 def test_e2e_blob_storage_cp_filter(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     # Create files and directories and copy them to storage
     folder = tmp_path / "folder"
@@ -310,7 +309,7 @@ def test_e2e_blob_storage_cp_filter(
 @pytest.mark.e2e
 @pytest.mark.skip(reason="ERROR: apolo_sdk.BadGateway: Bad Gateway")
 def test_e2e_blob_storage_rm_file(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     srcfile = tmp_path / "testfile"
     srcfile.write_bytes(b"abc")
@@ -326,7 +325,7 @@ def test_e2e_blob_storage_rm_file(
 
 @pytest.mark.e2e
 def test_e2e_blob_storage_rm_dir(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path, tmp_bucket: str
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path, tmp_bucket: str
 ) -> None:
     srcfile = tmp_path / "testfile"
     srcfile.write_bytes(b"abc")

@@ -4,19 +4,13 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Awaitable, Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
     TYPE_CHECKING,
     Any,
-    Awaitable,
-    Dict,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
     TypeVar,
 )
 
@@ -70,20 +64,20 @@ class Root:
     tty: bool
     disable_pypi_version_check: bool
     network_timeout: float
-    config_path: Optional[Path]
+    config_path: Path | None
     trace: bool
     force_trace_all: bool
     verbosity: int
     trace_hide_token: bool
     command_path: str
-    command_params: List[Dict[str, Optional[str]]]
+    command_params: list[dict[str, str | None]]
     skip_gmp_stats: bool
     show_traceback: bool
     iso_datetime_format: bool
     ctx: "Context"
 
-    _client: Optional[Client] = None
-    _factory: Optional[Factory] = None
+    _client: Client | None = None
+    _factory: Factory | None = None
     _runner: Runner = field(init=False)
     console: Console = field(init=False)
 
@@ -155,7 +149,7 @@ class Root:
         return self.verbosity < 0
 
     @property
-    def terminal_size(self) -> Tuple[int, int]:
+    def terminal_size(self) -> tuple[int, int]:
         return self.console.size
 
     @property
@@ -205,13 +199,13 @@ class Root:
         trace_config.on_response_chunk_received.append(self._on_response_chunk_received)
         return trace_config
 
-    def _print_trace(self, lines: List[str]) -> None:
+    def _print_trace(self, lines: list[str]) -> None:
         for line in lines:
             if self.trace:
                 self.print(line, style="dim", err=True)
             log.debug(line)
 
-    def _process_chunk(self, chunk: bytes, printable: bool) -> List[str]:
+    def _process_chunk(self, chunk: bytes, printable: bool) -> list[str]:
         if not chunk:
             return []
         if printable:

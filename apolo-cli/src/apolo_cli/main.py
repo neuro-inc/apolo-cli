@@ -4,10 +4,11 @@ import io
 import logging
 import sys
 import warnings
+from collections.abc import Sequence
 from importlib import import_module
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, List, Optional, Sequence, Tuple, Union, cast
+from typing import Any, cast
 
 import aiohttp
 import click
@@ -93,9 +94,9 @@ class MainGroup(Group):
 
     def make_context(
         self,
-        info_name: Optional[str],
-        args: List[str],
-        parent: Optional[click.Context] = None,
+        info_name: str | None,
+        args: list[str],
+        parent: click.Context | None = None,
         **extra: Any,
     ) -> Context:
         ctx = super().make_context(info_name, args, parent, **extra)
@@ -115,7 +116,7 @@ class MainGroup(Group):
         show_traceback = kwargs.get("show_traceback", False)
         tty = all(f.isatty() for f in [sys.stdin, sys.stdout, sys.stderr])
         COLORS = {"yes": True, "no": False, "auto": None}
-        real_color: Optional[bool] = COLORS[kwargs["color"]]
+        real_color: bool | None = COLORS[kwargs["color"]]
         if real_color is None:
             real_color = tty
         ctx.color = real_color
@@ -163,8 +164,8 @@ class MainGroup(Group):
         return ctx
 
     def resolve_command(
-        self, ctx: click.Context, args: List[str]
-    ) -> Tuple[str, click.Command, List[str]]:
+        self, ctx: click.Context, args: list[str]
+    ) -> tuple[str, click.Command, list[str]]:
         cmd_name, *args = args
 
         # Get the command
@@ -192,7 +193,7 @@ class MainGroup(Group):
     def _format_group(
         self,
         title: str,
-        grp: Sequence[Tuple[str, click.Command]],
+        grp: Sequence[tuple[str, click.Command]],
         formatter: click.HelpFormatter,
     ) -> None:
         # allow for 3 times the default spacing
@@ -218,9 +219,9 @@ class MainGroup(Group):
         """Extra format methods for multi methods that adds all the commands
         after the options.
         """
-        commands: List[Tuple[str, click.Command]] = []
-        groups: List[Tuple[str, click.MultiCommand]] = []
-        topics: List[Tuple[str, click.Command]] = []
+        commands: list[tuple[str, click.Command]] = []
+        groups: list[tuple[str, click.MultiCommand]] = []
+        topics: list[tuple[str, click.Command]] = []
         from .topics import topics as topic_defs
 
         topics = [
@@ -261,18 +262,18 @@ class MainGroup(Group):
             "options (applies to all commands)."
         )
 
-    def get_command(self, ctx: click.Context, cmd_name: str) -> Optional[click.Command]:
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
         ret = self.commands.get(cmd_name)
         if ret is not None:
             return ret
         self._pre_load(name=cmd_name)
         return self.commands.get(cmd_name)
 
-    def list_commands(self, ctx: click.Context) -> List[str]:
+    def list_commands(self, ctx: click.Context) -> list[str]:
         self._pre_load()
         return sorted(self.commands)
 
-    def _pre_load(self, name: Optional[str] = None) -> None:
+    def _pre_load(self, name: str | None = None) -> None:
         if name is None:
             for name in CMD_MAP:
                 self._pre_load(name)
@@ -333,7 +334,7 @@ CMD_MAP = {
 
 
 def print_options(
-    ctx: click.Context, param: Union[click.Option, click.Parameter], value: Any
+    ctx: click.Context, param: click.Option | click.Parameter, value: Any
 ) -> Any:
     if not value or ctx.resilient_parsing:
         return
@@ -481,7 +482,7 @@ def cli(
     network_timeout: float,
     trace: bool,
     x_trace_all: bool,
-    hide_token: Optional[bool],
+    hide_token: bool | None,
     skip_stats: bool,
     iso_datetime_format: bool,
 ) -> None:
@@ -553,7 +554,7 @@ def _err_to_str(err: Exception) -> str:
     return result
 
 
-def main(args: Optional[List[str]] = None) -> None:
+def main(args: list[str] | None = None) -> None:
     setup_shell_completion()
 
     try:

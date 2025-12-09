@@ -1,16 +1,9 @@
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Dict,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
 )
 
 import pytest
@@ -30,7 +23,7 @@ from apolo_sdk._utils import asyncgeneratorcontextmanager
 
 class MockBucketProvider(BucketProvider):
     def __init__(self, bucket: Bucket):
-        self.keys: Dict[str, Mapping[str, Any]] = {}
+        self.keys: dict[str, Mapping[str, Any]] = {}
         self.bucket = bucket
 
     @classmethod
@@ -43,7 +36,7 @@ class MockBucketProvider(BucketProvider):
 
     @asyncgeneratorcontextmanager
     async def list_blobs(
-        self, prefix: str, recursive: bool = False, limit: Optional[int] = None
+        self, prefix: str, recursive: bool = False, limit: int | None = None
     ) -> AsyncIterator[BucketEntry]:
         common_prefixes = set()
         for key in self.keys:
@@ -74,8 +67,8 @@ class MockBucketProvider(BucketProvider):
     async def put_blob(
         self,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        body: AsyncIterator[bytes] | bytes,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         if not isinstance(body, bytes):
             body = b"".join([chunk async for chunk in body])
@@ -93,7 +86,7 @@ class MockBucketProvider(BucketProvider):
     async def delete_blob(self, key: str) -> None:
         self.keys.pop(key)
 
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         return 0, 0
 
 

@@ -1,6 +1,6 @@
 import abc
 import operator
-from typing import Sequence
+from collections.abc import Sequence
 
 from rich import box
 from rich.console import Group as RichGroup

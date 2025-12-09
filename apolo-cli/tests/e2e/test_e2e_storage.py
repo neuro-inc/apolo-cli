@@ -4,7 +4,6 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import Tuple
 
 import pytest
 
@@ -14,11 +13,11 @@ from apolo_cli.formatters.storage import TreeFormatter
 from tests.e2e import Helper
 from tests.e2e.utils import FILE_SIZE_B
 
-_Data = Tuple[str, str]
+_Data = tuple[str, str]
 
 
 @pytest.mark.e2e
-def test_e2e_storage(data: Tuple[Path, str], tmp_path: Path, helper: Helper) -> None:
+def test_e2e_storage(data: tuple[Path, str], tmp_path: Path, helper: Helper) -> None:
     srcfile, checksum = data
 
     # Create directory for the test
@@ -302,7 +301,7 @@ def test_copy_and_remove_multiple_files(
 
 @pytest.mark.e2e
 def test_e2e_copy_recursive_to_platform(
-    helper: Helper, nested_data: Tuple[str, str, str], tmp_path: Path
+    helper: Helper, nested_data: tuple[str, str, str], tmp_path: Path
 ) -> None:
     helper.mkdir("")
     srcfile, checksum, dir_path = nested_data

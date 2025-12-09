@@ -3,7 +3,7 @@ import logging
 import sqlite3
 import sys
 import time
-from typing import Any, Dict, List, Optional, Tuple, TypedDict
+from typing import Any, TypedDict
 
 import dateutil.parser
 from packaging.version import parse as parse_version
@@ -50,10 +50,10 @@ class VersionChecker(metaclass=NoPublicConstructor):
         self._core = core
         self._config = config
         self._plugin_manager = plugin_manager
-        self._records: Dict[str, _Record] = {}
+        self._records: dict[str, _Record] = {}
         self._loaded = False
 
-    async def get_outdated(self) -> Dict[str, str]:
+    async def get_outdated(self) -> dict[str, str]:
         """Get packages that can be updated along with instructions for update.
 
         The information is collected from local database, updated by previous run.
@@ -78,7 +78,7 @@ class VersionChecker(metaclass=NoPublicConstructor):
     async def update(self) -> None:
         """Update local database with packages information fetched from pypi"""
         await self._read_db()
-        inserts: List[Tuple[str, str, float, float]] = []
+        inserts: list[tuple[str, str, float, float]] = []
         for package in self._plugin_manager.version_checker._records:
             record = self._records.get(package)
             await self._update_record(package, record, inserts)
@@ -112,8 +112,8 @@ class VersionChecker(metaclass=NoPublicConstructor):
     async def _update_record(
         self,
         package: str,
-        record: Optional[_Record],
-        inserts: List[Tuple[str, str, float, float]],
+        record: _Record | None,
+        inserts: list[tuple[str, str, float, float]],
     ) -> None:
         if record is None or time.time() - record["checked"] > 10 * 60:
             pypi = await self._fetch_package(package)
@@ -150,14 +150,14 @@ class VersionChecker(metaclass=NoPublicConstructor):
             for sql in self._SCHEMA.values():
                 cur.execute(sql)
 
-    def _read_package(self, db: sqlite3.Connection, package: str) -> Optional[_Record]:
+    def _read_package(self, db: sqlite3.Connection, package: str) -> _Record | None:
         cur = db.execute(self._READ_PACKAGE, (package,))
         return cur.fetchone()
 
     async def _fetch_package(
         self,
         package: str,
-    ) -> Optional[_Record]:
+    ) -> _Record | None:
         url = URL(f"https://pypi.org/pypi/{package}/json")
         async with self._core._session.get(url) as resp:
             if resp.status != 200:
@@ -181,16 +181,16 @@ def _parse_date(value: str) -> float:
     return dateutil.parser.parse(value).timestamp()
 
 
-def _parse_max_version(pypi_response: Dict[str, Any]) -> Optional[str]:
+def _parse_max_version(pypi_response: dict[str, Any]) -> str | None:
     try:
-        ret = [ver1 for ver1 in pypi_response["releases"].keys()]
+        ret = list(pypi_response["releases"].keys())
         return max(ver2 for ver2 in ret if not parse_version(ver2).is_prerelease)
     except (KeyError, ValueError):
         return None
 
 
 def _parse_version_upload_time(
-    pypi_response: Dict[str, Any], target_version: str
+    pypi_response: dict[str, Any], target_version: str
 ) -> float:
     try:
         dates = [

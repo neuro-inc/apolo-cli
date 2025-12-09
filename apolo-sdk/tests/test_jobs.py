@@ -1,8 +1,9 @@
 import asyncio
 import json
+from collections.abc import Callable
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import pytest
 from aiodocker.exceptions import DockerError
@@ -187,7 +188,7 @@ async def test_monitor_notexistent_job(
 async def test_job_top(
     aiohttp_server: _TestServerFactory, make_client: _MakeClient
 ) -> None:
-    def get_data_chunk(index: int) -> Dict[str, Any]:
+    def get_data_chunk(index: int) -> dict[str, Any]:
         return {
             "cpu": 0.5,
             "memory_bytes": 50 * 2**20,
@@ -909,7 +910,7 @@ async def test_job_start(
     srv = await aiohttp_server(app)
 
     async with make_client(srv.make_url("/")) as client:
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(
                 URL("storage://test-user/path_read_only"), "/container/read_only", True
             ),
@@ -1073,7 +1074,7 @@ async def test_job_start_with_priority(
 async def test_job_start_with_project(
     aiohttp_server: _TestServerFactory,
     make_client: _MakeClient,
-    project_name: Optional[str],
+    project_name: str | None,
 ) -> None:
     JSON = create_job_response("qwerty", "running", project_name=project_name)
 
@@ -1192,7 +1193,7 @@ async def test_job_run(
             intel_gpu=3,
             shm=True,
         )
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(
                 URL("storage://test-user/path_read_only"), "/container/read_only", True
             ),
@@ -1372,7 +1373,7 @@ async def test_job_run_with_name_and_description(
 
     async with make_client(srv.make_url("/")) as client:
         resources = Resources(memory=16384 * 2**20, cpu=7, nvidia_gpu=1, shm=True)
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(
                 URL("storage://test-user/path_read_only"), "/container/read_only", True
             ),
@@ -1478,7 +1479,7 @@ async def test_job_run_with_tags(
 
     async with make_client(srv.make_url("/")) as client:
         resources = Resources(memory=16384 * 2**20, cpu=7, nvidia_gpu=1, shm=True)
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(
                 URL("storage://test-user/path_read_only"), "/container/read_only", True
             ),
@@ -1674,7 +1675,7 @@ async def test_job_run_with_relative_volume_uris(
 
     async with make_client(srv.make_url("/")) as client:
         resources = Resources(memory=16384 * 2**20, cpu=7, nvidia_gpu=1, shm=True)
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(URL("storage:path"), "/container/my_path", False),
             Volume(
                 URL("storage:/otherproject/path"),
@@ -1980,7 +1981,7 @@ async def test_job_run_preemptible(
 
     async with make_client(srv.make_url("/")) as client:
         resources = Resources(memory=16384 * 2**20, cpu=7, nvidia_gpu=1, shm=True)
-        volumes: List[Volume] = [
+        volumes: list[Volume] = [
             Volume(
                 URL("storage://test-user/path_read_only"), "/container/read_only", True
             ),
@@ -2221,7 +2222,7 @@ async def test_job_run_with_tty(
 async def test_job_run_with_project(
     aiohttp_server: _TestServerFactory,
     make_client: _MakeClient,
-    project_name: Optional[str],
+    project_name: str | None,
 ) -> None:
     JSON = create_job_response("qwerty", "running", project_name=project_name)
 
@@ -2260,14 +2261,14 @@ def create_job_response(
     id: str,
     status: str,
     owner: str = "owner",
-    name: Optional[str] = None,
-    org_name: Optional[str] = None,
+    name: str | None = None,
+    org_name: str | None = None,
     image: str = "submit-image-name",
-    tags: Optional[List[str]] = None,
+    tags: list[str] | None = None,
     total_price_credits: str = "10.01",
     price_credits_per_hour: str = "20",
-    project_name: Optional[str] = "myproject",
-) -> Dict[str, Any]:
+    project_name: str | None = "myproject",
+) -> dict[str, Any]:
     result = {
         "id": id,
         "status": status,

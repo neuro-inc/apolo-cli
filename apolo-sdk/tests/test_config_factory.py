@@ -3,9 +3,10 @@ import base64
 import json
 import os
 import sys
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any
 from unittest import mock
 
 import aiohttp
@@ -56,7 +57,7 @@ def _create_config(
     token: str,
     auth_config: _AuthConfig,
     cluster_config: Cluster,
-    project: Optional[Project] = None,
+    project: Project | None = None,
 ) -> str:
     config = _ConfigData(
         auth_config=auth_config,
@@ -256,7 +257,7 @@ async def mock_for_login_factory(
                         },
                     ],
                 }
-                project_config: Dict[str, Any] = {
+                project_config: dict[str, Any] = {
                     "cluster_name": "default",
                     "org_name": "test-org",
                     "name": "default",
@@ -477,11 +478,11 @@ class TestLoginPassedConfig:
     @pytest.fixture()
     def make_conf_data(
         self, mock_for_login: _TestServer
-    ) -> Callable[[str, Optional[str], Optional[str]], str]:
+    ) -> Callable[[str, str | None, str | None], str]:
         def _make_config(
             token: str,
-            project_name: Optional[str] = "default",
-            org_name: Optional[str] = "test-org",
+            project_name: str | None = "default",
+            org_name: str | None = "test-org",
         ) -> str:
             data = {
                 "token": token,
@@ -498,7 +499,7 @@ class TestLoginPassedConfig:
     def set_conf_to_env(
         self,
         monkeypatch: Any,
-        make_conf_data: Callable[[str, Optional[str], Optional[str]], str],
+        make_conf_data: Callable[[str, str | None, str | None], str],
     ) -> Callable[[str], None]:
         def _set_env(token: str) -> None:
             config_data = make_conf_data(token)  # type: ignore
@@ -542,7 +543,7 @@ class TestLoginPassedConfig:
     async def test_normal_login_direct_token(
         self,
         tmp_home: Path,
-        make_conf_data: Callable[[str, Optional[str], Optional[str]], str],
+        make_conf_data: Callable[[str, str | None, str | None], str],
     ) -> None:
         token_data = make_conf_data("tokenstr")  # type: ignore
         await Factory().login_with_passed_config(token_data)
@@ -583,7 +584,7 @@ class TestLoginPassedConfig:
         self,
         tmp_home: Path,
         monkeypatch: Any,
-        make_conf_data: Callable[[str, Optional[str]], str],
+        make_conf_data: Callable[[str, str | None], str],
     ) -> None:
         pass_cfg_data = make_conf_data("tokenstr", "default2")
         monkeypatch.setenv(PASS_CONFIG_ENV_NAME, pass_cfg_data)
@@ -609,15 +610,15 @@ class TestHeadlessLogin:
         async def get_auth_code_cb(url: URL) -> str:
             assert url.with_query(None) == mock_for_login.make_url("/authorize")
 
-            assert dict(url.query) == dict(
-                response_type="code",
-                code_challenge=mock.ANY,
-                code_challenge_method="S256",
-                client_id="banana",
-                redirect_uri=str(mock_for_login.make_url("/oauth/show-code")),
-                scope="offline_access",
-                audience="https://test.api.dev.apolo.us",
-            )
+            assert dict(url.query) == {
+                "response_type": "code",
+                "code_challenge": mock.ANY,
+                "code_challenge_method": "S256",
+                "client_id": "banana",
+                "redirect_uri": str(mock_for_login.make_url("/oauth/show-code")),
+                "scope": "offline_access",
+                "audience": "https://test.api.dev.apolo.us",
+            }
             return "test_code"
 
         await Factory().login_headless(

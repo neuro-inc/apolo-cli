@@ -1,7 +1,8 @@
 import logging
+from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, AsyncIterator, Mapping, Optional, Tuple
+from typing import Any
 
 from dateutil.parser import isoparse
 
@@ -17,13 +18,13 @@ logger = logging.getLogger(__package__)
 @dataclass(frozen=True)
 class ServiceAccount:
     id: str
-    name: Optional[str]
+    name: str | None
     owner: str
     default_cluster: str
     role: str
     created_at: datetime
     default_project: str
-    default_org: Optional[str] = None
+    default_org: str | None = None
 
 
 @rewrite_module
@@ -55,11 +56,11 @@ class ServiceAccounts(metaclass=NoPublicConstructor):
 
     async def create(
         self,
-        name: Optional[str] = None,
-        default_cluster: Optional[str] = None,
-        default_org: Optional[str] = None,
-        default_project: Optional[str] = None,
-    ) -> Tuple[ServiceAccount, str]:
+        name: str | None = None,
+        default_cluster: str | None = None,
+        default_org: str | None = None,
+        default_project: str | None = None,
+    ) -> tuple[ServiceAccount, str]:
         url = self._config.service_accounts_url
         auth = await self._config._api_auth()
         data = {

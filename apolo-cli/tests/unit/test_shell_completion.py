@@ -1,20 +1,15 @@
+import builtins
 import logging
 import os
 import shlex
 import sys
+from collections.abc import AsyncIterator, Callable, Iterable, Sequence
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import (
     Any,
-    AsyncIterator,
-    Callable,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
 )
 from unittest import mock
 
@@ -57,7 +52,7 @@ _RunCli = Callable[[Sequence[str]], SysCapWithCode]
 log = logging.getLogger(__name__)
 
 
-def _default_args(verbosity: int, network_timeout: float, nmrc_path: Path) -> List[str]:
+def _default_args(verbosity: int, network_timeout: float, nmrc_path: Path) -> list[str]:
     args = [
         "--show-traceback",
         "--disable-pypi-version-check",
@@ -105,12 +100,12 @@ def autocomplete(
     return proc.out
 
 
-_RunAC = Callable[[List[str]], Tuple[str, str]]
+_RunAC = Callable[[list[str]], tuple[str, str]]
 
 
 @pytest.fixture()
 def run_autocomplete(run_cli: _RunCli, nmrc_path: Path, monkeypatch: Any) -> _RunAC:
-    def autocompleter(args: Sequence[str]) -> Tuple[str, str]:
+    def autocompleter(args: Sequence[str]) -> tuple[str, str]:
         zsh_out = autocomplete(run_cli, nmrc_path, monkeypatch, args, shell="zsh")
         bash_out = autocomplete(run_cli, nmrc_path, monkeypatch, args, shell="bash")
         return zsh_out, bash_out
@@ -609,8 +604,8 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
 
 def make_job(
     job_id: str,
-    name: Optional[str] = None,
-    org_name: Optional[str] = None,
+    name: str | None = None,
+    org_name: str | None = None,
     owner: str = "test-user",
     cluster_name: str = "default",
     project_name: str = "test-project",
@@ -674,10 +669,10 @@ def test_job_autocomplete(run_autocomplete: _RunAC) -> None:
         @asyncgeneratorcontextmanager
         async def list(
             *,
-            since: Optional[datetime] = None,
+            since: datetime | None = None,
             reverse: bool = False,
-            limit: Optional[int] = None,
-            cluster_name: Optional[str] = None,
+            limit: int | None = None,
+            cluster_name: str | None = None,
             owners: Iterable[str] = (),
             project_names: Iterable[str] = (),
         ) -> AsyncIterator[JobDescription]:
@@ -881,7 +876,7 @@ def test_image_autocomplete(run_autocomplete: _RunAC) -> None:
             ],
         }
 
-        async def list(cluster_name: str) -> List[RemoteImage]:
+        async def list(cluster_name: str) -> list[RemoteImage]:
             return images[cluster_name]
 
         mocked_list.side_effect = list
@@ -1042,7 +1037,7 @@ def test_nonascii_image_autocomplete(run_autocomplete: _RunAC) -> None:
             ),
         ]
 
-        async def list(cluster_name: str) -> List[RemoteImage]:
+        async def list(cluster_name: str) -> list[RemoteImage]:
             if cluster_name == "default":
                 return images
             return []
@@ -1142,10 +1137,10 @@ def test_image_tag_autocomplete(run_autocomplete: _RunAC) -> None:
             project_name="other-project",
         )
 
-        async def list(cluster_name: str) -> List[RemoteImage]:
+        async def list(cluster_name: str) -> list[RemoteImage]:
             return [image]
 
-        async def tags(image: RemoteImage) -> List[RemoteImage]:
+        async def tags(image: RemoteImage) -> builtins.list[RemoteImage]:
             return [
                 replace(image, tag="alpha"),
                 replace(image, tag="beta"),
@@ -1255,7 +1250,7 @@ def test_disk_autocomplete(run_autocomplete: _RunAC) -> None:
         }
 
         @asyncgeneratorcontextmanager
-        async def list(cluster_name: Optional[str] = None) -> AsyncIterator[Disk]:
+        async def list(cluster_name: str | None = None) -> AsyncIterator[Disk]:
             for disk in disks[cluster_name or "default"]:
                 yield disk
 
@@ -1357,7 +1352,7 @@ def test_bucket_autocomplete(run_autocomplete: _RunAC) -> None:
         }
 
         @asyncgeneratorcontextmanager
-        async def list(cluster_name: Optional[str] = None) -> AsyncIterator[Bucket]:
+        async def list(cluster_name: str | None = None) -> AsyncIterator[Bucket]:
             for bucket in buckets[cluster_name or "default"]:
                 yield bucket
 
@@ -1531,7 +1526,7 @@ def test_bucket_credential_autocomplete(run_autocomplete: _RunAC) -> None:
 
         @asyncgeneratorcontextmanager
         async def persistent_credentials_list(
-            cluster_name: Optional[str] = None,
+            cluster_name: str | None = None,
         ) -> AsyncIterator[PersistentBucketCredentials]:
             for credential in credentials[cluster_name or "default"]:
                 yield credential

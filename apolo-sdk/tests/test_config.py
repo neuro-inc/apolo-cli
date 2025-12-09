@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any
 from unittest import mock
 from urllib.parse import parse_qsl
 
@@ -169,7 +170,7 @@ async def test_get_user_config_from_local(
 
 
 @pytest.fixture
-def multiple_clusters_config() -> Dict[str, Cluster]:
+def multiple_clusters_config() -> dict[str, Cluster]:
     return {
         "default": Cluster(
             name="default",
@@ -262,7 +263,7 @@ async def test_get_cluster_name_from_local(
     monkeypatch: Any,
     tmp_path: Path,
     make_client: _MakeClient,
-    multiple_clusters_config: Dict[str, Cluster],
+    multiple_clusters_config: dict[str, Cluster],
 ) -> None:
     plugin_manager = PluginManager()
     plugin_manager.config.define_str("job", "cluster-name", scope=ConfigScope.LOCAL)
@@ -314,7 +315,7 @@ async def test_get_cluster_name_from_local_invalid_cluster(
     monkeypatch: Any,
     tmp_path: Path,
     make_client: _MakeClient,
-    multiple_clusters_config: Dict[str, Cluster],
+    multiple_clusters_config: dict[str, Cluster],
 ) -> None:
     plugin_manager = PluginManager()
     plugin_manager.config.define_str("job", "cluster-name", scope=ConfigScope.LOCAL)
@@ -808,7 +809,7 @@ async def test_fetch_dropped_selected_cluster(
 
 
 async def test_switch_clusters(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -819,7 +820,7 @@ async def test_switch_clusters(
 
 
 async def test_switch_cluster_keep_org(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -834,7 +835,7 @@ async def test_switch_cluster_keep_org(
 
 
 async def test_switch_cluster_cant_keep_org_use_none(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -849,7 +850,7 @@ async def test_switch_cluster_cant_keep_org_use_none(
 
 
 async def test_switch_cluster_cant_keep_org_use_alphabetical(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -873,7 +874,7 @@ async def test_switch_cluster_keep_project(make_client: _MakeClient) -> None:
 
 
 async def test_switch_cluster_cant_keep_project_use_none(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -901,7 +902,7 @@ async def test_switch_cluster_cant_keep_project_use_alphabetical(
 
 
 async def test_switch_org(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -912,7 +913,7 @@ async def test_switch_org(
 
 
 async def test_switch_org_select_first_available_cluster(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -955,7 +956,7 @@ async def test_switch_clusters_unknown(make_client: _MakeClient) -> None:
 
 
 async def test_switch_org_unknown(
-    make_client: _MakeClient, multiple_clusters_config: Dict[str, Cluster]
+    make_client: _MakeClient, multiple_clusters_config: dict[str, Cluster]
 ) -> None:
     async with make_client(
         "https://example.org", clusters=multiple_clusters_config
@@ -972,7 +973,7 @@ async def test_switch_clusters_local(
     monkeypatch: Any,
     tmp_path: Path,
     make_client: _MakeClient,
-    multiple_clusters_config: Dict[str, Cluster],
+    multiple_clusters_config: dict[str, Cluster],
 ) -> None:
     plugin_manager = PluginManager()
     plugin_manager.config.define_str("job", "cluster-name", scope=ConfigScope.LOCAL)
@@ -997,7 +998,7 @@ async def test_switch_org_local(
     monkeypatch: Any,
     tmp_path: Path,
     make_client: _MakeClient,
-    multiple_clusters_config: Dict[str, Cluster],
+    multiple_clusters_config: dict[str, Cluster],
 ) -> None:
     plugin_manager = PluginManager()
     plugin_manager.config.define_str("job", "org-name", scope=ConfigScope.LOCAL)
@@ -1022,7 +1023,7 @@ async def test_no_org_local(
     monkeypatch: Any,
     tmp_path: Path,
     make_client: _MakeClient,
-    multiple_clusters_config: Dict[str, Cluster],
+    multiple_clusters_config: dict[str, Cluster],
 ) -> None:
     plugin_manager = PluginManager()
     plugin_manager.config.define_str("job", "org-name", scope=ConfigScope.LOCAL)

@@ -3,7 +3,6 @@ import abc
 import dataclasses
 import pathlib
 import re
-from typing import Dict
 
 import click
 from configupdater import ConfigUpdater
@@ -82,7 +81,7 @@ FILES = {
 class Config:
     root: pathlib.Path
     version: str
-    files: Dict[str, VersionProcessor]
+    files: dict[str, VersionProcessor]
 
 
 def find_root() -> pathlib.Path:

@@ -5,11 +5,12 @@ import operator
 import os
 import sys
 import time
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from time import monotonic
 from types import TracebackType
-from typing import Any, Dict, Iterator, List, Sequence, Type
+from typing import Any
 
 from rich.ansi import AnsiDecoder
 from rich.columns import Columns
@@ -61,7 +62,7 @@ def chunks(list: Sequence[Any], size: int) -> Sequence[Any]:
 def transpose(columns: Sequence[Sequence[Any]]) -> Sequence[Sequence[Any]]:
     height = len(columns)
     width = len(columns[0])
-    result: Sequence[List[Any]] = [[] for _ in range(width)]
+    result: Sequence[list[Any]] = [[] for _ in range(width)]
     for i in range(width):
         for j in range(height):
             if i < len(columns[j]):
@@ -124,7 +125,7 @@ class GnuPainter(BasePainter):
         self._parse_ls_colors(ls_colors)
 
     def _defaults(self) -> None:
-        self.color_indicator: Dict[GnuIndicators, str] = {
+        self.color_indicator: dict[GnuIndicators, str] = {
             GnuIndicators.LEFT: "\033[",
             GnuIndicators.RIGHT: "m",
             GnuIndicators.END: "",
@@ -150,7 +151,7 @@ class GnuPainter(BasePainter):
             GnuIndicators.MULTI_HARD_LINK: "",
             GnuIndicators.CLR_TO_EOL: "\033[K",
         }
-        self.color_ext_type: Dict[str, str] = {}
+        self.color_ext_type: dict[str, str] = {}
 
     def _parse_ls_colors(self, ls_colors: str) -> None:
         def process(left: str, right: str) -> None:
@@ -163,7 +164,7 @@ class GnuPainter(BasePainter):
         left = right = escaped = ""
         num = 0
         state = ParseState.PS_START
-        stack: List[ParseState] = []
+        stack: list[ParseState] = []
         while pos < len(ls_colors):
             char = ls_colors[pos]
             if state == ParseState.PS_START:
@@ -337,7 +338,7 @@ class GnuPainter(BasePainter):
             state = stack.pop()
             if state == ParseState.PS_RIGHT:  # pragma no branch
                 right += escaped
-        if state == ParseState.PS_RIGHT and len(right):
+        if state == ParseState.PS_RIGHT and right:
             process(left, right)
 
     def paint(self, label: str, type: FileStatusType) -> Text:
@@ -393,7 +394,7 @@ class BSDPainter(BasePainter):
 
     def _parse_lscolors(self, lscolors: str) -> None:
         parts = chunks(lscolors, 2)
-        self._colors: Dict[BSDAttributes, str] = {}
+        self._colors: dict[BSDAttributes, str] = {}
         num = 0
         for attr in BSDAttributes:
             self._colors[attr] = parts[num]
@@ -572,7 +573,7 @@ class StorageProgressContextManager:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType,
     ) -> None:
@@ -675,7 +676,7 @@ class TTYProgress(BaseStorageProgress):
     ) -> None:
         self.painter = get_painter(root.color)
         self._root = root
-        self._mapping: Dict[URL, TaskID] = {}
+        self._mapping: dict[URL, TaskID] = {}
         self._progress = Progress(
             TextColumn("[progress.description]{task.fields[filename]}"),
             BarColumn(),
@@ -781,7 +782,7 @@ class TreeFormatter:
     def __init__(
         self, *, color: bool, size: bool, human_readable: bool, sort: str
     ) -> None:
-        self._ident: List[bool] = []
+        self._ident: list[bool] = []
         self._numdirs = 0
         self._numfiles = 0
         self._painter = get_painter(color)

@@ -3,7 +3,6 @@ import abc
 import os
 import sys
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import click
 
@@ -18,7 +17,7 @@ class Error:
 
 
 class CommandChecker(abc.ABC):
-    def __init__(self, errors: List[Error]) -> None:
+    def __init__(self, errors: list[Error]) -> None:
         self._errors = errors
 
     def _add_error(self, message: str) -> None:
@@ -29,7 +28,7 @@ class CommandChecker(abc.ABC):
 
 
 class ShortDocLen(CommandChecker):
-    def __init__(self, len_limit: int, errors: List[Error]):
+    def __init__(self, len_limit: int, errors: list[Error]):
         super().__init__(errors)
         self._len_limit = len_limit
 
@@ -43,9 +42,9 @@ class ShortDocLen(CommandChecker):
 
 
 class UniqueShortDocInGroup(CommandChecker):
-    def __init__(self, errors: List[Error]):
+    def __init__(self, errors: list[Error]):
         super().__init__(errors)
-        self._short_docs_to_command: Dict[(str, str), str] = {}
+        self._short_docs_to_command: dict[(str, str), str] = {}
 
     def __call__(self, command: click.Command, name: str) -> None:
         group_name = name.rsplit(" ", 1)[0]
@@ -61,10 +60,10 @@ class UniqueShortDocInGroup(CommandChecker):
 
 
 def check_commands_tree(
-    parent_ctx: Optional[click.Context],
+    parent_ctx: click.Context | None,
     command: click.Command,
-    stack: List[str],
-    checkers: List[CommandChecker],
+    stack: list[str],
+    checkers: list[CommandChecker],
 ) -> None:
     """
     Walk given command and all subcommands and check predicate
@@ -97,7 +96,7 @@ def main():
         print("Usage cli-command-short-doc-len-check.py")
         exit(os.EX_USAGE)
 
-    errors: List[Error] = []
+    errors: list[Error] = []
 
     check_commands_tree(
         None,

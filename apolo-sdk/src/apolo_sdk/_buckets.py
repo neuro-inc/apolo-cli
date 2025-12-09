@@ -1,20 +1,11 @@
 import json
 import re
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Mapping
 from contextlib import asynccontextmanager
 from pathlib import PurePosixPath
 from typing import (
     AbstractSet,
     Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
-    Union,
 )
 
 from dateutil.parser import isoparse
@@ -122,7 +113,7 @@ class BucketFS(FileSystem[PurePosixPath]):
         path: PurePosixPath,
         body: AsyncIterator[bytes],
         offset: int = 0,
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         assert offset == 0, "Buckets do not support offset write"
         await self._provider.put_blob(self._as_file_key(path), body, progress)
@@ -159,7 +150,7 @@ class BucketFS(FileSystem[PurePosixPath]):
     def to_url(self, path: PurePosixPath) -> URL:
         return self._provider.bucket.uri / self._as_file_key(path)
 
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         return await self._provider.get_time_diff_to_local()
 
     def parent(self, path: PurePosixPath) -> PurePosixPath:
@@ -178,7 +169,7 @@ class Buckets(metaclass=NoPublicConstructor):
         self._core = core
         self._config = config
         self._parser = parser
-        self._providers: Dict[Bucket.Provider, Type[BucketProvider]] = {}
+        self._providers: dict[Bucket.Provider, type[BucketProvider]] = {}
 
     def _parse_bucket_payload(self, payload: Mapping[str, Any]) -> Bucket:
         return Bucket(
@@ -203,16 +194,16 @@ class Buckets(metaclass=NoPublicConstructor):
             credentials=payload["credentials"],
         )
 
-    def _get_buckets_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_buckets_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return self._config.get_cluster(cluster_name).buckets_url / "buckets"
 
     def _get_bucket_url_params(
         self,
-        org_name: Optional[str],
-        project_name: Optional[str],
-    ) -> Dict[str, Any]:
+        org_name: str | None,
+        project_name: str | None,
+    ) -> dict[str, Any]:
         org_name_val = org_name or self._config.org_name
         params = {
             "org_name": org_name_val or "",
@@ -223,9 +214,9 @@ class Buckets(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[Bucket]:
         url = self._get_buckets_url(cluster_name)
         auth = await self._config._api_auth()
@@ -250,10 +241,10 @@ class Buckets(metaclass=NoPublicConstructor):
 
     async def create(
         self,
-        name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        name: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Bucket:
         url = self._get_buckets_url(cluster_name)
         auth = await self._config._api_auth()
@@ -271,10 +262,10 @@ class Buckets(metaclass=NoPublicConstructor):
         provider: Bucket.Provider,
         provider_bucket_name: str,
         credentials: Mapping[str, str],
-        name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        name: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Bucket:
         url = self._get_buckets_url(cluster_name) / "import" / "external"
         auth = await self._config._api_auth()
@@ -293,9 +284,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def get(
         self,
         bucket_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Bucket:
         url = self._get_buckets_url(cluster_name) / bucket_id_or_name
         params = self._get_bucket_url_params(org_name, project_name)
@@ -307,9 +298,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def rm(
         self,
         bucket_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         url = self._get_buckets_url(cluster_name) / bucket_id_or_name
         params = self._get_bucket_url_params(org_name, project_name)
@@ -321,9 +312,9 @@ class Buckets(metaclass=NoPublicConstructor):
         self,
         bucket_id_or_name: str,
         public_access: bool,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Bucket:
         url = self._get_buckets_url(cluster_name) / bucket_id_or_name
         params = self._get_bucket_url_params(org_name, project_name)
@@ -340,9 +331,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def request_tmp_credentials(
         self,
         bucket_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> BucketCredentials:
         url = (
             self._get_buckets_url(cluster_name)
@@ -359,9 +350,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def get_disk_usage(
         self,
         bucket_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[BucketUsage]:
         total_bytes = 0
         obj_count = 0
@@ -399,9 +390,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def _get_provider_by_exact(
         self,
         bucket_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[BucketProvider]:
         bucket = await self.get(
             bucket_id_or_name,
@@ -438,7 +429,7 @@ class Buckets(metaclass=NoPublicConstructor):
 
                 provider_factory = self._providers[bucket.provider] = GCSProvider
             else:
-                assert False, f"Unknown provider {bucket.provider}"
+                raise AssertionError(f"Unknown provider {bucket.provider}")
 
         async with provider_factory.create(bucket, _get_new_credentials) as provider:
             yield provider
@@ -454,9 +445,9 @@ class Buckets(metaclass=NoPublicConstructor):
         self,
         bucket_id_or_name: str,
         key: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> BucketEntry:
         async with self._get_provider_by_exact(
             bucket_id_or_name,
@@ -470,10 +461,10 @@ class Buckets(metaclass=NoPublicConstructor):
         self,
         bucket_id_or_name: str,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        body: AsyncIterator[bytes] | bytes,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         async with self._get_provider_by_exact(
             bucket_id_or_name,
@@ -489,9 +480,9 @@ class Buckets(metaclass=NoPublicConstructor):
         bucket_id_or_name: str,
         key: str,
         offset: int = 0,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[bytes]:
         async with self._get_provider_by_exact(
             bucket_id_or_name,
@@ -507,9 +498,9 @@ class Buckets(metaclass=NoPublicConstructor):
         self,
         bucket_id_or_name: str,
         key: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         async with self._get_provider_by_exact(
             bucket_id_or_name,
@@ -526,7 +517,7 @@ class Buckets(metaclass=NoPublicConstructor):
         self,
         uri: URL,
         recursive: bool = False,
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> AsyncIterator[BucketEntry]:
         uri = self._parser.normalize_uri(uri, allowed_schemes=("blob",))
         async with self._get_provider(uri) as provider:
@@ -606,7 +597,7 @@ class Buckets(metaclass=NoPublicConstructor):
         dst: URL,
         *,
         update: bool = False,
-        progress: Optional[AbstractFileProgress] = None,
+        progress: AbstractFileProgress | None = None,
     ) -> None:
         src = normalize_local_path_uri(src)
         dst = self._parser.normalize_uri(dst, allowed_schemes=("blob",))
@@ -627,7 +618,7 @@ class Buckets(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        progress: Optional[AbstractFileProgress] = None,
+        progress: AbstractFileProgress | None = None,
     ) -> None:
         src = self._parser.normalize_uri(src, allowed_schemes=("blob",))
         dst = normalize_local_path_uri(dst)
@@ -648,9 +639,9 @@ class Buckets(metaclass=NoPublicConstructor):
         dst: URL,
         *,
         update: bool = False,
-        filter: Optional[AsyncFilterFunc] = None,
+        filter: AsyncFilterFunc | None = None,
         ignore_file_names: AbstractSet[str] = frozenset(),
-        progress: Optional[AbstractRecursiveFileProgress] = None,
+        progress: AbstractRecursiveFileProgress | None = None,
     ) -> None:
         src = normalize_local_path_uri(src)
         dst = self._parser.normalize_uri(dst, allowed_schemes=("blob",))
@@ -673,8 +664,8 @@ class Buckets(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        filter: Optional[AsyncFilterFunc] = None,
-        progress: Optional[AbstractRecursiveFileProgress] = None,
+        filter: AsyncFilterFunc | None = None,
+        progress: AbstractRecursiveFileProgress | None = None,
     ) -> None:
         src = self._parser.normalize_uri(src, allowed_schemes=("blob",))
         dst = normalize_local_path_uri(dst)
@@ -703,7 +694,7 @@ class Buckets(metaclass=NoPublicConstructor):
         uri: URL,
         *,
         recursive: bool = False,
-        progress: Optional[AbstractDeleteProgress] = None,
+        progress: AbstractDeleteProgress | None = None,
     ) -> None:
         uri = self._parser.normalize_uri(uri, allowed_schemes=("blob",))
         async with self._get_bucket_fs(uri) as bucket_fs:
@@ -746,7 +737,7 @@ class Buckets(metaclass=NoPublicConstructor):
             read_only=payload.get("read_only", False),
         )
 
-    def _get_persistent_credentials_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_persistent_credentials_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return (
@@ -756,7 +747,7 @@ class Buckets(metaclass=NoPublicConstructor):
 
     @asyncgeneratorcontextmanager
     async def persistent_credentials_list(
-        self, cluster_name: Optional[str] = None
+        self, cluster_name: str | None = None
     ) -> AsyncIterator[PersistentBucketCredentials]:
         url = self._get_persistent_credentials_url(cluster_name)
         auth = await self._config._api_auth()
@@ -776,9 +767,9 @@ class Buckets(metaclass=NoPublicConstructor):
     async def persistent_credentials_create(
         self,
         bucket_ids: Iterable[str],
-        name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        read_only: Optional[bool] = False,
+        name: str | None = None,
+        cluster_name: str | None = None,
+        read_only: bool | None = False,
     ) -> PersistentBucketCredentials:
         url = self._get_persistent_credentials_url(cluster_name)
         auth = await self._config._api_auth()
@@ -792,7 +783,7 @@ class Buckets(metaclass=NoPublicConstructor):
             return self._parse_persistent_credentials_payload(payload)
 
     async def persistent_credentials_get(
-        self, credential_id_or_name: str, cluster_name: Optional[str] = None
+        self, credential_id_or_name: str, cluster_name: str | None = None
     ) -> PersistentBucketCredentials:
         url = self._get_persistent_credentials_url(cluster_name) / credential_id_or_name
         auth = await self._config._api_auth()
@@ -801,7 +792,7 @@ class Buckets(metaclass=NoPublicConstructor):
             return self._parse_persistent_credentials_payload(payload)
 
     async def persistent_credentials_rm(
-        self, credential_id_or_name: str, cluster_name: Optional[str] = None
+        self, credential_id_or_name: str, cluster_name: str | None = None
     ) -> None:
         url = self._get_persistent_credentials_url(cluster_name) / credential_id_or_name
         auth = await self._config._api_auth()

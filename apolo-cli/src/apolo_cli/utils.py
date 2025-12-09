@@ -10,21 +10,11 @@ import shlex
 import shutil
 import sys
 import textwrap
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from datetime import datetime, timedelta
 from typing import (
     Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -64,13 +54,13 @@ async def _run_async_function(
             for msg in msgs.values():
                 root.err_console.print(msg, style="yellow")
 
-            pypi_task: "asyncio.Task[None]" = loop.create_task(
+            pypi_task: asyncio.Task[None] = loop.create_task(
                 root.client.version_checker.update()
             )
         else:
             pypi_task = loop.create_task(asyncio.sleep(0))  # do nothing
 
-        stats_task: "asyncio.Task[None]" = loop.create_task(
+        stats_task: asyncio.Task[None] = loop.create_task(
             upload_gmp_stats(
                 root.client, root.command_path, root.command_params, root.skip_gmp_stats
             )
@@ -117,7 +107,7 @@ def _wrap_async_callback(
 
 class HelpFormatter(click.HelpFormatter):
     def write_usage(
-        self, prog: str, args: str = "", prefix: Optional[str] = "Usage:"
+        self, prog: str, args: str = "", prefix: str | None = "Usage:"
     ) -> None:
         super().write_usage(
             prog, args, prefix=click.style(prefix or "", bold=True) + " "
@@ -140,7 +130,7 @@ class Context(click.Context):
         )
 
 
-def split_examples(help: str) -> List[str]:
+def split_examples(help: str) -> list[str]:
     return re.split("Example[s]:\n", help, flags=re.IGNORECASE)
 
 
@@ -155,7 +145,7 @@ def format_example(example: str, formatter: click.HelpFormatter) -> None:
 
 
 class NeuroClickMixin:
-    def get_params(self, ctx: click.Context) -> List[click.Parameter]:
+    def get_params(self, ctx: click.Context) -> list[click.Parameter]:
         # super() is available after using as a mixin
         ret = super().get_params(ctx)  # type: ignore
         args = [i for i in ret if not isinstance(i, click.Option)]
@@ -163,13 +153,13 @@ class NeuroClickMixin:
 
         help_names = set(self.get_help_option_names(ctx))  # type: ignore
 
-        def sort_key(opt: click.Option) -> Tuple[bool, Optional[str]]:
+        def sort_key(opt: click.Option) -> tuple[bool, str | None]:
             flag = set(opt.opts) & help_names or set(opt.secondary_opts) & help_names
             return (not flag, opt.name)
 
         return args + sorted(opts, key=sort_key)
 
-    def get_help_option(self, ctx: click.Context) -> Optional[click.Option]:
+    def get_help_option(self, ctx: click.Context) -> click.Option | None:
         help_options = self.get_help_option_names(ctx)  # type: ignore
         if not help_options or not self.add_help_option:  # type: ignore
             return None
@@ -220,9 +210,9 @@ class NeuroClickMixin:
 
     def make_context(
         self,
-        info_name: Optional[str],
-        args: List[str],
-        parent: Optional[click.Context] = None,
+        info_name: str | None,
+        args: list[str],
+        parent: click.Context | None = None,
         **extra: Any,
     ) -> Context:
         for key, value in self.context_settings.items():  # type: ignore
@@ -241,7 +231,7 @@ class NeuroGroupMixin(NeuroClickMixin):
         self.format_commands(ctx, formatter)  # type: ignore
 
 
-def _collect_params(cmd: click.Command, ctx: click.Context) -> Dict[str, Optional[str]]:
+def _collect_params(cmd: click.Command, ctx: click.Context) -> dict[str, str | None]:
     params = ctx.params.copy()
     for param in cmd.get_params(ctx):
         if param.name not in params:
@@ -300,7 +290,7 @@ class Command(NeuroClickMixin, click.Command):
 
 
 def command(
-    name: Optional[str] = None, cls: Type[Command] = Command, **kwargs: Any
+    name: str | None = None, cls: type[Command] = Command, **kwargs: Any
 ) -> Command:
     return click.command(name=name, cls=cls, **kwargs)  # type: ignore
 
@@ -333,7 +323,7 @@ class Group(NeuroGroupMixin, click.Group):
             super().invoke(ctx)
 
 
-def group(name: Optional[str] = None, **kwargs: Any) -> Group:
+def group(name: str | None = None, **kwargs: Any) -> Group:
     kwargs.setdefault("cls", Group)
     kwargs.setdefault("invoke_without_command", True)
     return click.group(name=name, **kwargs)  # type: ignore
@@ -354,17 +344,17 @@ def print_help(ctx: click.Context) -> None:
 
 class DeprecatedGroup(NeuroGroupMixin, click.MultiCommand):
     def __init__(
-        self, origin: click.MultiCommand, name: Optional[str] = None, **attrs: Any
+        self, origin: click.MultiCommand, name: str | None = None, **attrs: Any
     ) -> None:
         attrs.setdefault("help", f"Alias for {origin.name}")
         attrs.setdefault("deprecated", True)
         super().__init__(name, **attrs)
         self.origin = origin
 
-    def get_command(self, ctx: click.Context, cmd_name: str) -> Optional[click.Command]:
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
         return self.origin.get_command(ctx, cmd_name)
 
-    def list_commands(self, ctx: click.Context) -> List[str]:
+    def list_commands(self, ctx: click.Context) -> list[str]:
         return self.origin.list_commands(ctx)
 
 
@@ -373,8 +363,8 @@ def alias(
     name: str,
     *,
     deprecated: bool = True,
-    hidden: Optional[bool] = None,
-    help: Optional[str] = None,
+    hidden: bool | None = None,
+    help: str | None = None,
 ) -> click.Command:
     if help is None:
         help = f"Alias for {origin.name}."
@@ -424,15 +414,15 @@ JOB_ID_PATTERN = r"job-[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{
 
 
 async def resolve_job(
-    id_or_name_or_uri: str, *, client: Client, status: Set[JobStatus]
+    id_or_name_or_uri: str, *, client: Client, status: set[JobStatus]
 ) -> str:
     id, _ = await resolve_job_ex(id_or_name_or_uri, client=client, status=status)
     return id
 
 
 async def resolve_job_ex(
-    id_or_name_or_uri: str, *, client: Client, status: Set[JobStatus]
-) -> Tuple[str, str]:
+    id_or_name_or_uri: str, *, client: Client, status: set[JobStatus]
+) -> tuple[str, str]:
     default_cluster = client.cluster_name
     default_org = client.config.org_name
     default_project = client.config.project_name_or_raise
@@ -444,7 +434,7 @@ async def resolve_job_ex(
         assert uri.host
         cluster_name = uri.host
         project, _, id_or_name = uri.path.lstrip("/").rpartition("/")
-        project_names: Dict[str, Optional[str]] = {}
+        project_names: dict[str, str | None] = {}
         if "/" not in project:
             project_names[project] = default_org
         elif default_org and project.startswith(default_org + "/"):
@@ -500,12 +490,12 @@ DISK_ID_PATTERN = r"disk-[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z
 
 
 async def resolve_disk(
-    id_or_name_or_uri: Union[str, URL],
+    id_or_name_or_uri: str | URL,
     *,
     client: Client,
-    cluster_name: Optional[str] = None,
-    org_name: Optional[str] = None,
-    project_name: Optional[str] = None,
+    cluster_name: str | None = None,
+    org_name: str | None = None,
+    project_name: str | None = None,
 ) -> str:
     if isinstance(id_or_name_or_uri, URL):
         id_or_name = id_or_name_or_uri.parts[-1]
@@ -557,9 +547,9 @@ async def resolve_bucket(
     id_or_name: str,
     *,
     client: Client,
-    cluster_name: Optional[str] = None,
-    org_name: Optional[str] = None,
-    project_name: Optional[str] = None,
+    cluster_name: str | None = None,
+    org_name: str | None = None,
+    project_name: str | None = None,
 ) -> str:
     # Temporary fast path.
     if re.fullmatch(BUCKET_ID_PATTERN, id_or_name):
@@ -580,7 +570,7 @@ BUCKET_CREDENTIAL_ID_PATTERN = (
 
 
 async def resolve_bucket_credential(
-    id_or_name: str, *, client: Client, cluster_name: Optional[str] = None
+    id_or_name: str, *, client: Client, cluster_name: str | None = None
 ) -> str:
     # Temporary fast path.
     if re.fullmatch(BUCKET_CREDENTIAL_ID_PATTERN, id_or_name):
@@ -636,14 +626,14 @@ def parse_permission_action(action: str) -> Action:
         )
 
 
-def format_size(value: Optional[float]) -> str:
+def format_size(value: float | None) -> str:
     if value is None:
         return ""
     return humanize.naturalsize(value)
 
 
 def pager_maybe(
-    lines: Iterable[str], tty: bool, terminal_size: Tuple[int, int]
+    lines: Iterable[str], tty: bool, terminal_size: tuple[int, int]
 ) -> None:
     if not tty:
         for line in lines:
@@ -667,7 +657,7 @@ def pager_maybe(
 
 
 async def _calc_timedelta_key(
-    client: Client, value: Optional[str], default: str, config_section: str, key: str
+    client: Client, value: str | None, default: str, config_section: str, key: str
 ) -> float:
     async def _calc_default_life_span(client: Client) -> timedelta:
         config = await client.config.get_user_config()
@@ -688,8 +678,8 @@ async def _calc_timedelta_key(
 
 
 async def calc_life_span(
-    client: Client, value: Optional[str], default: str, config_section: str
-) -> Optional[float]:
+    client: Client, value: str | None, default: str, config_section: str
+) -> float | None:
     seconds = await _calc_timedelta_key(
         client, value, default, config_section, "life-span"
     )
@@ -706,8 +696,8 @@ async def calc_life_span(
 
 
 async def calc_timeout_unused(
-    client: Client, value: Optional[str], default: str, config_section: str
-) -> Optional[float]:
+    client: Client, value: str | None, default: str, config_section: str
+) -> float | None:
     return await _calc_timedelta_key(
         client, value, default, config_section, "timeout-unused"
     )

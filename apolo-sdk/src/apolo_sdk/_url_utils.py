@@ -1,8 +1,8 @@
 import os
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
 from urllib.parse import quote_from_bytes
 
 from yarl import URL
@@ -14,7 +14,7 @@ def uri_from_cli(
     path_or_uri: str,
     project_name: str,
     cluster_name: str,
-    org_name: Optional[str],
+    org_name: str | None,
     *,
     allowed_schemes: Iterable[str] = ("file", "storage"),
 ) -> URL:
@@ -76,7 +76,7 @@ def _check_scheme(scheme: str, allowed: Iterable[str]) -> None:
 
 
 def normalize_storage_path_uri(
-    uri: URL, project_name: str, cluster_name: str, org_name: Optional[str]
+    uri: URL, project_name: str, cluster_name: str, org_name: str | None
 ) -> URL:
     """Normalize storage url."""
     if uri.scheme != "storage":
@@ -87,7 +87,7 @@ def normalize_storage_path_uri(
 
 
 def normalize_secret_uri(
-    uri: URL, project_name: str, cluster_name: str, org_name: Optional[str]
+    uri: URL, project_name: str, cluster_name: str, org_name: str | None
 ) -> URL:
     """Normalize secret url."""
     if uri.scheme != "secret":
@@ -98,7 +98,7 @@ def normalize_secret_uri(
 
 
 def normalize_disk_uri(
-    uri: URL, project_name: str, cluster_name: str, org_name: Optional[str]
+    uri: URL, project_name: str, cluster_name: str, org_name: str | None
 ) -> URL:
     """Normalize disk url."""
     if uri.scheme != "disk":
@@ -109,7 +109,7 @@ def normalize_disk_uri(
 
 
 def _normalize_uri(
-    uri: URL, project_name: str, cluster_name: str, org_name: Optional[str]
+    uri: URL, project_name: str, cluster_name: str, org_name: str | None
 ) -> URL:
     """Normalize all other project-bound URI's like jobs, storage, images, etc."""
     _check_uri(uri)

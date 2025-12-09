@@ -1,8 +1,9 @@
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any
 
 import pytest
 import toml
@@ -47,7 +48,7 @@ _MakeClient = Callable[..., Client]
 
 
 @pytest.mark.parametrize("statuses", [("all",), ("all", "failed", "succeeded")])
-def test_calc_statuses__contains_all(statuses: Tuple[str]) -> None:
+def test_calc_statuses__contains_all(statuses: tuple[str]) -> None:
     with pytest.raises(
         ValueError,
         match="'all' is not a valid JobStatus",

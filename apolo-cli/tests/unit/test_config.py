@@ -1,7 +1,7 @@
 import sys
+from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable
 from unittest import mock
 
 import pytest

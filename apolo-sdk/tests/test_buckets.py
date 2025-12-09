@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Callable
 
 from aiohttp import web
 

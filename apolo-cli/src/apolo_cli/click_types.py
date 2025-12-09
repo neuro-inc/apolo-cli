@@ -1,22 +1,15 @@
 import abc
 import os
 import re
+from collections.abc import AsyncIterator, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterator,
     Generic,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
     Protocol,
-    Tuple,
     TypeVar,
-    Union,
     cast,
 )
 from urllib.parse import quote, unquote
@@ -74,7 +67,7 @@ _T = TypeVar("_T")
 
 class AsyncType(click.ParamType, Generic[_T], abc.ABC):
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> _T:
         assert ctx is not None
         root = cast(Root, ctx.obj)
@@ -85,21 +78,21 @@ class AsyncType(click.ParamType, Generic[_T], abc.ABC):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> _T:
         pass
 
     def shell_complete(
         self, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         root = cast(Root, ctx.obj)
         return root.run(self.async_shell_complete(root, ctx, param, incomplete))
 
     @abc.abstractmethod
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         pass
 
 
@@ -107,7 +100,7 @@ class LocalImageType(click.ParamType):
     name = "local_image"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> LocalImage:
         assert ctx is not None
         root = cast(Root, ctx.obj)
@@ -119,7 +112,7 @@ def _complete_clusters(
     client: Client,
     prefix: str,
     incomplete: str,
-) -> List[CompletionItem]:
+) -> list[CompletionItem]:
     return [
         CompletionItem(f"{name}/", type="uri", prefix=prefix)
         for name in client.config.clusters
@@ -137,8 +130,8 @@ class RemoteImageType(AsyncType[RemoteImage]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> RemoteImage:
         client = await root.init_client()
         cluster_name = client.cluster_name
@@ -155,7 +148,7 @@ class RemoteImageType(AsyncType[RemoteImage]):
         path_prefix: str,
         cluster_name: str,
         incomplete: str,
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         if cluster_name not in client.config.clusters:
             return []
         names = []
@@ -173,7 +166,7 @@ class RemoteImageType(AsyncType[RemoteImage]):
         client: Client,
         image_str: str,
         incomplete: str,
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         image = client.parse.remote_image(image_str, tag_option=TagOption.DENY)
         result = []
         for image_tag in await client.images.tags(image):
@@ -186,7 +179,7 @@ class RemoteImageType(AsyncType[RemoteImage]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         if "image".startswith(incomplete):
             return [CompletionItem("image:", type="uri", prefix="")]
 
@@ -236,8 +229,8 @@ class LocalRemotePortParamType(click.ParamType):
     name = "local-remote-port-pair"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
-    ) -> Tuple[int, int]:
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
+    ) -> tuple[int, int]:
         try:
             local_str, remote_str = value.split(":")
             local, remote = int(local_str), int(remote_str)
@@ -255,7 +248,7 @@ class MemoryType(click.ParamType):
     name = "memory_amount"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> int:
         if isinstance(value, int):
             return int(value)
@@ -269,7 +262,7 @@ class JobNameType(click.ParamType):
     name = "job_name"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> str:
         if (
             len(value) < JOB_NAME_MIN_LENGTH
@@ -295,7 +288,7 @@ class DiskNameType(click.ParamType):
     name = "disk_name"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> str:
         if (
             len(value) < DISK_NAME_MIN_LENGTH
@@ -321,7 +314,7 @@ class BucketNameType(click.ParamType):
     name = "bucket_name"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> str:
         if (
             len(value) < BUCKET_NAME_MIN_LENGTH
@@ -349,9 +342,9 @@ class JobColumnsType(click.ParamType):
 
     def convert(
         self,
-        value: Union[str, JobTableFormat],
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        value: str | JobTableFormat,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> JobTableFormat:
         if isinstance(value, list):
             return value
@@ -366,9 +359,9 @@ class TopColumnsType(click.ParamType):
 
     def convert(
         self,
-        value: Union[str, JobTableFormat],
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        value: str | JobTableFormat,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> JobTableFormat:
         if isinstance(value, list):
             return value
@@ -382,7 +375,7 @@ class PresetType(AsyncType[str]):
     name = "preset"
 
     def _get_presets(
-        self, ctx: Optional[click.Context], client: Client
+        self, ctx: click.Context | None, client: Client
     ) -> Mapping[str, Preset]:
         cluster_name = client.cluster_name
         if ctx:
@@ -395,8 +388,8 @@ class PresetType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         client = await root.init_client()
         if value not in self._get_presets(ctx, client):
@@ -419,7 +412,7 @@ class PresetType(AsyncType[str]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         # async context manager is used to prevent a message about
         # unclosed session
         async with await root.init_client() as client:
@@ -440,8 +433,8 @@ class ClusterType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         if self._allow_unknown:
             return value
@@ -457,7 +450,7 @@ class ClusterType(AsyncType[str]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         # async context manager is used to prevent a message about
         # unclosed session
         async with await root.init_client() as client:
@@ -479,8 +472,8 @@ class OrgType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         if self._allow_unknown:
             return value
@@ -497,7 +490,7 @@ class OrgType(AsyncType[str]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         # async context manager is used to prevent a message about
         # unclosed session
         async with await root.init_client() as client:
@@ -523,8 +516,8 @@ class ProjectType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         if self._allow_unknown:
             return value
@@ -545,7 +538,7 @@ class ProjectType(AsyncType[str]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         # async context manager is used to prevent a message about
         # unclosed session
         async with await root.init_client() as client:
@@ -568,8 +561,8 @@ class JobType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         return value
 
@@ -579,7 +572,7 @@ class JobType(AsyncType[str]):
         prefix: str,
         cluster_name: str,
         incomplete: str,
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         if cluster_name not in client.config.clusters:
             return []
         completions = []
@@ -599,9 +592,9 @@ class JobType(AsyncType[str]):
         client: Client,
         prefix: str,
         cluster_name: str,
-        project_name: Optional[str],
+        project_name: str | None,
         incomplete: str,
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         if cluster_name not in client.config.clusters:
             return []
         now = datetime.now()
@@ -628,7 +621,7 @@ class JobType(AsyncType[str]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         if "job".startswith(incomplete):
             return [CompletionItem("job:", type="uri", prefix="")]
 
@@ -683,7 +676,7 @@ JOB = JobType()
 
 
 def _complete_id_name(
-    id: str, name: Optional[str], incomplete: str
+    id: str, name: str | None, incomplete: str
 ) -> Iterator[CompletionItem]:
     if id.startswith(incomplete):
         yield CompletionItem(id, help=name or "")
@@ -698,16 +691,16 @@ class DiskType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         return value
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         async with await root.init_client() as client:
-            ret: List[CompletionItem] = []
+            ret: list[CompletionItem] = []
             async with client.disks.list(cluster_name=ctx.params.get("cluster")) as it:
                 async for disk in it:
                     ret.extend(_complete_id_name(disk.id, disk.name, incomplete))
@@ -724,16 +717,16 @@ class ServiceAccountType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         return value
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         async with await root.init_client() as client:
-            ret: List[CompletionItem] = []
+            ret: list[CompletionItem] = []
             async with client.service_accounts.list() as it:
                 async for account in it:
                     ret.extend(_complete_id_name(account.id, account.name, incomplete))
@@ -770,7 +763,7 @@ class PathURLCompleter(URLCompleter, abc.ABC):
         self._complete_dir = complete_dir
         self._complete_file = complete_file
 
-    def _split_uri(self, uri: URL, incomplete: str) -> Tuple[URL, str]:
+    def _split_uri(self, uri: URL, incomplete: str) -> tuple[URL, str]:
         if incomplete.endswith("/") or incomplete == uri.scheme + ":":
             return uri, ""
         return uri.parent, uri.name
@@ -966,8 +959,8 @@ class PlatformURIType(AsyncType[URL]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> URL:
         await root.init_client()
         return root.client.parse.str_to_uri(
@@ -976,8 +969,8 @@ class PlatformURIType(AsyncType[URL]):
             short=False,
         )
 
-    async def _find_matches(self, incomplete: str, root: Root) -> List[CompletionItem]:
-        ret: List[CompletionItem] = []
+    async def _find_matches(self, incomplete: str, root: Root) -> list[CompletionItem]:
+        ret: list[CompletionItem] = []
         for scheme in self._allowed_schemes:
             scheme += ":"
             if incomplete.startswith(scheme):
@@ -1016,7 +1009,7 @@ class PlatformURIType(AsyncType[URL]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         async with await root.init_client():
             ret = await self._find_matches(incomplete, root)
             return ret
@@ -1117,9 +1110,9 @@ _SOURCE_BASH = """\
 
 
 def _merge_autocompletion_args(
-    args: List[str], incomplete: str
-) -> Tuple[List[str], str]:
-    new_args: List[str] = []
+    args: list[str], incomplete: str
+) -> tuple[list[str], str]:
+    new_args: list[str] = []
     for arg in args:
         if arg == ":":
             if new_args:
@@ -1145,7 +1138,7 @@ def _merge_autocompletion_args(
 class NewBashComplete(BashComplete):
     source_template = _SOURCE_BASH
 
-    def get_completion_args(self) -> Tuple[List[str], str]:
+    def get_completion_args(self) -> tuple[list[str], str]:
         args, incomplete = super().get_completion_args()
         args, incomplete = _merge_autocompletion_args(args, incomplete)
         return args, incomplete
@@ -1163,16 +1156,16 @@ class BucketType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         return value
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         async with await root.init_client() as client:
-            ret: List[CompletionItem] = []
+            ret: list[CompletionItem] = []
             async with client.buckets.list(
                 cluster_name=ctx.params.get("cluster")
             ) as it:
@@ -1192,16 +1185,16 @@ class BucketCredentialType(AsyncType[str]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         return value
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         async with await root.init_client() as client:
-            ret: List[CompletionItem] = []
+            ret: list[CompletionItem] = []
             async with client.buckets.persistent_credentials_list(
                 cluster_name=ctx.params.get("cluster")
             ) as it:
@@ -1225,8 +1218,8 @@ class UnionType(AsyncType[Any]):
         self,
         root: Root,
         value: str,
-        param: Optional[click.Parameter],
-        ctx: Optional[click.Context],
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> Any:
         for inner_type in self._inner_types:
             try:
@@ -1237,7 +1230,7 @@ class UnionType(AsyncType[Any]):
 
     async def async_shell_complete(
         self, root: Root, ctx: click.Context, param: click.Parameter, incomplete: str
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         result = []
         for inner_type in self._inner_types:
             result += await inner_type.async_shell_complete(
@@ -1250,14 +1243,14 @@ class UnionType(AsyncType[Any]):
 class NvidiaMIG:
     profile_name: str
     count: int
-    model: Optional[str] = None
+    model: str | None = None
 
 
 class NvidiaMIGType(click.ParamType):
     name = "nvidia_mig"
 
     def convert(
-        self, value: str, param: Optional[click.Parameter], ctx: Optional[click.Context]
+        self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> NvidiaMIG:
         if not value:
             self.fail("Value cannot be empty", param, ctx)

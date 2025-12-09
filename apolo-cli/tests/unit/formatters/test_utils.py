@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pytest
 from yarl import URL
 
@@ -76,7 +74,7 @@ def test_uri_formatter_with_org(scheme: str) -> None:
 
 
 @pytest.mark.parametrize("org_name", (None, "org"))
-def test_global_uri_formatter(org_name: Optional[str]) -> None:
+def test_global_uri_formatter(org_name: str | None) -> None:
     fmtr = uri_formatter(
         project_name="test-project", cluster_name="cluster", org_name=org_name
     )

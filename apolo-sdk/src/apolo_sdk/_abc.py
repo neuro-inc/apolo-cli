@@ -1,6 +1,5 @@
 import abc
 from dataclasses import dataclass
-from typing import Optional
 
 from yarl import URL
 
@@ -174,8 +173,8 @@ class ImageProgressStep:
     message: str
     layer_id: str
     status: str
-    current: Optional[float]
-    total: Optional[float]
+    current: float | None
+    total: float | None
 
 
 @rewrite_module

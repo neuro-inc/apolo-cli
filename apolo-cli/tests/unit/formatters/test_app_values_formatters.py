@@ -1,5 +1,6 @@
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncIterator, Iterator, List
+from typing import Any
 
 import pytest
 
@@ -10,7 +11,7 @@ from apolo_cli.formatters.app_values import AppValuesFormatter, SimpleAppValuesF
 
 
 @contextmanager
-def mock_apps_get_values(values: List[AppValue]) -> Iterator[None]:
+def mock_apps_get_values(values: list[AppValue]) -> Iterator[None]:
     """Context manager to mock the Apps.get_values method."""
     from unittest import mock
 
@@ -30,7 +31,7 @@ def mock_apps_get_values(values: List[AppValue]) -> Iterator[None]:
 
 class TestAppValuesFormatter:
     @pytest.fixture
-    def app_values(self) -> List[AppValue]:
+    def app_values(self) -> list[AppValue]:
         return [
             AppValue(
                 instance_id="1d9a7843-75f6-4624-973d-6bdd57b1f628",
@@ -53,13 +54,13 @@ class TestAppValuesFormatter:
         ]
 
     def test_app_values_formatter(
-        self, app_values: List[AppValue], rich_cmp: Any
+        self, app_values: list[AppValue], rich_cmp: Any
     ) -> None:
         formatter = AppValuesFormatter()
         rich_cmp(formatter(app_values))
 
     def test_simple_app_values_formatter(
-        self, app_values: List[AppValue], rich_cmp: Any
+        self, app_values: list[AppValue], rich_cmp: Any
     ) -> None:
         formatter = SimpleAppValuesFormatter()
         rich_cmp(formatter(app_values))

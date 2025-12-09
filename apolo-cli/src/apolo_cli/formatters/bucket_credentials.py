@@ -1,6 +1,6 @@
 import abc
 import operator
-from typing import Awaitable, Callable, List, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 
 import yaml
 from rich import box
@@ -80,7 +80,7 @@ class BucketCredentialFormatter:
 
         table.add_row("Read-only:", str(credential.read_only))
 
-        credential_texts: List[Text] = []
+        credential_texts: list[Text] = []
 
         for bucket_credential in credential.credentials:
             bucket = await self._get_bucket(bucket_credential.bucket_id)

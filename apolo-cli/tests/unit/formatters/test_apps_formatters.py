@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 import pytest
 
@@ -17,7 +17,7 @@ from ..factories import _app_factory
 
 class TestAppsFormatter:
     @pytest.fixture
-    def apps(self) -> List[App]:
+    def apps(self) -> list[App]:
         return [
             _app_factory(
                 id="704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
@@ -41,11 +41,11 @@ class TestAppsFormatter:
             ),
         ]
 
-    def test_apps_formatter(self, apps: List[App], rich_cmp: Any) -> None:
+    def test_apps_formatter(self, apps: list[App], rich_cmp: Any) -> None:
         formatter = AppsFormatter()
         rich_cmp(formatter(apps))
 
-    def test_simple_apps_formatter(self, apps: List[App], rich_cmp: Any) -> None:
+    def test_simple_apps_formatter(self, apps: list[App], rich_cmp: Any) -> None:
         formatter = SimpleAppsFormatter()
         rich_cmp(formatter(apps))
 
@@ -60,7 +60,7 @@ class TestAppsFormatter:
 
 class TestAppEventsFormatter:
     @pytest.fixture
-    def events(self) -> List[AppEvent]:
+    def events(self) -> list[AppEvent]:
         return [
             AppEvent(
                 created_at=datetime.fromisoformat("2025-11-27T12:23:47.555539"),
@@ -93,12 +93,12 @@ class TestAppEventsFormatter:
             ),
         ]
 
-    def test_app_events_formatter(self, events: List[AppEvent], rich_cmp: Any) -> None:
+    def test_app_events_formatter(self, events: list[AppEvent], rich_cmp: Any) -> None:
         formatter = AppEventsFormatter()
         rich_cmp(formatter(events))
 
     def test_simple_app_events_formatter(
-        self, events: List[AppEvent], rich_cmp: Any
+        self, events: list[AppEvent], rich_cmp: Any
     ) -> None:
         formatter = SimpleAppEventsFormatter()
         rich_cmp(formatter(events))

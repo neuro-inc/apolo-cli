@@ -1,6 +1,7 @@
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
-from typing import Any, AsyncIterator, Iterator, List
+from typing import Any
 from unittest import mock
 
 from apolo_sdk import App, AppEvent, AppEventResource, AppValue
@@ -12,7 +13,7 @@ _RunCli = Any
 
 
 @contextmanager
-def mock_apps_list(apps: List[App]) -> Iterator[None]:
+def mock_apps_list(apps: list[App]) -> Iterator[None]:
     """Context manager to mock the Apps.list method."""
     with mock.patch.object(Apps, "list") as mocked:
 
@@ -178,7 +179,7 @@ def test_app_uninstall_with_force(run_cli: _RunCli) -> None:
 
 
 @contextmanager
-def mock_apps_get_values(values: List[AppValue]) -> Iterator[None]:
+def mock_apps_get_values(values: list[AppValue]) -> Iterator[None]:
     """Context manager to mock the Apps.get_values method."""
     with mock.patch.object(Apps, "get_values") as mocked:
 
@@ -363,7 +364,7 @@ def test_app_logs_with_timestamps(run_cli: _RunCli) -> None:
 
 
 @contextmanager
-def mock_apps_get_events(events: List[AppEvent]) -> Iterator[None]:
+def mock_apps_get_events(events: list[AppEvent]) -> Iterator[None]:
     """Context manager to mock the Apps.get_events method."""
     with mock.patch.object(Apps, "get_events") as mocked:
 

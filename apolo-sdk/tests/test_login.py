@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Optional
+from collections.abc import AsyncIterator
 from unittest import mock
 from urllib.parse import parse_qsl
 
@@ -97,7 +97,7 @@ class TestAuthCodeApp:
         code: AuthCode,
         client: ClientSession,
         url: URL,
-        redirect_url: Optional[URL] = None,
+        redirect_url: URL | None = None,
     ) -> None:
         async with client.get(
             url, params={"code": "testcode"}, allow_redirects=False
@@ -263,27 +263,28 @@ class _TestAuthHandler:
         payload = dict(parse_qsl(await request.text()))
         grant_type = payload["grant_type"]
         if grant_type == "authorization_code":
-            assert payload == dict(
-                grant_type="authorization_code",
-                code_verifier=mock.ANY,
-                code=self._code,
-                client_id=self._client_id,
-                redirect_uri=mock.ANY,
-            )
-            resp_payload = dict(
-                access_token=self._token,
-                expires_in=self._token_expires_in,
-                refresh_token=self._refresh_token,
-            )
+            assert payload == {
+                "grant_type": "authorization_code",
+                "code_verifier": mock.ANY,
+                "code": self._code,
+                "client_id": self._client_id,
+                "redirect_uri": mock.ANY,
+            }
+            resp_payload = {
+                "access_token": self._token,
+                "expires_in": self._token_expires_in,
+                "refresh_token": self._refresh_token,
+            }
         else:
-            assert payload == dict(
-                grant_type="refresh_token",
-                refresh_token=self._refresh_token,
-                client_id=self._client_id,
-            )
-            resp_payload = dict(
-                access_token=self._token_refreshed, expires_in=self._token_expires_in
-            )
+            assert payload == {
+                "grant_type": "refresh_token",
+                "refresh_token": self._refresh_token,
+                "client_id": self._client_id,
+            }
+            resp_payload = {
+                "access_token": self._token_refreshed,
+                "expires_in": self._token_expires_in,
+            }
         return json_response(resp_payload)
 
 
@@ -412,15 +413,15 @@ class TestHeadlessNegotiator:
         async def get_auth_code_cb(url: URL) -> str:
             assert url.with_query(None) == auth_config.auth_url
 
-            assert dict(url.query) == dict(
-                response_type="code",
-                code_challenge=mock.ANY,
-                code_challenge_method="S256",
-                client_id="test_client_id",
-                redirect_uri="https://api.dev.apolo.us/oauth/show-code",
-                scope="offline_access",
-                audience="https://platform.api.dev.apolo.us",
-            )
+            assert dict(url.query) == {
+                "response_type": "code",
+                "code_challenge": mock.ANY,
+                "code_challenge_method": "S256",
+                "client_id": "test_client_id",
+                "redirect_uri": "https://api.dev.apolo.us/oauth/show-code",
+                "scope": "offline_access",
+                "audience": "https://platform.api.dev.apolo.us",
+            }
             return "test_code"
 
         async with aiohttp.ClientSession() as session:

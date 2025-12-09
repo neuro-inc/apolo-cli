@@ -1,7 +1,7 @@
 import glob as globmodule  # avoid conflict with subcommand "glob"
 import logging
 import sys
-from typing import Awaitable, Callable, List, Optional, Sequence, Tuple
+from collections.abc import Awaitable, Callable, Sequence
 
 import click
 from rich.text import Text
@@ -97,10 +97,10 @@ async def lsbucket(
     root: Root,
     full_uri: bool,
     long_format: bool,
-    cluster: Optional[str],
-    org: Optional[str],
+    cluster: str | None,
+    org: str | None,
     all_orgs: bool,
-    project: Optional[str],
+    project: str | None,
     all_projects: bool,
 ) -> None:
     """
@@ -173,10 +173,10 @@ async def lsbucket(
 )
 async def mkbucket(
     root: Root,
-    name: Optional[str] = None,
-    cluster: Optional[str] = None,
-    org: Optional[str] = None,
-    project: Optional[str] = None,
+    name: str | None = None,
+    cluster: str | None = None,
+    org: str | None = None,
+    project: str | None = None,
 ) -> None:
     """
     Create a new bucket.
@@ -302,18 +302,18 @@ async def importbucket(
     root: Root,
     provider: str,
     provider_bucket_name: str,
-    aws_access_key_id: Optional[str] = None,
-    aws_secret_access_key: Optional[str] = None,
+    aws_access_key_id: str | None = None,
+    aws_secret_access_key: str | None = None,
     aws_region_name: str = "us-east-1",
-    aws_endpoint_url: Optional[str] = None,
-    azure_storage_account_url: Optional[str] = None,
-    azure_storage_sas_token: Optional[str] = None,
-    azure_storage_credential: Optional[str] = None,
-    gcp_sa_credential: Optional[str] = None,
-    name: Optional[str] = None,
-    cluster: Optional[str] = None,
-    org: Optional[str] = None,
-    project: Optional[str] = None,
+    aws_endpoint_url: str | None = None,
+    azure_storage_account_url: str | None = None,
+    azure_storage_sas_token: str | None = None,
+    azure_storage_credential: str | None = None,
+    gcp_sa_credential: str | None = None,
+    name: str | None = None,
+    cluster: str | None = None,
+    org: str | None = None,
+    project: str | None = None,
 ) -> None:
     """
     Import an existing bucket.
@@ -393,9 +393,9 @@ async def importbucket(
 @option("--full-uri", is_flag=True, help="Output full bucket URI.")
 async def statbucket(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     bucket: str,
     full_uri: bool,
 ) -> None:
@@ -453,9 +453,9 @@ async def statbucket(
 @argument("bucket", type=BUCKET)
 async def du(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     bucket: str,
 ) -> None:
     """
@@ -519,9 +519,9 @@ async def du(
 @argument("buckets", type=BUCKET, nargs=-1, required=True)
 async def rmbucket(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     force: bool,
     buckets: Sequence[str],
 ) -> None:
@@ -569,9 +569,9 @@ async def rmbucket(
 )
 async def set_bucket_publicity(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     bucket: str,
     public_level: str,
 ) -> None:
@@ -789,14 +789,14 @@ async def glob(root: Root, full_uri: bool, patterns: Sequence[URL]) -> None:
 async def cp(
     root: Root,
     sources: Sequence[URL],
-    destination: Optional[URL],
+    destination: URL | None,
     recursive: bool,
     glob: bool,
-    target_directory: Optional[URL],
+    target_directory: URL | None,
     no_target_directory: bool,
     update: bool,
     continue_: bool,
-    filters: Optional[Tuple[Tuple[bool, str], ...]],
+    filters: tuple[tuple[bool, str], ...] | None,
     exclude_from_files: str,
     progress: bool,
 ) -> None:
@@ -952,7 +952,7 @@ async def _is_dir(root: Root, uri: URL) -> bool:
 
 async def _expand(
     paths: Sequence[URL], root: Root, glob: bool, allow_file: bool = False
-) -> List[URL]:
+) -> list[URL]:
     uris = []
     for path in paths:
         if root.verbosity > 0:
@@ -1008,7 +1008,7 @@ async def rm(
     paths: Sequence[URL],
     recursive: bool,
     glob: bool,
-    progress: Optional[bool],
+    progress: bool | None,
 ) -> None:
     """
     Remove blobs from bucket.
@@ -1068,7 +1068,7 @@ async def sign_url(
 
 
 def make_bucket_getter(
-    client: Client, cluster_name: Optional[str] = None
+    client: Client, cluster_name: str | None = None
 ) -> Callable[[str], Awaitable[Bucket]]:
     async def _get_bucket(id: str) -> Bucket:
         return await client.buckets.get(id, cluster_name=cluster_name)
@@ -1082,7 +1082,7 @@ def make_bucket_getter(
     type=CLUSTER,
     help="Look on a specified cluster (the current cluster by default).",
 )
-async def lscredentials(root: Root, cluster: Optional[str]) -> None:
+async def lscredentials(root: Root, cluster: str | None) -> None:
     """
     List bucket credentials.
     """
@@ -1136,10 +1136,10 @@ async def lscredentials(root: Root, cluster: Optional[str]) -> None:
 async def mkcredentials(
     root: Root,
     buckets: Sequence[str],
-    name: Optional[str] = None,
-    cluster: Optional[str] = None,
-    org: Optional[str] = None,
-    project: Optional[str] = None,
+    name: str | None = None,
+    cluster: str | None = None,
+    org: str | None = None,
+    project: str | None = None,
     read_only: bool = False,
 ) -> None:
     """
@@ -1173,7 +1173,7 @@ async def mkcredentials(
 )
 @argument("bucket_credential", type=BUCKET_CREDENTIAL)
 async def statcredentials(
-    root: Root, cluster: Optional[str], bucket_credential: str
+    root: Root, cluster: str | None, bucket_credential: str
 ) -> None:
     """
     Get bucket credential BUCKET_CREDENTIAL.
@@ -1198,7 +1198,7 @@ async def statcredentials(
 )
 @argument("credentials", type=BUCKET_CREDENTIAL, nargs=-1, required=True)
 async def rmcredentials(
-    root: Root, cluster: Optional[str], credentials: Sequence[str]
+    root: Root, cluster: str | None, credentials: Sequence[str]
 ) -> None:
     """
     Remove bucket credential BUCKET_CREDENTIAL.

@@ -1,8 +1,9 @@
+import builtins
 import contextlib
 import logging
 import re
 from dataclasses import replace
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import aiodocker
 import aiohttp
@@ -40,8 +41,8 @@ class Images(metaclass=NoPublicConstructor):
         self._core = core
         self._config = config
         self._parse = parse
-        self._temporary_images: Set[str] = set()
-        self.__docker: Optional[aiodocker.Docker] = None
+        self._temporary_images: set[str] = set()
+        self.__docker: aiodocker.Docker | None = None
 
     def _get_image_url(self, remote: RemoteImage) -> URL:
         cluster_name = remote.cluster_name
@@ -89,9 +90,9 @@ class Images(metaclass=NoPublicConstructor):
     async def push(
         self,
         local: LocalImage,
-        remote: Optional[RemoteImage] = None,
+        remote: RemoteImage | None = None,
         *,
-        progress: Optional[AbstractDockerImageProgress] = None,
+        progress: AbstractDockerImageProgress | None = None,
     ) -> RemoteImage:
         if remote is None:
             remote = self._parse._local_to_remote_image(local)
@@ -166,9 +167,9 @@ class Images(metaclass=NoPublicConstructor):
     async def pull(
         self,
         remote: RemoteImage,
-        local: Optional[LocalImage] = None,
+        local: LocalImage | None = None,
         *,
-        progress: Optional[AbstractDockerImageProgress] = None,
+        progress: AbstractDockerImageProgress | None = None,
     ) -> LocalImage:
         if local is None:
             local = self._parse._remote_to_local_image(remote)
@@ -202,14 +203,14 @@ class Images(metaclass=NoPublicConstructor):
 
         return local
 
-    async def list(self, cluster_name: Optional[str] = None) -> List[RemoteImage]:
+    async def list(self, cluster_name: str | None = None) -> list[RemoteImage]:
         auth = await self._config._registry_auth()
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         prefix = f"image://{cluster_name}/"
         url = self._config.get_cluster(cluster_name).registry_url
         url = url.with_path("/v2/") / "_catalog"
-        result: List[RemoteImage] = []
+        result: list[RemoteImage] = []
         while True:
             url = url.update_query(n=str(REPOS_PER_PAGE))
             async with self._core.request("GET", url, auth=auth) as resp:
@@ -238,11 +239,11 @@ class Images(metaclass=NoPublicConstructor):
         if not image.name:
             raise ValueError(err + "missing image name")
 
-    async def tags(self, image: RemoteImage) -> List[RemoteImage]:
+    async def tags(self, image: RemoteImage) -> builtins.list[RemoteImage]:
         self._validate_image_for_tags(image)
         auth = await self._config._registry_auth()
         url = self._get_image_url(image) / "tags" / "list"
-        result: List[RemoteImage] = []
+        result: list[RemoteImage] = []
         while True:
             url = url.update_query(n=str(TAGS_PER_PAGE))
             async with self._core.request("GET", url, auth=auth) as resp:
@@ -257,8 +258,8 @@ class Images(metaclass=NoPublicConstructor):
 
 
 def _try_parse_image_progress_step(
-    obj: Dict[str, Any], target_image_tag: Optional[str]
-) -> Optional[ImageProgressStep]:
+    obj: dict[str, Any], target_image_tag: str | None
+) -> ImageProgressStep | None:
     _raise_on_error_chunk(obj)
     if "id" in obj and obj["id"] != target_image_tag:
         progress = obj.get("progress")
@@ -279,7 +280,7 @@ def _try_parse_image_progress_step(
     return None
 
 
-def _raise_on_error_chunk(obj: Dict[str, Any]) -> None:
+def _raise_on_error_chunk(obj: dict[str, Any]) -> None:
     if "error" in obj.keys():
         error_details = obj.get("errorDetail", {"message": "Unknown error"})
         raise DockerError(900, error_details)

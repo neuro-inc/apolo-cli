@@ -1,6 +1,6 @@
+from collections.abc import Mapping
 from pathlib import Path
 from types import TracebackType
-from typing import Mapping, Optional, Type
 
 import aiohttp
 
@@ -34,8 +34,8 @@ class Client(metaclass=NoPublicConstructor):
         self,
         session: aiohttp.ClientSession,
         path: Path,
-        trace_id: Optional[str],
-        trace_sampled: Optional[bool],
+        trace_id: str | None,
+        trace_sampled: bool | None,
         plugin_manager: PluginManager,
     ) -> None:
         self._closed = False
@@ -62,7 +62,7 @@ class Client(metaclass=NoPublicConstructor):
         self._service_accounts = ServiceAccounts._create(self._core, self._config)
         self._buckets = Buckets._create(self._core, self._config, self._parser)
         self._apps = Apps._create(self._core, self._config)
-        self._images: Optional[Images] = None
+        self._images: Images | None = None
         self._version_checker: VersionChecker = VersionChecker._create(
             self._core, self._config, plugin_manager
         )
@@ -87,9 +87,9 @@ class Client(metaclass=NoPublicConstructor):
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]] = None,
-        exc_val: Optional[BaseException] = None,
-        exc_tb: Optional[TracebackType] = None,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: TracebackType | None = None,
     ) -> None:
         await self.close()
 

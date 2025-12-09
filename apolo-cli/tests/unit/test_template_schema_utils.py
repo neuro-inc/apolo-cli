@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
@@ -48,12 +48,12 @@ class TestResolveRef:
         }
 
     def test_resolve_ref_invalid_path(self) -> None:
-        schema: Dict[str, Any] = {"definitions": {}}
+        schema: dict[str, Any] = {"definitions": {}}
         result = _resolve_ref(schema, "#/definitions/nonexistent", schema)
         assert result == {}
 
     def test_resolve_ref_external(self) -> None:
-        schema: Dict[str, Any] = {}
+        schema: dict[str, Any] = {}
         result = _resolve_ref(schema, "http://example.com/schema", schema)
         assert result == {}
 
@@ -212,7 +212,7 @@ class TestGenerateExampleValue:
         assert result == {"field1": ""}
 
     def test_allof_empty(self) -> None:
-        prop_schema: Dict[str, Any] = {"allOf": []}
+        prop_schema: dict[str, Any] = {"allOf": []}
         result = _generate_example_value(prop_schema, "test_prop")
         assert result is None
 
@@ -225,7 +225,7 @@ class TestGenerateExampleValue:
         assert result == ""
 
     def test_no_type_no_properties(self) -> None:
-        prop_schema: Dict[str, Any] = {}
+        prop_schema: dict[str, Any] = {}
         result = _generate_example_value(prop_schema, "test_prop")
         assert result == ""
 
@@ -278,7 +278,7 @@ class TestGenerateSampleFromSchema:
         assert result == {"field1": "", "field2": 0}
 
     def test_empty_schema(self) -> None:
-        schema: Dict[str, Any] = {}
+        schema: dict[str, Any] = {}
         result = _generate_sample_from_schema(schema)
         assert result == {}
 
@@ -360,7 +360,7 @@ class TestGenerateYamlFromSchema:
         assert parsed["input"]["servers"] == [{"name": "", "ip": ""}]
 
     def test_empty_schema(self) -> None:
-        schema: Dict[str, Any] = {}
+        schema: dict[str, Any] = {}
         result = _generate_yaml_from_schema(
             schema, "empty-template", "1.0.0", "https://api.test.com"
         )

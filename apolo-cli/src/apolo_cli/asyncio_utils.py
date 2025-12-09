@@ -4,18 +4,13 @@ import gc
 import logging
 import ssl
 import warnings
+from collections.abc import AsyncIterator, Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from types import TracebackType
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Dict,
     Generic,
-    Optional,
-    Type,
     TypeVar,
     final,
 )
@@ -34,7 +29,7 @@ class Runner:
         self._started = False
         self._stopped = False
         self._executor = ThreadPoolExecutor()
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def run(self, main: Awaitable[_T]) -> _T:
         assert self._started
@@ -59,7 +54,7 @@ class Runner:
         return self
 
     def __exit__(
-        self, exc_type: Type[BaseException], exc_val: Exception, exc_tb: TracebackType
+        self, exc_type: type[BaseException], exc_val: Exception, exc_tb: TracebackType
     ) -> None:
         assert self._started, "Loop was not started"
         assert self._loop is not None
@@ -83,7 +78,7 @@ class Runner:
 
 
 def _exception_handler(
-    loop: asyncio.AbstractEventLoop, context: Dict[str, Any]
+    loop: asyncio.AbstractEventLoop, context: dict[str, Any]
 ) -> None:
     if context.get("message") in {
         "SSL error in data received",
@@ -142,9 +137,9 @@ class _AsyncIteratorAndContextManager(
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         # Actually it is an AsyncGenerator.
         await self._gen.aclose()  # type: ignore

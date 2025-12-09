@@ -1,15 +1,9 @@
 import dataclasses
 import re
+from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime, timedelta, timezone
 from typing import (
     Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
     TypeVar,
 )
 
@@ -74,12 +68,12 @@ class JobColumnInfo:
     id: str
     title: str
     justify: JustifyMethod = "default"
-    width: Optional[int] = None
-    min_width: Optional[int] = None
-    max_width: Optional[int] = None
+    width: int | None = None
+    min_width: int | None = None
+    max_width: int | None = None
 
 
-JobTableFormat = List[JobColumnInfo]
+JobTableFormat = list[JobColumnInfo]
 
 
 # Note: please keep the help for format specs in sync with the following data
@@ -147,7 +141,7 @@ COLUMN_RE = re.compile(
 
 
 def _get_column(
-    id: str, columns_map: Dict[str, JobColumnInfo], fmt: str
+    id: str, columns_map: dict[str, JobColumnInfo], fmt: str
 ) -> JobColumnInfo:
     column = columns_map.get(id)
     if column is None:
@@ -168,12 +162,12 @@ def _get_column(
 
 
 def _get(
-    dct: Mapping[str, Optional[str]],
+    dct: Mapping[str, str | None],
     name: str,
     fmt: str,
     converter: Callable[[str], _T],
-    default: Optional[_T],
-) -> Optional[_T]:
+    default: _T | None,
+) -> _T | None:
     val = dct[name]
     if val is None:
         return default
@@ -191,8 +185,8 @@ def _justify(arg: str) -> JustifyMethod:
     return arg  # type: ignore
 
 
-def _max_width(widths: Iterable[Optional[int]], indent: int = 1) -> Optional[int]:
-    max_width: Optional[int] = None
+def _max_width(widths: Iterable[int | None], indent: int = 1) -> int | None:
+    max_width: int | None = None
     for i, width in enumerate(widths):
         if width is not None:
             if i:
@@ -205,7 +199,7 @@ def _max_width(widths: Iterable[Optional[int]], indent: int = 1) -> Optional[int
 
 
 def _parse_columns(
-    fmt: Optional[str], columns_map: Dict[str, JobColumnInfo], default_fmt: str
+    fmt: str | None, columns_map: dict[str, JobColumnInfo], default_fmt: str
 ) -> JobTableFormat:
     # Column format is "{id[;field=val][;title]}",
     # columns are separated by commas or spaces
@@ -273,11 +267,11 @@ def get_default_top_columns() -> JobTableFormat:
     return parse_top_columns(None)
 
 
-def parse_ps_columns(fmt: Optional[str]) -> JobTableFormat:
+def parse_ps_columns(fmt: str | None) -> JobTableFormat:
     return _parse_columns(fmt, PS_COLUMNS_MAP, PS_COLUMNS_DEFAULT_FORMAT)
 
 
-def parse_top_columns(fmt: Optional[str]) -> JobTableFormat:
+def parse_top_columns(fmt: str | None) -> JobTableFormat:
     return _parse_columns(fmt, TOP_COLUMNS_MAP, TOP_COLUMNS_DEFAULT_FORMAT)
 
 
@@ -304,13 +298,13 @@ class InvertKey:
         return self.value != other.value
 
 
-JobTelemetryKeyFunc = Callable[[Tuple[JobDescription, JobTelemetry]], Any]
+JobTelemetryKeyFunc = Callable[[tuple[JobDescription, JobTelemetry]], Any]
 
 JOB_STATUS_PRIORITIES = {status: i for i, status in enumerate(JobStatus)}
 DATETIME_MIN = datetime.min.replace(tzinfo=timezone.utc)
 INF = float("inf")
 
-SORT_KEY_FUNCS: Dict[str, JobTelemetryKeyFunc] = {
+SORT_KEY_FUNCS: dict[str, JobTelemetryKeyFunc] = {
     # JobDescriptor attibutes
     "id": lambda item: item[0].id,
     "name": lambda item: item[0].name or "",
@@ -338,8 +332,8 @@ SORT_KEY_FUNCS: Dict[str, JobTelemetryKeyFunc] = {
 SORT_KEY_NAMES = tuple(SORT_KEY_FUNCS)
 
 
-def parse_sort_keys(fmt: str) -> List[Tuple[JobTelemetryKeyFunc, bool]]:
-    sort_keys: List[Tuple[JobTelemetryKeyFunc, bool]] = []
+def parse_sort_keys(fmt: str) -> list[tuple[JobTelemetryKeyFunc, bool]]:
+    sort_keys: list[tuple[JobTelemetryKeyFunc, bool]] = []
     for keyname in fmt.split(","):
         keyname = keyname.strip()
         if keyname[:1] == "-":

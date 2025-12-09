@@ -7,9 +7,10 @@ import logging
 import signal
 import sys
 import threading
+from collections.abc import Awaitable, Callable, Sequence
 from contextlib import AsyncExitStack
 from datetime import datetime
-from typing import Any, Awaitable, Callable, List, NoReturn, Optional, Sequence, Tuple
+from typing import Any, NoReturn
 
 import aiohttp
 import click
@@ -87,10 +88,10 @@ class AttachHelper:
 async def process_logs(
     root: Root,
     job: str,
-    helper: Optional[AttachHelper],
+    helper: AttachHelper | None,
     *,
-    cluster_name: Optional[str],
-    since: Optional[datetime] = None,
+    cluster_name: str | None,
+    since: datetime | None = None,
     timestamps: bool = False,
 ) -> None:
     codec_info = codecs.lookup("utf8")
@@ -127,7 +128,7 @@ async def process_logs(
 
 
 async def process_exec(
-    root: Root, job: str, cmd: str, tty: bool, *, cluster_name: Optional[str]
+    root: Root, job: str, cmd: str, tty: bool, *, cluster_name: str | None
 ) -> NoReturn:
     try:
         if tty:
@@ -144,9 +145,7 @@ async def process_exec(
     sys.exit(exit_code)
 
 
-async def _exec_tty(
-    root: Root, job: str, cmd: str, *, cluster_name: Optional[str]
-) -> int:
+async def _exec_tty(root: Root, job: str, cmd: str, *, cluster_name: str | None) -> int:
     loop = asyncio.get_event_loop()
     helper = AttachHelper(quiet=True)
 
@@ -185,7 +184,7 @@ async def _exec_tty(
 
 
 async def _exec_non_tty(
-    root: Root, job: str, cmd: str, *, cluster_name: Optional[str]
+    root: Root, job: str, cmd: str, *, cluster_name: str | None
 ) -> int:
     loop = asyncio.get_event_loop()
     helper = AttachHelper(quiet=True)
@@ -238,7 +237,7 @@ async def process_attach(
     job: JobDescription,
     tty: bool,
     logs: bool,
-    port_forward: List[Tuple[int, int]],
+    port_forward: list[tuple[int, int]],
 ) -> None:
     max_retry_timeout = 10
     while True:
@@ -263,7 +262,7 @@ async def _process_attach_single_try(
     job: JobDescription,
     tty: bool,
     logs: bool,
-    port_forward: List[Tuple[int, int]],
+    port_forward: list[tuple[int, int]],
 ) -> None:
     # Note, the job should be in running/finished state for this call,
     # passing pending job is forbidden
@@ -369,7 +368,7 @@ async def _process_attach_single_try(
 
 
 async def _attach_tty(
-    root: Root, job: str, helper: AttachHelper, *, cluster_name: Optional[str]
+    root: Root, job: str, helper: AttachHelper, *, cluster_name: str | None
 ) -> InterruptAction:
     stdout = create_output()
     h, w = stdout.get_size()
@@ -462,27 +461,26 @@ async def _process_stdin_tty(stream: StdStream, helper: AttachHelper) -> None:
         ev.set()
 
     term = (Keys.ControlP, Keys.ControlQ)
-    prev: List[KeyPress] = []
+    prev: list[KeyPress] = []
 
     inp = create_input()
-    with inp.raw_mode():
-        with inp.attach(read_ready):
-            while True:
-                await ev.wait()
-                ev.clear()
-                if inp.closed:
-                    return
-                keys = inp.read_keys()  # + inp.flush_keys()
-                prev.extend(keys)
-                if _has_detach(prev, term):
-                    helper.action = InterruptAction.DETACH
-                if len(prev) >= len(term):
-                    oldest_key = len(prev) - len(term) + 1
-                    prev = prev[oldest_key:]
-                buf = b"".join(key.data.encode("utf8") for key in keys)
-                await stream.write_in(buf)
-                if helper.action == InterruptAction.DETACH:
-                    return
+    with inp.raw_mode(), inp.attach(read_ready):
+        while True:
+            await ev.wait()
+            ev.clear()
+            if inp.closed:
+                return
+            keys = inp.read_keys()  # + inp.flush_keys()
+            prev.extend(keys)
+            if _has_detach(prev, term):
+                helper.action = InterruptAction.DETACH
+            if len(prev) >= len(term):
+                oldest_key = len(prev) - len(term) + 1
+                prev = prev[oldest_key:]
+            buf = b"".join(key.data.encode("utf8") for key in keys)
+            await stream.write_in(buf)
+            if helper.action == InterruptAction.DETACH:
+                return
 
 
 async def _process_stdout_tty(
@@ -507,7 +505,7 @@ async def _process_stdout_tty(
 
 
 async def _attach_non_tty(
-    root: Root, job: str, helper: AttachHelper, *, cluster_name: Optional[str]
+    root: Root, job: str, helper: AttachHelper, *, cluster_name: str | None
 ) -> InterruptAction:
     async with root.client.jobs.attach(
         job, stdin=True, stdout=True, stderr=True, cluster_name=cluster_name
@@ -641,7 +639,7 @@ async def _process_ctrl_c(root: Root, job: str, helper: AttachHelper) -> None:
     # Exit from _process_ctrl_c() task finishes the outer _attach_non_tty() task
     # Return True if kill/detach was asked.
     # The returned value can be used for skipping the job termination
-    queue: asyncio.Queue[Optional[int]] = asyncio.Queue()
+    queue: asyncio.Queue[int | None] = asyncio.Queue()
     loop = asyncio.get_event_loop()
 
     def on_signal(signum: int, frame: Any) -> None:

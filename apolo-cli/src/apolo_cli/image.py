@@ -1,8 +1,8 @@
 import contextlib
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import replace
-from typing import Optional, Sequence
 
 from rich.markup import escape as rich_escape
 from rich.progress import Progress
@@ -37,7 +37,7 @@ def image() -> None:
 @command()
 @argument("local_image")
 @argument("remote_image", required=False)
-async def push(root: Root, local_image: str, remote_image: Optional[str]) -> None:
+async def push(root: Root, local_image: str, remote_image: str | None) -> None:
     """
     Push an image to platform registry.
 
@@ -56,7 +56,7 @@ async def push(root: Root, local_image: str, remote_image: Optional[str]) -> Non
     progress = DockerImageProgress.create(console=root.console, quiet=root.quiet)
     local_obj = root.client.parse.local_image(local_image)
     if remote_image is not None:
-        remote_obj: Optional[RemoteImage] = root.client.parse.remote_image(remote_image)
+        remote_obj: RemoteImage | None = root.client.parse.remote_image(remote_image)
     else:
         remote_obj = None
     with contextlib.closing(progress):
@@ -69,7 +69,7 @@ async def push(root: Root, local_image: str, remote_image: Optional[str]) -> Non
 @command()
 @argument("remote_image")
 @argument("local_image", required=False)
-async def pull(root: Root, remote_image: str, local_image: Optional[str]) -> None:
+async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
     """
     Pull an image from platform registry.
 
@@ -87,7 +87,7 @@ async def pull(root: Root, remote_image: str, local_image: Optional[str]) -> Non
     progress = DockerImageProgress.create(console=root.console, quiet=root.quiet)
     remote_obj = root.client.parse.remote_image(remote_image)
     if local_image is not None:
-        local_obj: Optional[LocalImage] = root.client.parse.local_image(local_image)
+        local_obj: LocalImage | None = root.client.parse.local_image(local_image)
     else:
         local_obj = None
     with contextlib.closing(progress):
@@ -138,7 +138,7 @@ async def ls(
     all_projects: bool,
     format_long: bool,
     full_uri: bool,
-    name: Optional[str],
+    name: str | None,
 ) -> None:
     """
     List images.

@@ -1,5 +1,4 @@
 import pathlib
-from typing import Optional
 
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.secrets import (
@@ -43,10 +42,10 @@ def secret() -> None:
 async def ls(
     root: Root,
     full_uri: bool,
-    cluster: Optional[str],
-    org: Optional[str],
+    cluster: str | None,
+    org: str | None,
     all_orgs: bool,
-    project: Optional[str],
+    project: str | None,
     all_projects: bool,
 ) -> None:
     """
@@ -112,9 +111,9 @@ async def add(
     root: Root,
     key: str,
     value: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Add secret KEY with data VALUE.
@@ -163,10 +162,10 @@ async def add(
 async def get(
     root: Root,
     key: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
-    output_file: Optional[pathlib.Path],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    output_file: pathlib.Path | None,
 ) -> None:
     """
     Get secret KEY.
@@ -216,9 +215,9 @@ async def get(
 async def rm(
     root: Root,
     key: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Remove secret KEY.

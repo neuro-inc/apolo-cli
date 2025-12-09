@@ -1,5 +1,3 @@
-from typing import List
-
 from apolo_sdk import App
 
 
@@ -16,6 +14,6 @@ def _app_factory(
     creator: str = "test-user",
     created_at: str = "2025-05-07T11:00:00+00:00",
     updated_at: str = "2025-05-07T11:00:00+00:00",
-    endpoints: List[str] = [],
+    endpoints: list[str] = [],
 ) -> App:
     return App(**locals())

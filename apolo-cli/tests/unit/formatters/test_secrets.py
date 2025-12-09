@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 import pytest
 
@@ -8,7 +8,7 @@ from apolo_cli.formatters.secrets import SecretsFormatter, SimpleSecretsFormatte
 
 
 @pytest.fixture
-def secrets_list() -> List[Secret]:
+def secrets_list() -> list[Secret]:
     return [
         Secret(
             key="key1",
@@ -34,11 +34,11 @@ def secrets_list() -> List[Secret]:
     ]
 
 
-def test_secrets_formatter_simple(secrets_list: List[Secret], rich_cmp: Any) -> None:
+def test_secrets_formatter_simple(secrets_list: list[Secret], rich_cmp: Any) -> None:
     fmtr = SimpleSecretsFormatter()
     rich_cmp(fmtr(secrets_list))
 
 
-def test_secrets_formatter_short(secrets_list: List[Secret], rich_cmp: Any) -> None:
+def test_secrets_formatter_short(secrets_list: list[Secret], rich_cmp: Any) -> None:
     fmtr = SecretsFormatter(str)
     rich_cmp(fmtr(secrets_list))

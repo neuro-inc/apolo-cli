@@ -1,11 +1,12 @@
 import dataclasses
 import io
 import logging
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+from collections.abc import Callable, Iterator
 from decimal import Decimal
 from difflib import ndiff
 from pathlib import Path
-from typing import Any, Callable, DefaultDict, Iterator, List, Optional, Set, Union
+from typing import Any
 
 import click
 import pytest
@@ -266,12 +267,10 @@ def root_no_logged_in(tmp_path: Path) -> Iterator[Root]:
 @pytest.fixture()
 def run_cli(
     nmrc_path: Path, capfd: Any, tmp_path: Path, monkeypatch: Any
-) -> Callable[[List[str]], SysCapWithCode]:
-    monkeypatch.setattr(
-        "apolo_cli.file_logging.get_handler", lambda: logging.NullHandler()
-    )
+) -> Callable[[list[str]], SysCapWithCode]:
+    monkeypatch.setattr("apolo_cli.file_logging.get_handler", logging.NullHandler)
 
-    def _run_cli(arguments: List[str]) -> SysCapWithCode:
+    def _run_cli(arguments: list[str]) -> SysCapWithCode:
         log.info("Run 'apolo %s'", " ".join(arguments))
         capfd.readouterr()
 
@@ -324,11 +323,11 @@ class RichComparator:
         self._reporter = config.pluginmanager.getplugin("terminalreporter")
         assert self._reporter is not None
         self._cwd = Path.cwd()
-        self._written_refs: List[Path] = []
-        self._checked_refs: Set[Path] = set()
-        self._file_pos = DefaultDict[io.StringIO, int](int)
+        self._written_refs: list[Path] = []
+        self._checked_refs: set[Path] = set()
+        self._file_pos = defaultdict[io.StringIO, int](int)
 
-    def mkref(self, request: Any, index: Optional[int]) -> Path:
+    def mkref(self, request: Any, index: int | None) -> Path:
         folder = Path(request.fspath).parent
         basename = request.function.__qualname__
         if hasattr(request.node, "callspec"):
@@ -425,11 +424,11 @@ class RichComparator:
                     rel_ref = self.rel(fname)
                     self._reporter.write_line(f"  {rel_ref}", yellow=True)
 
-    def diff(self, lft: Guard, rgt: Guard) -> List[str]:
+    def diff(self, lft: Guard, rgt: Guard) -> list[str]:
         # The same as _diff_text from
         # pytest/assertion/util.py#L200-L245
         # plus a few extra lines with additional instructions.
-        explanation: List[str] = []
+        explanation: list[str] = []
 
         left = lft.arg
         right = rgt.arg
@@ -442,8 +441,7 @@ class RichComparator:
             if i > 42:
                 i -= 10  # Provide some context
                 explanation = [
-                    "Skipping %s identical leading characters in diff, use -v to show"
-                    % i
+                    f"Skipping {i} identical leading characters in diff, use -v to show"
                 ]
                 left = left[i:]
                 right = right[i:]
@@ -454,8 +452,8 @@ class RichComparator:
                 if i > 42:
                     i -= 10  # Provide some context
                     explanation += [
-                        "Skipping {} identical trailing "
-                        "characters in diff, use -v to show".format(i)
+                        f"Skipping {i} identical trailing "
+                        "characters in diff, use -v to show"
                     ]
                     left = left[:-i]
                     right = right[:-i]
@@ -485,7 +483,7 @@ class RichComparator:
 
 def pytest_assertrepr_compare(
     config: Any, op: str, left: object, right: object
-) -> Optional[List[str]]:
+) -> list[str] | None:
     if isinstance(left, Guard) and isinstance(right, Guard):
         plugin = config.pluginmanager.getplugin("rich-comparator")
         return plugin.diff(left, right)
@@ -508,12 +506,12 @@ def pytest_terminal_summary(terminalreporter: Any) -> None:
 @pytest.fixture
 def rich_cmp(request: Any) -> Callable[..., None]:
     def comparator(
-        src: Union[RenderableType, Console],
-        ref: Optional[Path] = None,
+        src: RenderableType | Console,
+        ref: Path | None = None,
         *,
         color: bool = True,
         tty: bool = True,
-        index: Optional[int] = 0,
+        index: int | None = 0,
     ) -> None:
         __tracebackhide__ = True
         plugin = request.config.pluginmanager.getplugin("rich-comparator")

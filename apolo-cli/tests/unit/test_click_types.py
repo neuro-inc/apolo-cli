@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Tuple
 
 import click
 import pytest
@@ -19,7 +18,7 @@ from apolo_cli.root import Root
     "arg,val",
     [("1:1", (1, 1)), ("1:10", (1, 10)), ("434:1", (434, 1)), ("0897:123", (897, 123))],
 )
-def test_local_remote_port_param_type_valid(arg: str, val: Tuple[int, int]) -> None:
+def test_local_remote_port_param_type_valid(arg: str, val: tuple[int, int]) -> None:
     param = LocalRemotePortParamType()
     assert param.convert(arg, None, None) == val
 

@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 import yaml
 
@@ -39,9 +38,9 @@ def app_template() -> None:
 )
 async def list(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     List available application templates.
@@ -88,9 +87,9 @@ async def list(
 async def list_versions(
     root: Root,
     name: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     List app template versions.
@@ -160,12 +159,12 @@ async def list_versions(
 async def get(
     root: Root,
     name: str,
-    version: Optional[str],
+    version: str | None,
     output_format: str,
-    file_path: Optional[str],
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    file_path: str | None,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Generate payload for 'app install'.

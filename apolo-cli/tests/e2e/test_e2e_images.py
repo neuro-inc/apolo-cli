@@ -2,9 +2,10 @@ import asyncio
 import re
 import subprocess
 import time
+from collections.abc import AsyncIterator
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, AsyncIterator, Set
+from typing import Any
 from uuid import uuid4 as uuid
 
 import aiodocker
@@ -16,7 +17,7 @@ from apolo_sdk import CONFIG_ENV_NAME, DEFAULT_CONFIG_PATH, JobStatus
 from tests.e2e import Helper, make_image_name
 
 
-def parse_docker_ls_output(docker_ls_output: Any) -> Set[str]:
+def parse_docker_ls_output(docker_ls_output: Any) -> set[str]:
     return {
         repo_tag
         for info in docker_ls_output
@@ -98,7 +99,7 @@ def test_images_complete_lifecycle(
         if image_short_str_no_tag in line:
             break
     else:
-        assert False, f"Not found {image_short_str_no_tag} in {captured.out}"
+        raise AssertionError(f"Not found {image_short_str_no_tag} in {captured.out}")
 
     # delete local
     event_loop.run_until_complete(docker.images.delete(image, force=True))
@@ -160,7 +161,7 @@ def test_image_tags(
             )
         except subprocess.TimeoutExpired:
             continue
-        if tag in map(lambda s: s.strip(), captured.out.splitlines()):
+        if tag in (s.strip() for s in captured.out.splitlines()):
             break
         # Give a chance to sync remote registries
         delay = min(delay * 2 + 1, 15)

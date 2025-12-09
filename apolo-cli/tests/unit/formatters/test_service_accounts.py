@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 import pytest
 from dateutil.parser import isoparse
@@ -33,7 +33,7 @@ def test_service_account_formatter(rich_cmp: Any, org: Any) -> None:
 
 
 @pytest.fixture
-def service_accounts_list() -> List[ServiceAccount]:
+def service_accounts_list() -> list[ServiceAccount]:
     return [
         ServiceAccount(
             id="account-1",
@@ -75,14 +75,14 @@ def service_accounts_list() -> List[ServiceAccount]:
 
 
 def test_service_accounts_formatter_simple(
-    service_accounts_list: List[ServiceAccount], rich_cmp: Any
+    service_accounts_list: list[ServiceAccount], rich_cmp: Any
 ) -> None:
     fmtr = SimpleServiceAccountsFormatter()
     rich_cmp(fmtr(service_accounts_list))
 
 
 def test_disks_formatter(
-    service_accounts_list: List[ServiceAccount], rich_cmp: Any
+    service_accounts_list: list[ServiceAccount], rich_cmp: Any
 ) -> None:
     fmtr = ServiceAccountsFormatter(datetime_formatter=format_datetime_human)
     rich_cmp(fmtr(service_accounts_list))

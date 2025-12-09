@@ -1,7 +1,7 @@
 import inspect
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List
 
 import pytest
 import toml
@@ -11,7 +11,7 @@ from apolo_cli.root import Root
 
 from .conftest import SysCapWithCode
 
-_RunCli = Callable[[List[str]], SysCapWithCode]
+_RunCli = Callable[[list[str]], SysCapWithCode]
 
 
 @pytest.fixture

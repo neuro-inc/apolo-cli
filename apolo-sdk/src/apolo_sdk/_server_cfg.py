@@ -1,6 +1,7 @@
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Mapping, Optional, Sequence
+from typing import Any
 
 import aiohttp
 from yarl import URL
@@ -13,8 +14,8 @@ from ._rewrite import rewrite_module
 @dataclass(frozen=True)
 class _GPUPreset:
     count: int
-    model: Optional[str] = None
-    memory: Optional[int] = None
+    model: str | None = None
+    memory: int | None = None
 
 
 @rewrite_module
@@ -48,11 +49,11 @@ class Preset:
     credits_per_hour: Decimal
     cpu: float
     memory: int
-    nvidia_gpu: Optional[NvidiaGPUPreset] = None
-    nvidia_migs: Optional[Mapping[str, NvidiaGPUPreset]] = None
-    amd_gpu: Optional[AMDGPUPreset] = None
-    intel_gpu: Optional[IntelGPUPreset] = None
-    tpu: Optional[TPUPreset] = None
+    nvidia_gpu: NvidiaGPUPreset | None = None
+    nvidia_migs: Mapping[str, NvidiaGPUPreset] | None = None
+    amd_gpu: AMDGPUPreset | None = None
+    intel_gpu: IntelGPUPreset | None = None
+    tpu: TPUPreset | None = None
     scheduler_enabled: bool = False
     preemptible_node: bool = False
     resource_pool_names: tuple[str, ...] = ()
@@ -63,7 +64,7 @@ class Preset:
 class _GPU:
     count: int
     model: str
-    memory: Optional[int] = None
+    memory: int | None = None
 
 
 @rewrite_module
@@ -100,11 +101,11 @@ class ResourcePool:
     cpu: float
     memory: int
     disk_size: int
-    nvidia_gpu: Optional[NvidiaGPU] = None
-    nvidia_migs: Optional[Mapping[str, NvidiaGPU]] = None
-    amd_gpu: Optional[AMDGPU] = None
-    intel_gpu: Optional[IntelGPU] = None
-    tpu: Optional[TPUResource] = None
+    nvidia_gpu: NvidiaGPU | None = None
+    nvidia_migs: Mapping[str, NvidiaGPU] | None = None
+    amd_gpu: AMDGPU | None = None
+    intel_gpu: IntelGPU | None = None
+    tpu: TPUResource | None = None
     is_preemptible: bool = False
 
 
@@ -141,7 +142,7 @@ class AppsConfig:
 @dataclass(frozen=True)
 class Cluster:
     name: str
-    orgs: List[str]
+    orgs: list[str]
     registry_url: URL
     storage_url: URL
     users_url: URL
@@ -156,13 +157,13 @@ class Cluster:
 
 @dataclass(frozen=True)
 class _ServerConfig:
-    admin_url: Optional[URL]
+    admin_url: URL | None
     auth_config: _AuthConfig
     clusters: Mapping[str, Cluster]
     projects: Mapping[Project.Key, Project]
 
 
-def _parse_project_config(payload: Dict[str, Any]) -> Optional[Project]:
+def _parse_project_config(payload: dict[str, Any]) -> Project | None:
     org_name = payload.get("org_name")
     if not org_name:
         # ignore old-fashioned projects without org_name,
@@ -176,8 +177,8 @@ def _parse_project_config(payload: Dict[str, Any]) -> Optional[Project]:
     )
 
 
-def _parse_projects(payload: Dict[str, Any]) -> Dict[Project.Key, Project]:
-    ret: Dict[Project.Key, Project] = {}
+def _parse_projects(payload: dict[str, Any]) -> dict[Project.Key, Project]:
+    ret: dict[Project.Key, Project] = {}
     for item in payload.get("projects", []):
         project = _parse_project_config(item)
         if project:
@@ -185,7 +186,7 @@ def _parse_projects(payload: Dict[str, Any]) -> Dict[Project.Key, Project]:
     return ret
 
 
-def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
+def _parse_cluster_config(payload: dict[str, Any]) -> Cluster:
     resource_pools = {}
     for data in payload["resource_pool_types"]:
         resource_pools[data["name"]] = ResourcePool(
@@ -220,7 +221,7 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
             tpu=(_parse_tpu(tpu_data) if (tpu_data := payload.get("tpu")) else None),
             is_preemptible=data.get("is_preemptible", False),
         )
-    presets: Dict[str, Preset] = {}
+    presets: dict[str, Preset] = {}
     for data in payload["resource_presets"]:
         presets[data["name"]] = Preset(
             credits_per_hour=Decimal(data["credits_per_hour"]),
@@ -286,7 +287,7 @@ def _parse_cluster_config(payload: Dict[str, Any]) -> Cluster:
     return cluster_config
 
 
-def _parse_nvidia_gpu(payload: Dict[str, Any]) -> NvidiaGPU:
+def _parse_nvidia_gpu(payload: dict[str, Any]) -> NvidiaGPU:
     return NvidiaGPU(
         count=payload["count"],
         model=payload["model"],
@@ -294,7 +295,7 @@ def _parse_nvidia_gpu(payload: Dict[str, Any]) -> NvidiaGPU:
     )
 
 
-def _parse_amd_gpu(payload: Dict[str, Any]) -> AMDGPU:
+def _parse_amd_gpu(payload: dict[str, Any]) -> AMDGPU:
     return AMDGPU(
         count=payload["count"],
         model=payload["model"],
@@ -302,7 +303,7 @@ def _parse_amd_gpu(payload: Dict[str, Any]) -> AMDGPU:
     )
 
 
-def _parse_intel_gpu(payload: Dict[str, Any]) -> IntelGPU:
+def _parse_intel_gpu(payload: dict[str, Any]) -> IntelGPU:
     return IntelGPU(
         count=payload["count"],
         model=payload["model"],
@@ -310,7 +311,7 @@ def _parse_intel_gpu(payload: Dict[str, Any]) -> IntelGPU:
     )
 
 
-def _parse_tpu(payload: Dict[str, Any]) -> TPUResource:
+def _parse_tpu(payload: dict[str, Any]) -> TPUResource:
     return TPUResource(
         types=payload["types"],
         software_versions=payload["software_versions"],
@@ -318,7 +319,7 @@ def _parse_tpu(payload: Dict[str, Any]) -> TPUResource:
     )
 
 
-def _parse_nvidia_gpu_preset(payload: Dict[str, Any]) -> NvidiaGPUPreset:
+def _parse_nvidia_gpu_preset(payload: dict[str, Any]) -> NvidiaGPUPreset:
     return NvidiaGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -326,7 +327,7 @@ def _parse_nvidia_gpu_preset(payload: Dict[str, Any]) -> NvidiaGPUPreset:
     )
 
 
-def _parse_amd_gpu_preset(payload: Dict[str, Any]) -> AMDGPUPreset:
+def _parse_amd_gpu_preset(payload: dict[str, Any]) -> AMDGPUPreset:
     return AMDGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -334,7 +335,7 @@ def _parse_amd_gpu_preset(payload: Dict[str, Any]) -> AMDGPUPreset:
     )
 
 
-def _parse_intel_gpu_preset(payload: Dict[str, Any]) -> IntelGPUPreset:
+def _parse_intel_gpu_preset(payload: dict[str, Any]) -> IntelGPUPreset:
     return IntelGPUPreset(
         count=payload["count"],
         model=payload.get("model"),
@@ -342,15 +343,15 @@ def _parse_intel_gpu_preset(payload: Dict[str, Any]) -> IntelGPUPreset:
     )
 
 
-def _parse_tpu_preset(payload: Dict[str, Any]) -> TPUPreset:
+def _parse_tpu_preset(payload: dict[str, Any]) -> TPUPreset:
     return TPUPreset(
         type=payload["type"],
         software_version=payload["software_version"],
     )
 
 
-def _parse_clusters(payload: Dict[str, Any]) -> Dict[str, Cluster]:
-    ret: Dict[str, Cluster] = {}
+def _parse_clusters(payload: dict[str, Any]) -> dict[str, Cluster]:
+    ret: dict[str, Cluster] = {}
     for item in payload.get("clusters", []):
         cluster = _parse_cluster_config(item)
         ret[cluster.name] = cluster
@@ -358,9 +359,9 @@ def _parse_clusters(payload: Dict[str, Any]) -> Dict[str, Cluster]:
 
 
 async def get_server_config(
-    client: aiohttp.ClientSession, url: URL, token: Optional[str] = None
+    client: aiohttp.ClientSession, url: URL, token: str | None = None
 ) -> _ServerConfig:
-    headers: Dict[str, str] = {}
+    headers: dict[str, str] = {}
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -387,7 +388,7 @@ async def get_server_config(
             callback_urls=callback_urls,
             headless_callback_url=headless_callback_url,
         )
-        admin_url: Optional[URL] = None
+        admin_url: URL | None = None
         if "admin_url" in payload:
             admin_url = URL(payload["admin_url"])
         if headers and not payload.get("authorized", False):

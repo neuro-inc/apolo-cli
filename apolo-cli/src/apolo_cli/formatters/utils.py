@@ -1,5 +1,6 @@
 import datetime
-from typing import Callable, Optional, Protocol, Union, overload
+from collections.abc import Callable
+from typing import Protocol, overload
 
 import humanize
 from yarl import URL
@@ -16,7 +17,7 @@ ImageFormatter = Callable[[RemoteImage], str]
 
 
 def uri_formatter(
-    project_name: str, cluster_name: str, org_name: Optional[str]
+    project_name: str, cluster_name: str, org_name: str | None
 ) -> URIFormatter:
     def formatter(uri: URL) -> str:
         if uri.scheme in SCHEMES:
@@ -73,7 +74,7 @@ def format_timedelta(delta: datetime.timedelta) -> str:
 
 
 def format_datetime_iso(
-    when: Optional[datetime.datetime], *, precise: bool = False
+    when: datetime.datetime | None, *, precise: bool = False
 ) -> str:
     if when is None:
         return ""
@@ -81,10 +82,10 @@ def format_datetime_iso(
 
 
 def format_datetime_human(
-    when: Optional[datetime.datetime],
+    when: datetime.datetime | None,
     *,
     precise: bool = False,
-    timezone: Optional[datetime.timezone] = None,
+    timezone: datetime.timezone | None = None,
 ) -> str:
     """Humanizes the datetime
 
@@ -136,13 +137,13 @@ def format_datetime_human(
 
 class DatetimeFormatter(Protocol):
     @overload
-    def __call__(self, when: Optional[datetime.datetime]) -> str: ...
+    def __call__(self, when: datetime.datetime | None) -> str: ...
 
     @overload
-    def __call__(self, when: Optional[datetime.datetime], *, precise: bool) -> str: ...
+    def __call__(self, when: datetime.datetime | None, *, precise: bool) -> str: ...
 
     def __call__(
-        self, when: Optional[datetime.datetime], *, precise: bool = True
+        self, when: datetime.datetime | None, *, precise: bool = True
     ) -> str: ...
 
 
@@ -160,7 +161,7 @@ def no() -> str:
     return "[red]×[/red]"
 
 
-def format_multiple_gpus(entity: Union[_ResourcePoolType, Preset]) -> str:
+def format_multiple_gpus(entity: _ResourcePoolType | Preset) -> str:
     """
     Constructs a GPU string from the provided `entity`.
     Each GPU make will be separated by a newline, e.g.:
@@ -190,7 +191,7 @@ def format_multiple_gpus(entity: Union[_ResourcePoolType, Preset]) -> str:
 
 
 def format_gpu_string(
-    gpu_count: int, gpu_model: Optional[str], gpu_memory: Optional[int] = None
+    gpu_count: int, gpu_model: str | None, gpu_memory: int | None = None
 ) -> str:
     """
     Constructs a GPU string, applying a separator if a GPU model present, e.g.:

@@ -17,7 +17,7 @@ Job operations.
 | [_browse_](job.md#browse) | Opens a job's URL in a web browser |
 | [_bump-life-span_](job.md#bump-life-span) | Increase job life span |
 | [_exec_](job.md#exec) | Execute command in a running job |
-| [_generate-run-command_](job.md#generate-run-command) | Generate command that will rerun given job |
+| [_generate-run_](job.md#generate-run) | Generate command that will rerun given job |
 | [_kill_](job.md#kill) | Kill job\(s\) |
 | [_logs_](job.md#logs) | Print the logs for a job |
 | [_ls_](job.md#ls) | List all jobs |
@@ -128,7 +128,7 @@ $ apolo exec --no-tty my-job -- ls -l
 
 
 
-### generate-run-command
+### generate-run
 
 Generate command that will rerun given job
 
@@ -136,7 +136,7 @@ Generate command that will rerun given job
 #### Usage
 
 ```bash
-apolo job generate-run-command [OPTIONS] JOB
+apolo job generate-run [OPTIONS] JOB
 ```
 
 Generate command that will rerun given job.

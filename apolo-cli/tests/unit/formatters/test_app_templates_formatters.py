@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 import pytest
 
@@ -12,7 +12,7 @@ from apolo_cli.formatters.app_templates import (
 
 class TestAppTemplatesFormatter:
     @pytest.fixture
-    def templates(self) -> List[AppTemplate]:
+    def templates(self) -> list[AppTemplate]:
         return [
             AppTemplate(
                 name="stable-diffusion",
@@ -31,13 +31,13 @@ class TestAppTemplatesFormatter:
         ]
 
     def test_app_templates_formatter(
-        self, templates: List[AppTemplate], rich_cmp: Any
+        self, templates: list[AppTemplate], rich_cmp: Any
     ) -> None:
         formatter = AppTemplatesFormatter()
         rich_cmp(formatter(templates))
 
     def test_simple_app_templates_formatter(
-        self, templates: List[AppTemplate], rich_cmp: Any
+        self, templates: list[AppTemplate], rich_cmp: Any
     ) -> None:
         formatter = SimpleAppTemplatesFormatter()
         rich_cmp(formatter(templates))

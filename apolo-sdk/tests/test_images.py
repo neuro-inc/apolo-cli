@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import Any, AsyncIterator, Callable, Dict, Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -1165,7 +1166,7 @@ class TestImages:
     async def test_push_image_with_docker_api_error(
         self, patched_push: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        async def error_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def error_generator() -> AsyncIterator[dict[str, Any]]:
             yield {"error": True, "errorDetail": {"message": "Mocked message"}}
 
         patched_tag.return_value = True
@@ -1185,7 +1186,7 @@ class TestImages:
     async def test_success_push_image(
         self, patched_push: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        async def message_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
             yield {}
 
         patched_tag.return_value = True
@@ -1203,7 +1204,7 @@ class TestImages:
     async def test_success_push_image_no_target(
         self, patched_push: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        async def message_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
             yield {}
 
         patched_tag.return_value = True
@@ -1246,7 +1247,7 @@ class TestImages:
     async def test_pull_image_with_docker_api_error(
         self, patched_pull: Any, make_client: Any
     ) -> None:
-        async def error_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def error_generator() -> AsyncIterator[dict[str, Any]]:
             yield {"error": True, "errorDetail": {"message": "Mocked message"}}
 
         patched_pull.return_value = error_generator()
@@ -1264,7 +1265,7 @@ class TestImages:
     async def test_success_pull_image(
         self, patched_pull: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        async def message_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
             yield {}
 
         patched_tag.return_value = True
@@ -1282,7 +1283,7 @@ class TestImages:
     async def test_success_pull_image_no_target(
         self, patched_pull: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        async def message_generator() -> AsyncIterator[Dict[str, Any]]:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
             yield {}
 
         patched_tag.return_value = True
@@ -1349,7 +1350,7 @@ class TestRegistry:
         async def handler(request: web.Request) -> web.Response:
             nonlocal step
             step += 1
-            headers: Dict[str, str]
+            headers: dict[str, str]
             assert "n" in request.query
             if step == 1:
                 assert "last" not in request.query
@@ -1367,7 +1368,7 @@ class TestRegistry:
                 headers = {LINK: f'<{catalog_url}?last=lsttkn3>; rel="next"'}
                 return web.json_response(payload, headers=headers)
             else:  # pragma: no cover
-                assert False
+                raise AssertionError
 
         app = web.Application()
         app.router.add_get("/v2/_catalog", handler)
@@ -1477,7 +1478,7 @@ class TestRegistry:
         async def handler(request: web.Request) -> web.Response:
             nonlocal step
             step += 1
-            headers: Dict[str, str]
+            headers: dict[str, str]
             assert "n" in request.query
             if step == 1:
                 assert "last" not in request.query
@@ -1495,7 +1496,7 @@ class TestRegistry:
                 headers = {LINK: f'<{tags_list_url}?last=lsttkn3>; rel="next"'}
                 return web.json_response(payload, headers=headers)
             else:  # pragma: no cover
-                assert False
+                raise AssertionError
 
         app = web.Application()
         app.router.add_get("/v2/project/test/tags/list", handler)

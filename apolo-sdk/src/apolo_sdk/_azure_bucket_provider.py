@@ -1,10 +1,11 @@
 import asyncio
 import secrets
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from io import BytesIO
-from typing import Any, AsyncIterator, Awaitable, Callable, Optional, Tuple, Union, cast
+from typing import Any, cast
 
 from azure.core.async_paging import AsyncItemPaged
 from azure.core.credentials import AzureSasCredential
@@ -53,7 +54,7 @@ class AzureProvider(MeasureTimeDiffMixin, BucketProvider):
         initial_credentials = await _get_credentials()
 
         async with AsyncExitStack() as exit_stack:
-            credential: Union[AzureSasCredential, str]
+            credential: AzureSasCredential | str
             if "sas_token" in initial_credentials.credentials:
                 sas_credential = AzureSasCredential(
                     initial_credentials.credentials["sas_token"]
@@ -96,11 +97,11 @@ class AzureProvider(MeasureTimeDiffMixin, BucketProvider):
 
     @asyncgeneratorcontextmanager
     async def list_blobs(
-        self, prefix: str, recursive: bool = False, limit: Optional[int] = None
+        self, prefix: str, recursive: bool = False, limit: int | None = None
     ) -> AsyncIterator[BucketEntry]:
         if recursive:
             it = cast(
-                AsyncItemPaged[Union[BlobProperties, BlobPrefix]],
+                AsyncItemPaged[BlobProperties | BlobPrefix],
                 self._client.list_blobs(prefix),
             )
         else:
@@ -148,8 +149,8 @@ class AzureProvider(MeasureTimeDiffMixin, BucketProvider):
     async def put_blob(
         self,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        body: AsyncIterator[bytes] | bytes,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         blob_client = self._client.get_blob_client(key)
         if isinstance(body, bytes):
@@ -185,7 +186,7 @@ class AzureProvider(MeasureTimeDiffMixin, BucketProvider):
                 f"There is no object with key {key} in bucket {self.bucket.name}"
             )
 
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         if self._min_time_diff is None or self._max_time_diff is None:
             return 0, 0
         return self._min_time_diff, self._max_time_diff
