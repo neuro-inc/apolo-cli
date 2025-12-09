@@ -115,7 +115,7 @@
 		* [apolo job browse](#apolo-job-browse)
 		* [apolo job bump-life-span](#apolo-job-bump-life-span)
 		* [apolo job exec](#apolo-job-exec)
-		* [apolo job generate-run](#apolo-job-generate-run)
+		* [apolo job generate-run-command](#apolo-job-generate-run-command)
 		* [apolo job kill](#apolo-job-kill)
 		* [apolo job logs](#apolo-job-logs)
 		* [apolo job ls](#apolo-job-ls)
@@ -2837,7 +2837,7 @@ Name | Description|
 | _[apolo job browse](#apolo-job-browse)_| Opens a job's URL in a web browser |
 | _[apolo job bump\-life-span](#apolo-job-bump-life-span)_| Increase job life span |
 | _[apolo job exec](#apolo-job-exec)_| Execute command in a running job |
-| _[apolo job generate-run](#apolo-job-generate-run)_| Generate command that will rerun given job |
+| _[apolo job generate-run-command](#apolo-job-generate-run-command)_| Generate command that will rerun given job |
 | _[apolo job kill](#apolo-job-kill)_| Kill job\(s) |
 | _[apolo job logs](#apolo-job-logs)_| Print the logs for a job |
 | _[apolo job ls](#apolo-job-ls)_| List all jobs |
@@ -2940,14 +2940,14 @@ Name | Description|
 
 
 
-### apolo job generate-run
+### apolo job generate-run-command
 
 Generate command that will rerun given job.<br/>
 
 **Usage:**
 
 ```bash
-apolo job generate-run [OPTIONS] JOB
+apolo job generate-run-command [OPTIONS] JOB
 ```
 
 **Examples:**
