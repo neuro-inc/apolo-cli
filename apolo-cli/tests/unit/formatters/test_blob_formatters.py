@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List, Union
+from typing import Any
 
 import pytest
 
@@ -13,7 +13,7 @@ from apolo_cli.formatters.blob_storage import (
 
 
 class TestBlobFormatter:
-    buckets: List[Bucket] = [
+    buckets: list[Bucket] = [
         Bucket(
             id="bucket-1",
             name="apolo-my-bucket",
@@ -49,7 +49,7 @@ class TestBlobFormatter:
         ),
     ]
 
-    blobs: List[BucketEntry] = [
+    blobs: list[BucketEntry] = [
         BlobObject(
             key="file1024.txt",
             modified_at=datetime(2018, 1, 1, 14, 0, 0),
@@ -75,18 +75,18 @@ class TestBlobFormatter:
             size=0,
         ),
     ]
-    folders: List[BucketEntry] = [
+    folders: list[BucketEntry] = [
         BlobCommonPrefix(bucket=buckets[0], key="folder1/", size=0),
         BlobCommonPrefix(bucket=buckets[1], key="folder2/", size=0),
     ]
 
-    all: List[Union[Bucket, BucketEntry]] = [*buckets, *blobs, *folders]
+    all: list[Bucket | BucketEntry] = [*buckets, *blobs, *folders]
 
     @pytest.mark.parametrize(
         "formatter",
         [
-            (SimpleBlobFormatter(color=False, uri_formatter=str)),
-            (LongBlobFormatter(human_readable=False, color=False, uri_formatter=str)),
+            SimpleBlobFormatter(color=False, uri_formatter=str),
+            LongBlobFormatter(human_readable=False, color=False, uri_formatter=str),
         ],
     )
     def test_long_formatter(self, rich_cmp: Any, formatter: BaseBlobFormatter) -> None:

@@ -1,5 +1,5 @@
 import operator
-from typing import Iterable, List, Mapping, Optional, Tuple
+from collections.abc import Iterable, Mapping
 
 from rich import box
 from rich.console import Group as RichGroup
@@ -173,9 +173,9 @@ class OrgClusterFormatter:
 class ClustersFormatter:
     def __call__(
         self,
-        clusters: Mapping[str, Tuple[Optional[_Cluster], Optional[_ConfigCluster]]],
+        clusters: Mapping[str, tuple[_Cluster | None, _ConfigCluster | None]],
     ) -> RenderableType:
-        out: List[RenderableType] = []
+        out: list[RenderableType] = []
         for cluster_name, (admin_cluster, config_cluster) in clusters.items():
             table = Table(
                 title=cluster_name,

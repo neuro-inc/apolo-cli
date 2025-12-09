@@ -1,8 +1,9 @@
 import json
 import sqlite3
 import ssl
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
-from typing import AsyncContextManager, AsyncIterator, Callable
+from typing import AsyncContextManager
 
 import aiohttp
 import certifi

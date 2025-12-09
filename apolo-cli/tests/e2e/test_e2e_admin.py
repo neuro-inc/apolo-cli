@@ -1,9 +1,10 @@
 import secrets
 import subprocess
 import tempfile
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Tuple
+from typing import Any
 
 import pytest
 
@@ -86,7 +87,7 @@ def test_list_cluster_users_admin_only(helper: Helper, tmp_test_cluster: str) ->
     reason="ERROR: Command returned non-zero exit status 77: Failed to add cluster user"
 )
 def test_list_cluster_users_added_members(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     name_to_role = {
         test_user_names[0]: "user",
@@ -107,7 +108,7 @@ def test_list_cluster_users_added_members(
     reason="ERROR: Command returned non-zero exit status 72: Failed to add cluster user"
 )
 def test_add_cluster_user_already_exists(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     test_user = test_user_names[0]
     helper.run_cli(["admin", "add-cluster-user", tmp_test_cluster, test_user, "user"])
@@ -142,7 +143,7 @@ def test_add_cluster_user_does_not_exist(
 @pytest.mark.e2e
 @pytest.mark.skip(reason=("ERROR: Skipping admin tests to fix e2e test suite"))
 def test_add_cluster_user_invalid_role(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     with pytest.raises(subprocess.CalledProcessError) as cm:
         helper.run_cli(
@@ -196,7 +197,7 @@ def test_remove_cluster_user_does_not_exist(
     reason="ERROR: Command returned non-zero exit status 72: Failed to add cluster user"
 )
 def test_cluster_user_default_unlimited_quota(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     username = test_user_names[0]
     helper.run_cli(["admin", "add-cluster-user", tmp_test_cluster, username, "user"])
@@ -210,7 +211,7 @@ def test_cluster_user_default_unlimited_quota(
     reason="ERROR: Command returned non-zero exit status 72: Failed to add cluster user"
 )
 def test_cluster_level_defaults(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     helper.run_cli(
         [
@@ -239,7 +240,7 @@ def test_cluster_level_defaults(
     )
 )
 def test_cluster_user_set_quota_during_add(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     username = test_user_names[0]
     helper.run_cli(
@@ -265,7 +266,7 @@ def test_cluster_user_set_quota_during_add(
     reason="ERROR: Command returned non-zero exit status 72: Failed to add cluster user"
 )
 def test_cluster_user_default_set_balance_and_quota(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     username = test_user_names[0]
     helper.run_cli(["admin", "add-cluster-user", tmp_test_cluster, username, "user"])
@@ -286,7 +287,7 @@ def test_cluster_user_default_set_balance_and_quota(
     )
 )
 def test_cluster_user_default_set_balance_and_quota_to_unlimited(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
     username = test_user_names[0]
     helper.run_cli(
@@ -346,7 +347,7 @@ def test_list_org_users_admin_only(helper: Helper, tmp_test_org: str) -> None:
 @pytest.mark.e2e
 @pytest.mark.skip(reason=("ERROR: Skipping admin tests to fix e2e test suite"))
 def test_list_org_users_added_members(
-    helper: Helper, tmp_test_org: str, test_user_names: List[str]
+    helper: Helper, tmp_test_org: str, test_user_names: list[str]
 ) -> None:
     name_to_role = {
         test_user_names[0]: "user",
@@ -365,7 +366,7 @@ def test_list_org_users_added_members(
 @pytest.mark.e2e
 @pytest.mark.skip(reason=("ERROR: Skipping admin tests to fix e2e test suite"))
 def test_add_org_user_already_exists(
-    helper: Helper, tmp_test_org: str, test_user_names: List[str]
+    helper: Helper, tmp_test_org: str, test_user_names: list[str]
 ) -> None:
     test_user = test_user_names[0]
     helper.run_cli(["admin", "add-org-user", tmp_test_org, test_user, "user"])
@@ -394,7 +395,7 @@ def test_add_org_user_does_not_exist(
 @pytest.mark.e2e
 @pytest.mark.skip(reason=("ERROR: Skipping admin tests to fix e2e test suite"))
 def test_add_org_user_invalid_role(
-    helper: Helper, tmp_test_org: str, test_user_names: List[str]
+    helper: Helper, tmp_test_org: str, test_user_names: list[str]
 ) -> None:
     with pytest.raises(subprocess.CalledProcessError) as cm:
         helper.run_cli(
@@ -434,7 +435,7 @@ def test_remove_org_user_does_not_exist(helper: Helper, tmp_test_org: str) -> No
     reason="ERROR: AssertionError: Credits value not matching expected 21.00"
 )
 def test_org_level_defaults(
-    helper: Helper, tmp_test_org: str, test_user_names: List[str]
+    helper: Helper, tmp_test_org: str, test_user_names: list[str]
 ) -> None:
     helper.run_cli(
         [
@@ -480,7 +481,7 @@ def test_remove_org_cluster(
 @pytest.fixture
 def tmp_test_org_cluster(
     helper: Helper, tmp_test_cluster: str, tmp_test_org: str
-) -> Iterator[Tuple[str, str]]:
+) -> Iterator[tuple[str, str]]:
     helper.run_cli(["admin", "add-org-cluster", tmp_test_cluster, tmp_test_org])
     try:
         yield tmp_test_cluster, tmp_test_org
@@ -493,7 +494,7 @@ def tmp_test_org_cluster(
 @pytest.mark.e2e
 @pytest.mark.skip
 def test_list_org_cluster_users_added_members(
-    helper: Helper, tmp_test_org_cluster: Tuple[str, str], test_user_names: List[str]
+    helper: Helper, tmp_test_org_cluster: tuple[str, str], test_user_names: list[str]
 ) -> None:
     name_to_role = {
         test_user_names[0]: "user",
@@ -519,7 +520,7 @@ def test_list_org_cluster_users_added_members(
 @pytest.mark.skip
 def test_remove_org_cluster_user_remove_oneself(
     helper: Helper,
-    tmp_test_org_cluster: Tuple[str, str],
+    tmp_test_org_cluster: tuple[str, str],
 ) -> None:
     cluster_name, org_name = tmp_test_org_cluster
     with pytest.raises(subprocess.CalledProcessError) as cm:
@@ -543,7 +544,7 @@ def test_remove_org_cluster_user_remove_oneself(
 @pytest.mark.e2e
 @pytest.mark.skip
 def test_add_org_cluster_user_non_org_user_fails(
-    helper: Helper, tmp_test_org_cluster: Tuple[str, str], test_user_names: List[str]
+    helper: Helper, tmp_test_org_cluster: tuple[str, str], test_user_names: list[str]
 ) -> None:
     cluster_name, org_name = tmp_test_org_cluster
     username = test_user_names[0]
@@ -566,7 +567,7 @@ def test_add_org_cluster_user_non_org_user_fails(
 @pytest.mark.e2e
 @pytest.mark.skip
 def test_org_cluster_user_default_unlimited_quota(
-    helper: Helper, tmp_test_org_cluster: Tuple[str, str], test_user_names: List[str]
+    helper: Helper, tmp_test_org_cluster: tuple[str, str], test_user_names: list[str]
 ) -> None:
     cluster_name, org_name = tmp_test_org_cluster
     username = test_user_names[0]
@@ -584,7 +585,7 @@ def test_org_cluster_user_default_unlimited_quota(
 @pytest.mark.e2e
 @pytest.mark.skip
 def test_org_cluster_user_set_quota_during_add(
-    helper: Helper, tmp_test_org_cluster: Tuple[str, str], test_user_names: List[str]
+    helper: Helper, tmp_test_org_cluster: tuple[str, str], test_user_names: list[str]
 ) -> None:
     cluster_name, org_name = tmp_test_org_cluster
     username = test_user_names[0]
@@ -614,7 +615,7 @@ def test_org_cluster_user_set_quota_during_add(
 @pytest.mark.e2e
 @pytest.mark.skip
 def test_org_cluster_user_default_set_balance_and_quota(
-    helper: Helper, tmp_test_org_cluster: Tuple[str, str], test_user_names: List[str]
+    helper: Helper, tmp_test_org_cluster: tuple[str, str], test_user_names: list[str]
 ) -> None:
     cluster_name, org_name = tmp_test_org_cluster
     username = test_user_names[0]
@@ -775,7 +776,7 @@ def test_org_cluster_set_balance_and_quota_to_unlimited(
 def test_create_list_update_delete_project(
     helper: Helper, tmp_test_cluster: str
 ) -> None:
-    def _parse_list_out(out: str) -> List[Dict[str, Any]]:
+    def _parse_list_out(out: str) -> list[dict[str, Any]]:
         res = []
         for line in out.splitlines():
             line = line.strip()
@@ -850,9 +851,9 @@ def test_create_list_update_delete_project(
     reason="ERROR: Command returned non-zero exit status 72: Failed to add project"
 )
 def test_create_list_update_delete_project_user(
-    helper: Helper, tmp_test_cluster: str, test_user_names: List[str]
+    helper: Helper, tmp_test_cluster: str, test_user_names: list[str]
 ) -> None:
-    def _parse_list_out(out: str) -> List[Dict[str, Any]]:
+    def _parse_list_out(out: str) -> list[dict[str, Any]]:
         res = []
         for line in out.splitlines():
             line = line.strip()

@@ -1,7 +1,7 @@
+import builtins
 import codecs
 import json
 import sys
-from typing import List, Optional
 
 import click
 import yaml
@@ -34,7 +34,7 @@ def app() -> None:
     """
 
 
-@command()
+@command(name="list")
 @option(
     "--cluster",
     type=CLUSTER,
@@ -63,12 +63,12 @@ def app() -> None:
     is_flag=True,
     help="Show apps in all states.",
 )
-async def list(
+async def list_cmd(
     root: Root,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
-    state: Optional[List[AppState]],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    state: list[AppState] | None,
     all: bool,
 ) -> None:
     """
@@ -125,9 +125,9 @@ async def list(
 async def uninstall(
     root: Root,
     app_id: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     force: bool,
 ) -> None:
     """
@@ -174,9 +174,9 @@ async def uninstall(
 async def install(
     root: Root,
     file_path: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Install an app from a YAML file.
@@ -296,12 +296,12 @@ async def configure(
 )
 async def get_values(
     root: Root,
-    app_id: Optional[str],
-    value_type: Optional[str],
-    output_format: Optional[str],
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    app_id: str | None,
+    value_type: str | None,
+    output_format: str | None,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Get application values.
@@ -313,7 +313,7 @@ async def get_values(
     else:
         values_fmtr = AppValuesFormatter()
 
-    values: List[AppValue] = []
+    values: builtins.list[AppValue] = []
     with root.status("Fetching app values") as status:
         async with root.client.apps.get_values(
             app_id=app_id,
@@ -365,11 +365,11 @@ async def get_values(
 async def logs(
     root: Root,
     app_id: str,
-    since: Optional[str],
+    since: str | None,
     timestamps: bool,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
 ) -> None:
     """
     Print the logs for an app.
@@ -423,9 +423,9 @@ async def logs(
 async def get_status(
     root: Root,
     app_id: str,
-    cluster: Optional[str],
-    org: Optional[str],
-    project: Optional[str],
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
     output_format: str,
 ) -> None:
     """
@@ -433,7 +433,7 @@ async def get_status(
 
     APP_ID: ID of the app to get status for status events.
     """
-    events: List[AppEvent] = []
+    events: builtins.list[AppEvent] = []
     with root.status("Fetching app events") as status:
         async with root.client.apps.get_events(
             app_id=app_id,
@@ -461,8 +461,8 @@ async def get_status(
                 root.print("No events found.")
 
 
-app.add_command(list)
-app.add_command(alias(list, "ls", help="Alias to list", deprecated=False))
+app.add_command(list_cmd)
+app.add_command(alias(list_cmd, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
 app.add_command(configure)
 app.add_command(uninstall)

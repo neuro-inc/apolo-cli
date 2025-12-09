@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ._rewrite import rewrite_module
 
@@ -15,7 +15,7 @@ class ClientError(Exception):
 
 @rewrite_module
 class IllegalArgumentError(ValueError):
-    def __init__(self, *args: object, payload: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, *args: object, payload: dict[str, Any] | None = None) -> None:
         super().__init__(*args)
         self.payload = payload
 

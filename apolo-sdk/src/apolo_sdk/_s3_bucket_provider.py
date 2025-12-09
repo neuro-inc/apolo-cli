@@ -1,7 +1,8 @@
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from datetime import datetime
 from email.utils import parsedate_to_datetime
-from typing import Any, AsyncIterator, Awaitable, Callable, Mapping, Optional, Union
+from typing import Any
 
 import aiobotocore.session
 import botocore
@@ -108,10 +109,10 @@ class S3Provider(MeasureTimeDiffMixin, BucketProvider):
 
     @asyncgeneratorcontextmanager
     async def list_blobs(
-        self, prefix: str, recursive: bool = False, limit: Optional[int] = None
+        self, prefix: str, recursive: bool = False, limit: int | None = None
     ) -> AsyncIterator[BucketEntry]:
         paginator = self._client.get_paginator("list_objects_v2")
-        kwargs = dict(Bucket=self._bucket_name, Prefix=prefix)
+        kwargs = {"Bucket": self._bucket_name, "Prefix": prefix}
         if not recursive:
             kwargs["Delimiter"] = "/"
         cnt = 0
@@ -157,8 +158,8 @@ class S3Provider(MeasureTimeDiffMixin, BucketProvider):
     async def put_blob(
         self,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        body: AsyncIterator[bytes] | bytes,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         if isinstance(body, bytes):
             await self._client.put_object(

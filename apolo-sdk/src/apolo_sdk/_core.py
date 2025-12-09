@@ -4,10 +4,11 @@ import json as jsonmodule
 import logging
 import sqlite3
 import time
+from collections.abc import AsyncIterator, Mapping, Sequence
 from contextlib import asynccontextmanager
 from http.cookies import Morsel, SimpleCookie
 from types import SimpleNamespace
-from typing import Any, AsyncIterator, Dict, List, Mapping, Optional, Sequence, Union
+from typing import Any
 
 import aiohttp
 from aiohttp import ClientWebSocketResponse, WSServerHandshakeError
@@ -56,8 +57,8 @@ class _Core:
     def __init__(
         self,
         session: aiohttp.ClientSession,
-        trace_id: Optional[str],
-        trace_sampled: Optional[bool] = None,
+        trace_id: str | None,
+        trace_sampled: bool | None = None,
     ) -> None:
         self._session = session
         self._trace_id = trace_id
@@ -71,7 +72,7 @@ class _Core:
             502: BadGateway,
             503: ServerNotAvailable,
         }
-        self._prev_cookie: Optional[Morsel[str]] = None
+        self._prev_cookie: Morsel[str] | None = None
 
     def _post_init(
         self,
@@ -126,11 +127,11 @@ class _Core:
         url: URL,
         *,
         auth: str,
-        params: Union[Query, None] = None,
+        params: Query | None = None,
         data: Any = None,
         json: Any = None,
-        headers: Optional[Mapping[str, str]] = None,
-        timeout: Optional[aiohttp.ClientTimeout] = None,
+        headers: Mapping[str, str] | None = None,
+        timeout: aiohttp.ClientTimeout | None = None,
     ) -> AsyncIterator[aiohttp.ClientResponse]:
         assert url.is_absolute()
         if params:
@@ -174,10 +175,10 @@ class _Core:
         abs_url: URL,
         *,
         auth: str,
-        headers: Optional[Dict[str, str]] = None,
-        heartbeat: Optional[float] = None,
-        timeout: Optional[float] = 10.0,
-        receive_timeout: Optional[float] = None,
+        headers: dict[str, str] | None = None,
+        heartbeat: float | None = None,
+        timeout: float | None = 10.0,
+        receive_timeout: float | None = None,
     ) -> AsyncIterator[ClientWebSocketResponse]:
         assert abs_url.is_absolute(), abs_url
         log.debug("Fetch web socket: %s", abs_url)
@@ -232,7 +233,7 @@ def _save_cookies(
     db: sqlite3.Connection,
     cookies: Sequence["Morsel[str]"],
     *,
-    now: Optional[float] = None,
+    now: float | None = None,
 ) -> None:
     if now is None:
         now = time.time()
@@ -254,8 +255,8 @@ def _save_cookies(
 
 
 def _load_cookies(
-    db: sqlite3.Connection, *, now: Optional[float] = None
-) -> List["Morsel[str]"]:
+    db: sqlite3.Connection, *, now: float | None = None
+) -> list["Morsel[str]"]:
     if now is None:
         now = time.time()
     if _ensure_schema(db, update=False):
@@ -268,7 +269,7 @@ def _load_cookies(
         """,
         (now - SESSION_COOKIE_MAXAGE,),
     )
-    ret: List[Morsel[str]] = []
+    ret: list[Morsel[str]] = []
     for name, domain, path, value, timestamp in cur:
         ret.append(_make_cookie(name, value, domain, path))
     return ret

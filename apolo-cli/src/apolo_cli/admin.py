@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import replace
 from decimal import Decimal, InvalidOperation
-from typing import Any, Sequence
+from typing import Any
 
 import click
 from prompt_toolkit import PromptSession

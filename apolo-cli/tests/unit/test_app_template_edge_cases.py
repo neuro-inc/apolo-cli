@@ -1,6 +1,7 @@
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any, Iterator
+from typing import Any
 from unittest import mock
 
 from apolo_sdk import AppTemplate
@@ -147,8 +148,8 @@ def test_app_template_get_quiet_mode_with_file(run_cli: _RunCli) -> None:
 
 def test_app_template_ls_with_cluster_option(run_cli: _RunCli) -> None:
     """Test the app_template ls command with cluster option."""
+    from collections.abc import AsyncIterator
     from contextlib import asynccontextmanager
-    from typing import AsyncIterator
 
     from apolo_sdk import AppTemplate
     from apolo_sdk._apps import Apps
@@ -189,8 +190,8 @@ def test_app_template_ls_with_cluster_option(run_cli: _RunCli) -> None:
 
 def test_app_template_ls_with_org_and_project_options(run_cli: _RunCli) -> None:
     """Test the app_template ls command with org and project options."""
+    from collections.abc import AsyncIterator
     from contextlib import asynccontextmanager
-    from typing import AsyncIterator
 
     from apolo_sdk import AppTemplate
     from apolo_sdk._apps import Apps
@@ -264,37 +265,37 @@ def test_app_template_get_with_all_options(run_cli: _RunCli) -> None:
         temp_path = tmp_file.name
 
     try:
-        with mock_apps_get_template(template):
-            with mock.patch("apolo_cli.click_types.CLUSTER.convert") as cluster_mock:
-                cluster_mock.return_value = "test-cluster"
+        with (
+            mock_apps_get_template(template),
+            mock.patch("apolo_cli.click_types.CLUSTER.convert") as cluster_mock,
+        ):
+            cluster_mock.return_value = "test-cluster"
 
-                with mock.patch("apolo_cli.click_types.ORG.convert") as org_mock:
-                    org_mock.return_value = "test-org"
+            with mock.patch("apolo_cli.click_types.ORG.convert") as org_mock:
+                org_mock.return_value = "test-org"
 
-                    with mock.patch(
-                        "apolo_cli.click_types.PROJECT.convert"
-                    ) as proj_mock:
-                        proj_mock.return_value = "test-project"
+                with mock.patch("apolo_cli.click_types.PROJECT.convert") as proj_mock:
+                    proj_mock.return_value = "test-project"
 
-                        capture = run_cli(
-                            [
-                                "app-template",
-                                "get",
-                                "full-test",
-                                "-V",
-                                "3.0.0",
-                                "-o",
-                                "json",
-                                "-f",
-                                temp_path,
-                                "--cluster",
-                                "test-cluster",
-                                "--org",
-                                "test-org",
-                                "--project",
-                                "test-project",
-                            ]
-                        )
+                    capture = run_cli(
+                        [
+                            "app-template",
+                            "get",
+                            "full-test",
+                            "-V",
+                            "3.0.0",
+                            "-o",
+                            "json",
+                            "-f",
+                            temp_path,
+                            "--cluster",
+                            "test-cluster",
+                            "--org",
+                            "test-org",
+                            "--project",
+                            "test-project",
+                        ]
+                    )
 
         assert not capture.err
         assert f"Template saved to {temp_path}" in capture.out

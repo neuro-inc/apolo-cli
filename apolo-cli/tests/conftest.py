@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 import aiohttp
 import pytest
@@ -181,12 +182,12 @@ def make_client(
         *,
         registry_url: str = "https://registry-api.dev.apolo.us",
         trace_id: str = "bd7a977555f6b982",
-        clusters: Optional[Dict[str, Cluster]] = None,
-        projects: Optional[Dict[Project.Key, Project]] = None,
-        token_url: Optional[URL] = None,
-        plugin_manager: Optional[PluginManager] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        clusters: dict[str, Cluster] | None = None,
+        projects: dict[Project.Key, Project] | None = None,
+        token_url: URL | None = None,
+        plugin_manager: PluginManager | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Client:
         url = URL(url_str)
         if clusters is None:

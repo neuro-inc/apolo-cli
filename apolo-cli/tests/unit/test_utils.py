@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Set, Union, cast
+from typing import Any, NoReturn, cast
 from unittest import mock
 
 import click
@@ -34,7 +35,7 @@ def _job_entry(
     owner: str = "user",
     project_name: str = "project",
     org_name: str = "org",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     uri = f"job://{cluster_name}/{org_name}/{project_name}/{job_id}"
     return {
         "id": job_id,
@@ -69,12 +70,10 @@ def _job_entry(
     }
 
 
-def _check_params(
-    request: web.Request, **expected: Union[str, List[str], Set[str]]
-) -> None:
+def _check_params(request: web.Request, **expected: str | list[str] | set[str]) -> None:
     # Since `resolve_job` excepts any Exception, `assert` will be caught there
     for key, value in expected.items():
-        got: Union[List[str], Set[str]] = request.query.getall(key)
+        got: list[str] | set[str] = request.query.getall(key)
         if isinstance(value, set):
             got = set(got)
         elif not isinstance(value, list):
@@ -87,7 +86,7 @@ def _check_params(
 async def test_resolve_job_id__from_string__no_jobs_found(
     aiohttp_server: _TestServerFactory, make_client: _MakeClient
 ) -> None:
-    JSON: Dict[str, Any] = {"jobs": []}
+    JSON: dict[str, Any] = {"jobs": []}
     job_id = "job-81839be3-3ecf-4ec5-80d9-19b1588869db"
 
     async def handler(request: web.Request) -> web.Response:
@@ -121,7 +120,7 @@ async def test_resolve_job_id__from_uri_with_same_project__no_jobs_found(
     job_project = "test-project"
     job_name = "my-job-name"
     uri = f"job://{cluster_name}/{job_project}/{job_name}"
-    JSON: Dict[str, Any] = {"jobs": []}
+    JSON: dict[str, Any] = {"jobs": []}
 
     async def handler(request: web.Request) -> web.Response:
         _check_params(
@@ -155,7 +154,7 @@ async def test_resolve_job_id__from_uri_with_other_project__no_jobs_found(
     job_project = "other-test-project"
     job_name = "my-job-name"
     uri = f"job://default/{job_project}/{job_name}"
-    JSON: Dict[str, Any] = {"jobs": []}
+    JSON: dict[str, Any] = {"jobs": []}
 
     async def handler(request: web.Request) -> web.Response:
         _check_params(
@@ -186,7 +185,7 @@ async def test_resolve_job_id__from_uri_without_project__no_jobs_found(
 ) -> None:
     job_name = "my-job-name"
     uri = f"job:{job_name}"
-    JSON: Dict[str, Any] = {"jobs": []}
+    JSON: dict[str, Any] = {"jobs": []}
 
     async def handler(request: web.Request) -> web.Response:
         _check_params(
@@ -306,7 +305,7 @@ async def test_resolve_job_id__from_uri_with_org__single_job_found(
     aiohttp_server: _TestServerFactory,
     make_client: _MakeClient,
     cluster_name: str,
-    org_name: Optional[str],
+    org_name: str | None,
 ) -> None:
     job_org = "job-org"
     job_project = "test-project"
@@ -1002,7 +1001,7 @@ async def test_calc_default_life_span_default_value(
         monkeypatch.chdir(tmp_path)
         local_conf = tmp_path / ".apolo.toml"
         # empty config
-        local_conf.write_text(toml.dumps(cast(Dict[str, Any], {})))
+        local_conf.write_text(toml.dumps(cast(dict[str, Any], {})))
         default = parse_timedelta("1d")
         assert (
             await calc_life_span(client, None, "1d", "job") == default.total_seconds()

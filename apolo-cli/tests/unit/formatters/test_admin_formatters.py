@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Callable, Dict
+from typing import Any
 
 from dateutil.parser import isoparse
 from neuro_config_client import (
@@ -50,7 +51,7 @@ from apolo_cli.formatters.admin import (
 RichCmp = Callable[[RenderableType], None]
 
 
-def _create_minimal_cluster_config(**kwargs: Any) -> Dict[str, Any]:
+def _create_minimal_cluster_config(**kwargs: Any) -> dict[str, Any]:
     """Create minimal cluster config with all required sections."""
     defaults = {
         "orchestrator": OrchestratorConfig(

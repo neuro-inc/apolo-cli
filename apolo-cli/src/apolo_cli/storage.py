@@ -3,8 +3,9 @@ import dataclasses
 import glob as globmodule  # avoid conflict with subcommand "glob"
 import logging
 import sys
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any
 
 import click
 from rich.text import Text
@@ -81,7 +82,7 @@ async def rm(
     paths: Sequence[URL],
     recursive: bool,
     glob: bool,
-    progress: Optional[bool],
+    progress: bool | None,
 ) -> None:
     """
     Remove files or directories.
@@ -229,7 +230,7 @@ async def glob(root: Root, patterns: Sequence[URL]) -> None:
     required=False,
     type=PlatformURIType(allowed_schemes=["storage"], complete_file=False),
 )
-async def df(root: Root, path: Optional[URL]) -> None:
+async def df(root: Root, path: URL | None) -> None:
     """
     Show current storage usage.
 
@@ -361,14 +362,14 @@ def filter_option(
 async def cp(
     root: Root,
     sources: Sequence[URL],
-    destination: Optional[URL],
+    destination: URL | None,
     recursive: bool,
     glob: bool,
-    target_directory: Optional[URL],
+    target_directory: URL | None,
     no_target_directory: bool,
     update: bool,
     continue_: bool,
-    filters: Optional[Tuple[Tuple[bool, str], ...]],
+    filters: tuple[tuple[bool, str], ...] | None,
     exclude_from_files: str,
     progress: bool,
 ) -> None:
@@ -586,9 +587,9 @@ async def mkdir(root: Root, paths: Sequence[URL], parents: bool) -> None:
 async def mv(
     root: Root,
     sources: Sequence[URL],
-    destination: Optional[URL],
+    destination: URL | None,
     glob: bool,
-    target_directory: Optional[URL],
+    target_directory: URL | None,
     no_target_directory: bool,
 ) -> None:
     """
@@ -747,8 +748,8 @@ async def tree(
 
 
 async def _expand(
-    paths: Sequence[Union[str, URL]], root: Root, glob: bool, allow_file: bool = False
-) -> List[URL]:
+    paths: Sequence[str | URL], root: Root, glob: bool, allow_file: bool = False
+) -> list[URL]:
     uris = []
     for path in paths:
         if isinstance(path, URL):
@@ -803,8 +804,8 @@ storage.add_command(df)
 
 
 async def calc_filters(
-    client: Client, filters: Optional[Tuple[Tuple[bool, str], ...]]
-) -> Tuple[Tuple[bool, str], ...]:
+    client: Client, filters: tuple[tuple[bool, str], ...] | None
+) -> tuple[tuple[bool, str], ...]:
     ret = []
     config = await client.config.get_user_config()
     section = config.get("storage")
@@ -820,8 +821,8 @@ async def calc_filters(
 
 
 async def calc_ignore_file_names(
-    client: Client, exclude_from_files: Optional[str]
-) -> List[str]:
+    client: Client, exclude_from_files: str | None
+) -> list[str]:
     if exclude_from_files is not None:
         return exclude_from_files.split()
     config = await client.config.get_user_config()

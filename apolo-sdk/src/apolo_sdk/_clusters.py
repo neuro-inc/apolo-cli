@@ -1,13 +1,16 @@
 # Clusters API is experimental,
 # remove underscore prefix after stabilizing and making public
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, List, Mapping, Optional
+from typing import Any
 
 import aiohttp
 from neuro_config_client import AMDGPU as _AMDGPU
 from neuro_config_client import AMDGPUPreset as _AMDGPUPreset
 from neuro_config_client import Cluster as _ConfigCluster
-from neuro_config_client import ConfigClientBase
+from neuro_config_client import (
+    ConfigClientBase,
+)
 from neuro_config_client import EnergyConfig as _EnergyConfig
 from neuro_config_client import EnergySchedule as _EnergySchedule
 from neuro_config_client import EnergySchedulePeriod as _EnergySchedulePeriod
@@ -58,9 +61,9 @@ class _ConfigClient(ConfigClientBase):
         self,
         method: str,
         path: str,
-        json: Optional[Dict[str, Any]] = None,
-        params: Optional[Mapping[str, str]] = None,
-        headers: Optional[Mapping[str, str]] = None,
+        json: dict[str, Any] | None = None,
+        params: Mapping[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> AsyncIterator[aiohttp.ClientResponse]:
         url = self._config.api_url / path
         auth = await self._config._api_auth()
@@ -80,7 +83,7 @@ class _Clusters(metaclass=NoPublicConstructor):
     def __init__(self, core: _Core, config: Config) -> None:
         self._client = _ConfigClient(core, config)
 
-    async def list(self) -> List[_ConfigCluster]:
+    async def list(self) -> list[_ConfigCluster]:
         clusters = await self._client.list_clusters()
         return list(clusters)
 

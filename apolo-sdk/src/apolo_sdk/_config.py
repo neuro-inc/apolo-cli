@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass, replace
 from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 import toml
 from yarl import URL
@@ -76,9 +76,9 @@ class _ConfigData:
     auth_config: _AuthConfig
     auth_token: _AuthToken
     url: URL
-    admin_url: Optional[URL]
+    admin_url: URL | None
     version: str
-    project_name: Optional[str]
+    project_name: str | None
     cluster_name: str
     org_name: str
     clusters: Mapping[str, Cluster]
@@ -99,7 +99,7 @@ class Config(metaclass=NoPublicConstructor):
         self._core = core
         self._path = path
         self._plugin_manager = plugin_manager
-        self.__config_data: Optional[_ConfigData] = None
+        self.__config_data: _ConfigData | None = None
 
     def _load(self) -> _ConfigData:
         ret = self.__config_data = _load(self._path)
@@ -154,7 +154,7 @@ class Config(metaclass=NoPublicConstructor):
         assert name
         return name
 
-    def _get_user_cluster_name(self) -> Optional[str]:
+    def _get_user_cluster_name(self) -> str | None:
         config = self._get_user_config()
         section = config.get("job")
         if section is not None:
@@ -174,7 +174,7 @@ class Config(metaclass=NoPublicConstructor):
             raise RuntimeError("org_name is required but not configured")
         return name
 
-    def _get_user_org_name(self) -> Optional[str]:
+    def _get_user_org_name(self) -> str | None:
         config = self._get_user_config()
         section = config.get("job")
         if section is not None:
@@ -182,7 +182,7 @@ class Config(metaclass=NoPublicConstructor):
         return None
 
     @property
-    def project_name(self) -> Optional[str]:
+    def project_name(self) -> str | None:
         name = self._get_user_project_name()
         if name is None:
             name = self._config_data.project_name
@@ -199,7 +199,7 @@ class Config(metaclass=NoPublicConstructor):
             )
         return name
 
-    def _get_user_project_name(self) -> Optional[str]:
+    def _get_user_project_name(self) -> str | None:
         config = self._get_user_config()
         section = config.get("job")
         if section is not None:
@@ -211,7 +211,7 @@ class Config(metaclass=NoPublicConstructor):
         return self._get_cluster_org_projects(self.cluster_name, self.org_name)
 
     def _get_cluster_org_projects(
-        self, cluster_name: str, org_name: Optional[str]
+        self, cluster_name: str, org_name: str | None
     ) -> list[Project]:
         projects = []
         for project in self.projects.values():
@@ -341,7 +341,7 @@ class Config(metaclass=NoPublicConstructor):
 
     def _get_current_project_for_cluster_org(
         self, cluster_name: str, org_name: str
-    ) -> Optional[str]:
+    ) -> str | None:
         project_name = self.project_name
         if project_name:
             project_key = Project.Key(
@@ -368,7 +368,7 @@ class Config(metaclass=NoPublicConstructor):
         return self._config_data.url
 
     @property
-    def admin_url(self) -> Optional[URL]:
+    def admin_url(self) -> URL | None:
         return self._config_data.admin_url
 
     @property
@@ -1108,9 +1108,8 @@ def _check_item(
         for num, i in enumerate(val):
             _check_item(i, item_type, f"{full_name}[{num}]", filename)
     else:
-        assert isinstance(validator, type) and issubclass(
-            validator, (bool, numbers.Real, numbers.Integral, str)
-        )
+        assert isinstance(validator, type)
+        assert issubclass(validator, (bool, numbers.Real, numbers.Integral, str))
         # validator for integer types should be numbers.Real or numbers.Integral,
         # not int or float
         if not isinstance(val, validator):

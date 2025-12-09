@@ -6,11 +6,12 @@ import subprocess
 import sys
 import uuid
 from asyncio import AbstractEventLoop
+from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import suppress
 from datetime import datetime, timedelta
 from pathlib import Path
 from time import sleep, time
-from typing import Any, AsyncIterator, Callable, ContextManager, Dict, Iterator, Tuple
+from typing import Any, ContextManager
 from uuid import uuid4
 
 import aiodocker
@@ -567,7 +568,7 @@ def test_job_save(request: Any, helper: Helper, docker: aiodocker.Docker) -> Non
 
 
 @pytest.fixture
-async def nginx_job_async(nmrc_path: Path) -> AsyncIterator[Tuple[str, str]]:
+async def nginx_job_async(nmrc_path: Path) -> AsyncIterator[tuple[str, str]]:
     async with api_get(path=nmrc_path) as client:
         secret = uuid4()
         command = (
@@ -622,7 +623,7 @@ async def fetch_http(
 
 
 @pytest.mark.e2e
-async def test_port_forward(helper: Helper, nginx_job_async: Tuple[str, str]) -> None:
+async def test_port_forward(helper: Helper, nginx_job_async: tuple[str, str]) -> None:
     port = unused_port()
     job_id, secret = nginx_job_async
 
@@ -682,7 +683,7 @@ async def test_run_with_port_forward(helper: Helper) -> None:
 
 @pytest.mark.e2e
 def test_job_submit_http_auth(
-    helper: Helper, secret_job: Callable[..., Dict[str, Any]]
+    helper: Helper, secret_job: Callable[..., dict[str, Any]]
 ) -> None:
     loop_sleep = 1
     service_wait_time = 10 * 60
@@ -703,7 +704,7 @@ def test_job_submit_http_auth(
                 raise AssertionError("HTTP Auth not detected")
 
     async def _test_http_auth_with_cookie(
-        url: URL, cookies: Dict[str, str], secret: str
+        url: URL, cookies: dict[str, str], secret: str
     ) -> None:
         start_time = time()
         ntries = 0
@@ -1128,7 +1129,7 @@ def test_job_attach_tty(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-def test_job_secret_env(helper: Helper, secret: Tuple[str, str]) -> None:
+def test_job_secret_env(helper: Helper, secret: tuple[str, str]) -> None:
     secret_name, secret_value = secret
 
     bash_script = f'echo "begin"$SECRET_VAR"end" | grep begin{secret_value}end'
@@ -1153,7 +1154,7 @@ def test_job_secret_env(helper: Helper, secret: Tuple[str, str]) -> None:
 
 
 @pytest.mark.e2e
-def test_job_secret_file(helper: Helper, secret: Tuple[str, str]) -> None:
+def test_job_secret_file(helper: Helper, secret: tuple[str, str]) -> None:
     secret_name, secret_value = secret
 
     bash_script = (
@@ -1180,7 +1181,7 @@ def test_job_secret_file(helper: Helper, secret: Tuple[str, str]) -> None:
 
 
 @pytest.fixture
-def secret(helper: Helper) -> Iterator[Tuple[str, str]]:
+def secret(helper: Helper) -> Iterator[tuple[str, str]]:
     secret_name = "secret" + str(uuid.uuid4()).replace("-", "")[:10]
     secret_value = str(uuid.uuid4())
     # Add secret

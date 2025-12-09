@@ -1,20 +1,13 @@
 import abc
 import enum
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import PurePosixPath
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
 )
 
 from yarl import URL
@@ -29,8 +22,8 @@ class BucketEntry(abc.ABC):
     key: str
     bucket: "Bucket"
     size: int
-    created_at: Optional[datetime] = None
-    modified_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    modified_at: datetime | None = None
 
     @property
     def name(self) -> str:
@@ -94,7 +87,7 @@ class BucketProvider(abc.ABC):
 
     @abc.abstractmethod
     def list_blobs(
-        self, prefix: str, recursive: bool = False, limit: Optional[int] = None
+        self, prefix: str, recursive: bool = False, limit: int | None = None
     ) -> AsyncContextManager[AsyncIterator[BucketEntry]]:
         pass
 
@@ -106,8 +99,8 @@ class BucketProvider(abc.ABC):
     async def put_blob(
         self,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        body: AsyncIterator[bytes] | bytes,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         pass
 
@@ -125,7 +118,7 @@ class BucketProvider(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         pass
 
 
@@ -141,7 +134,7 @@ class Bucket:
     created_at: datetime
     imported: bool
     public: bool = False
-    name: Optional[str] = None
+    name: str | None = None
 
     @property
     def uri(self) -> URL:
@@ -190,16 +183,16 @@ class PersistentBucketCredentials:
     id: str
     owner: str
     cluster_name: str
-    name: Optional[str]
+    name: str | None
     read_only: bool
-    credentials: List[BucketCredentials]
+    credentials: list[BucketCredentials]
 
 
 @rewrite_module
 class MeasureTimeDiffMixin:
     def __init__(self) -> None:
-        self._min_time_diff: Optional[float] = 0
-        self._max_time_diff: Optional[float] = 0
+        self._min_time_diff: float | None = 0
+        self._max_time_diff: float | None = 0
 
     def _wrap_api_call(
         self,
@@ -223,7 +216,7 @@ class MeasureTimeDiffMixin:
         _make_call: Callable[..., AsyncContextManager[Any]],
         get_date: Callable[[Any], datetime],
     ) -> Callable[..., AsyncContextManager[Any]]:
-        def _average(cur_approx: Optional[float], new_val: float) -> float:
+        def _average(cur_approx: float | None, new_val: float) -> float:
             if cur_approx is None:
                 return new_val
             return cur_approx * 0.9 + new_val * 0.1
@@ -253,7 +246,7 @@ class MeasureTimeDiffMixin:
 
         return _wrapper
 
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         if self._min_time_diff is None or self._max_time_diff is None:
             return 0, 0
         return self._min_time_diff, self._max_time_diff

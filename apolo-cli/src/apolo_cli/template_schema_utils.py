@@ -1,13 +1,13 @@
 import io
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 
 def _resolve_ref(
-    schema: Dict[str, Any], ref: str, root_schema: Dict[str, Any]
-) -> Dict[str, Any]:
+    schema: dict[str, Any], ref: str, root_schema: dict[str, Any]
+) -> dict[str, Any]:
     """Resolve a JSON Schema $ref reference."""
     if ref.startswith("#/"):
         # Internal reference
@@ -20,12 +20,12 @@ def _resolve_ref(
 
 
 def _generate_example_value(
-    prop_schema: Dict[str, Any],
+    prop_schema: dict[str, Any],
     prop_name: str,
-    root_schema: Optional[Dict[str, Any]] = None,
-    parent_map: Optional[CommentedMap] = None,
+    root_schema: dict[str, Any] | None = None,
+    parent_map: CommentedMap | None = None,
     indent_level: int = 0,
-    _visited_refs: Optional[set[str]] = None,
+    _visited_refs: set[str] | None = None,
 ) -> Any:
     """Generate example values from JSON schema with comments."""
     if _visited_refs is None:
@@ -248,7 +248,7 @@ def _generate_example_value(
 
 
 def _generate_sample_from_schema(
-    schema: Dict[str, Any], with_comments: bool = False, indent_level: int = 0
+    schema: dict[str, Any], with_comments: bool = False, indent_level: int = 0
 ) -> Any:
     """Generate sample data from JSON schema, optionally with comments."""
     # If the schema itself defines an object type, process it directly
@@ -256,7 +256,7 @@ def _generate_sample_from_schema(
         return _generate_example_value(schema, "root", schema, None, indent_level)
 
     # Otherwise, process properties if they exist
-    result: Union[CommentedMap, Dict[str, Any]]
+    result: CommentedMap | dict[str, Any]
     if with_comments:
         result = CommentedMap()
     else:
@@ -276,7 +276,7 @@ def _generate_sample_from_schema(
 
 
 def _generate_yaml_from_schema(
-    schema: Dict[str, Any], name: str, version: str, base_url: str
+    schema: dict[str, Any], name: str, version: str, base_url: str
 ) -> str:
     """Generate YAML from JSON schema with examples and comments."""
     # Initialize ruamel.yaml

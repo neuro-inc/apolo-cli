@@ -1,5 +1,5 @@
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Awaitable, Callable, List, Optional
 
 import aiohttp
 from yarl import URL
@@ -286,17 +286,17 @@ __all__ = (
 
 def get(
     *,
-    path: Optional[Path] = None,
+    path: Path | None = None,
     timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
-    trace_configs: Optional[List[aiohttp.TraceConfig]] = None,
+    trace_configs: list[aiohttp.TraceConfig] | None = None,
 ) -> _ContextManager[Client]:
     return _ContextManager[Client](_get(path, timeout, trace_configs))
 
 
 async def _get(
-    path: Optional[Path],
+    path: Path | None,
     timeout: aiohttp.ClientTimeout,
-    trace_configs: Optional[List[aiohttp.TraceConfig]],
+    trace_configs: list[aiohttp.TraceConfig] | None,
 ) -> Client:
     return await Factory(path, trace_configs).get(timeout=timeout)
 
@@ -305,7 +305,7 @@ async def login(
     show_browser_cb: Callable[[URL], Awaitable[None]],
     *,
     url: URL = DEFAULT_API_URL,
-    path: Optional[Path] = None,
+    path: Path | None = None,
     timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
 ) -> None:
     await Factory(path).login(show_browser_cb, url=url, timeout=timeout)
@@ -315,7 +315,7 @@ async def login_with_token(
     token: str,
     *,
     url: URL = DEFAULT_API_URL,
-    path: Optional[Path] = None,
+    path: Path | None = None,
     timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
 ) -> None:
     await Factory(path).login_with_token(token, url=url, timeout=timeout)
@@ -325,7 +325,7 @@ async def login_headless(
     get_auth_code_cb: Callable[[URL], Awaitable[str]],
     *,
     url: URL = DEFAULT_API_URL,
-    path: Optional[Path] = None,
+    path: Path | None = None,
     timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
 ) -> None:
     await Factory(path).login_headless(get_auth_code_cb, url=url, timeout=timeout)
@@ -333,7 +333,7 @@ async def login_headless(
 
 async def logout(
     *,
-    path: Optional[Path] = None,
-    show_browser_cb: Optional[Callable[[URL], Awaitable[None]]] = None,
+    path: Path | None = None,
+    show_browser_cb: Callable[[URL], Awaitable[None]] | None = None,
 ) -> None:
     await Factory(path).logout(show_browser_cb)

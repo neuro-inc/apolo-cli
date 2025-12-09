@@ -1,4 +1,5 @@
-from typing import Any, Awaitable, Callable, List, Tuple
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import pytest
 from dateutil.parser import isoparse
@@ -50,8 +51,8 @@ async def test_bucket_credentials_formatter(rich_cmp: Any) -> None:
     rich_cmp(await fmtr(credentials))
 
 
-CredListFixture = Tuple[
-    List[PersistentBucketCredentials], Callable[[str], Awaitable[Bucket]]
+CredListFixture = tuple[
+    list[PersistentBucketCredentials], Callable[[str], Awaitable[Bucket]]
 ]
 
 

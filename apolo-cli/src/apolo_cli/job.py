@@ -5,9 +5,9 @@ import logging
 import shlex
 import sys
 import webbrowser
+from collections.abc import AsyncIterator, Sequence
 from contextlib import AsyncExitStack
 from datetime import datetime, timedelta, timezone
-from typing import AsyncIterator, List, Optional, Sequence, Set, Tuple
 
 import click
 from dateutil.parser import isoparse
@@ -115,14 +115,14 @@ def job() -> None:
     """
 
 
-@command(context_settings=dict(allow_interspersed_args=False))
+@command(context_settings={"allow_interspersed_args": False})
 @argument("job", type=JOB)
 @argument("cmd", nargs=-1, type=click.UNPROCESSED, metavar="-- CMD...", required=True)
 @TTY_OPT
 async def exec(
     root: Root,
     job: str,
-    tty: Optional[bool],
+    tty: bool | None,
     cmd: Sequence[str],
 ) -> None:
     """
@@ -159,7 +159,7 @@ async def exec(
     metavar="LOCAL_PORT:REMOTE_RORT...",
 )
 async def port_forward(
-    root: Root, job: str, local_remote_port: List[Tuple[int, int]]
+    root: Root, job: str, local_remote_port: list[tuple[int, int]]
 ) -> None:
     """
     Forward port(s) of a job.
@@ -253,7 +253,7 @@ async def logs(root: Root, since: str, job: str, timestamps: bool) -> None:
     help="Forward port(s) of a running job to local port(s) "
     "(use multiple times for forwarding several ports)",
 )
-async def attach(root: Root, job: str, port_forward: List[Tuple[int, int]]) -> None:
+async def attach(root: Root, job: str, port_forward: list[tuple[int, int]]) -> None:
     """
     Attach terminal to a job
 
@@ -406,7 +406,7 @@ async def ls(
     until: str,
     description: str,
     wide: bool,
-    format: Optional[JobTableFormat],
+    format: JobTableFormat | None,
     full_uri: bool,
 ) -> None:
     """
@@ -484,7 +484,7 @@ async def ls(
             async def _filter_distinct(
                 jobs_iter: AsyncIterator[JobDescription],
             ) -> AsyncIterator[JobDescription]:
-                names: Set[str] = set()
+                names: set[str] = set()
                 async for job in jobs_iter:
                     if job.name in names:
                         continue
@@ -667,7 +667,7 @@ async def top(
     until: str,
     description: str,
     sort: str,
-    format: Optional[JobTableFormat],
+    format: JobTableFormat | None,
     full_uri: bool,
     timeout: float,
     project: Sequence[str],
@@ -689,7 +689,7 @@ async def top(
     if not cluster:
         cluster = root.client.config.cluster_name
 
-    observed: Set[str] = set()
+    observed: set[str] = set()
     loop = asyncio.get_event_loop()
 
     if jobs:
@@ -753,7 +753,7 @@ async def top(
                             job async for job in jobs if job.description == description
                         )
 
-                    dt: Optional[datetime]
+                    dt: datetime | None
                     dt = datetime.now(timezone.utc) - timedelta(minutes=1)
                     if since_dt is None or since_dt < dt:
                         since_dt = dt
@@ -863,7 +863,7 @@ async def kill(root: Root, jobs: Sequence[str]) -> None:
         sys.exit(1)
 
 
-@command(context_settings=dict(allow_interspersed_args=False))
+@command(context_settings={"allow_interspersed_args": False})
 @argument("image", type=RemoteImageType())
 @argument("cmd", nargs=-1, type=click.UNPROCESSED, metavar="[-- CMD...]")
 @option(
@@ -1091,36 +1091,36 @@ async def run(
     root: Root,
     image: RemoteImage,
     preset: str,
-    cluster: Optional[str],
-    org: Optional[str],
+    cluster: str | None,
+    org: str | None,
     extshm: bool,
-    http: Optional[int],
+    http: int | None,
     http_port: int,
-    http_auth: Optional[bool],
-    entrypoint: Optional[str],
+    http_auth: bool | None,
+    entrypoint: str | None,
     cmd: Sequence[str],
-    workdir: Optional[str],
+    workdir: str | None,
     volume: Sequence[str],
     env: Sequence[str],
     env_file: Sequence[str],
     restart: str,
-    life_span: Optional[str],
-    name: Optional[str],
+    life_span: str | None,
+    name: str | None,
     tag: Sequence[str],
-    description: Optional[str],
+    description: str | None,
     wait_start: bool,
     pass_config: bool,
     wait_for_seat: bool,
-    port_forward: List[Tuple[int, int]],
+    port_forward: list[tuple[int, int]],
     browse: bool,
     detach: bool,
-    tty: Optional[bool],
-    schedule_timeout: Optional[str],
+    tty: bool | None,
+    schedule_timeout: str | None,
     privileged: bool,
     share: Sequence[str],
-    priority: Optional[str],
-    energy_schedule: Optional[str],
-    project: Optional[str],
+    priority: str | None,
+    energy_schedule: str | None,
+    project: str | None,
 ) -> None:
     """
     Run a job
@@ -1235,34 +1235,34 @@ async def run_job(
     image: RemoteImage,
     preset: str,
     extshm: bool,
-    http_port: Optional[int],
-    http_auth: Optional[bool],
-    entrypoint: Optional[str],
+    http_port: int | None,
+    http_auth: bool | None,
+    entrypoint: str | None,
     cmd: Sequence[str],
-    working_dir: Optional[str],
+    working_dir: str | None,
     volume: Sequence[str],
     env: Sequence[str],
     env_file: Sequence[str],
     restart: str,
-    life_span: Optional[str],
-    port_forward: List[Tuple[int, int]],
-    name: Optional[str],
+    life_span: str | None,
+    port_forward: list[tuple[int, int]],
+    name: str | None,
     tags: Sequence[str],
-    description: Optional[str],
+    description: str | None,
     wait_start: bool,
     pass_config: bool,
     wait_for_jobs_quota: bool,
     browse: bool,
     detach: bool,
     tty: bool,
-    schedule_timeout: Optional[str],
+    schedule_timeout: str | None,
     privileged: bool,
     share: Sequence[str],
     cluster_name: str,
-    org_name: Optional[str],
-    priority: Optional[str],
-    energy_schedule_name: Optional[str],
-    project_name: Optional[str],
+    org_name: str | None,
+    priority: str | None,
+    energy_schedule_name: str | None,
+    project_name: str | None,
 ) -> JobDescription:
     if http_auth is None:
         http_auth = True
@@ -1414,7 +1414,7 @@ async def browse_job(root: Root, job: JobDescription) -> None:
     await loop.run_in_executor(None, webbrowser.open, str(url))
 
 
-def calc_statuses(status: Sequence[str], all: bool) -> Set[JobStatus]:
+def calc_statuses(status: Sequence[str], all: bool) -> set[JobStatus]:
     statuses = set(status)
     if all:
         if statuses:
@@ -1428,7 +1428,7 @@ def calc_statuses(status: Sequence[str], all: bool) -> Set[JobStatus]:
 
 
 async def calc_ps_columns(
-    client: Client, format: Optional[JobTableFormat]
+    client: Client, format: JobTableFormat | None
 ) -> JobTableFormat:
     if format is None:
         config = await client.config.get_user_config()
@@ -1442,7 +1442,7 @@ async def calc_ps_columns(
 
 
 async def calc_top_columns(
-    client: Client, format: Optional[JobTableFormat]
+    client: Client, format: JobTableFormat | None
 ) -> JobTableFormat:
     if format is None:
         config = await client.config.get_user_config()
@@ -1455,7 +1455,7 @@ async def calc_top_columns(
     return format
 
 
-def _parse_date(value: str) -> Optional[datetime]:
+def _parse_date(value: str) -> datetime | None:
     if value:
         try:
             return isoparse(value)
@@ -1480,7 +1480,7 @@ def _check_tty(root: Root, tty: bool) -> None:
         )
 
 
-def _job_to_cli_args(job: JobDescription) -> List[str]:
+def _job_to_cli_args(job: JobDescription) -> list[str]:
     res = []
     if job.preset_name:
         res += ["--preset", job.preset_name]

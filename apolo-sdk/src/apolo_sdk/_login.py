@@ -5,17 +5,11 @@ import errno
 import hashlib
 import secrets
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    List,
-    Optional,
-    Sequence,
-    Type,
     cast,
 )
 from urllib.parse import urlencode
@@ -51,7 +45,7 @@ JWT_IDENTITY_CLAIM_OPTIONS = ("identity", JWT_IDENTITY_CLAIM)
 
 
 class AuthCode:
-    def __init__(self, callback_url: Optional[URL] = None) -> None:
+    def __init__(self, callback_url: URL | None = None) -> None:
         self._future: asyncio.Future[str] = asyncio.Future()
 
         self._verifier = urlsafe_unpadded_b64encode(secrets.token_bytes(32))
@@ -164,7 +158,7 @@ class HeadlessAuthCodeCallbackClient(AuthCodeCallbackClient):
 
 
 class AuthCodeCallbackHandler:
-    def __init__(self, code: AuthCode, redirect_url: Optional[URL] = None) -> None:
+    def __init__(self, code: AuthCode, redirect_url: URL | None = None) -> None:
         self._code = code
         self._redirect_url = redirect_url
 
@@ -188,7 +182,7 @@ class AuthCodeCallbackHandler:
         error = request.query["error"]
         description = request.query.get("error_description", "")
 
-        exc_factory: Type[Exception]
+        exc_factory: type[Exception]
         if error == "unauthorized":
             exc_factory = HTTPUnauthorized
         elif error == "access_denied":
@@ -201,7 +195,7 @@ class AuthCodeCallbackHandler:
 
 
 def create_auth_code_app(
-    code: AuthCode, redirect_url: Optional[URL] = None
+    code: AuthCode, redirect_url: URL | None = None
 ) -> Application:
     app = Application()
     handler = AuthCodeCallbackHandler(code, redirect_url=redirect_url)
@@ -246,7 +240,7 @@ class _AuthToken:
     expiration_time: float
     refresh_token: str = field(repr=False)
 
-    def is_expired(self, *, now: Optional[float] = None) -> bool:
+    def is_expired(self, *, now: float | None = None) -> bool:
         if now is None:
             now = time.time()
         return self.expiration_time <= now
@@ -272,7 +266,7 @@ class _AuthToken:
         refresh_token: str,
         expiration_ratio: float = 0.75,
         *,
-        now: Optional[float] = None,
+        now: float | None = None,
     ) -> "_AuthToken":
         if now is None:
             now = time.time()
@@ -310,13 +304,13 @@ class AuthTokenClient:
         await self.close()
 
     async def request(self, code: AuthCode) -> _AuthToken:
-        payload = dict(
-            grant_type="authorization_code",
-            code_verifier=code.verifier,
-            code=await code.wait(),
-            client_id=self._client_id,
-            redirect_uri=str(code.callback_url),
-        )
+        payload = {
+            "grant_type": "authorization_code",
+            "code_verifier": code.verifier,
+            "code": await code.wait(),
+            "client_id": self._client_id,
+            "redirect_uri": str(code.callback_url),
+        }
         async with self._client.post(
             self._url,
             headers={
@@ -337,11 +331,11 @@ class AuthTokenClient:
             )
 
     async def refresh(self, token: _AuthToken) -> _AuthToken:
-        payload = dict(
-            grant_type="refresh_token",
-            refresh_token=token.refresh_token,
-            client_id=self._client_id,
-        )
+        payload = {
+            "grant_type": "refresh_token",
+            "refresh_token": token.refresh_token,
+            "client_id": self._client_id,
+        }
         async with self._client.post(
             self._url,
             headers={
@@ -379,14 +373,14 @@ class _AuthConfig:
         URL("http://127.0.0.1:54542"),
     )
 
-    success_redirect_url: Optional[URL] = None
+    success_redirect_url: URL | None = None
 
     @property
     def callback_host(self) -> str:
         return cast(str, self.callback_urls[0].host)
 
     @property
-    def callback_ports(self) -> List[int]:
+    def callback_ports(self) -> list[int]:
         return [cast(int, url.port) for url in self.callback_urls]
 
     @classmethod
@@ -398,8 +392,8 @@ class _AuthConfig:
         client_id: str,
         audience: str,
         headless_callback_url: URL,
-        success_redirect_url: Optional[URL] = None,
-        callback_urls: Optional[Sequence[URL]] = None,
+        success_redirect_url: URL | None = None,
+        callback_urls: Sequence[URL] | None = None,
     ) -> "_AuthConfig":
         return cls(
             auth_url=auth_url,

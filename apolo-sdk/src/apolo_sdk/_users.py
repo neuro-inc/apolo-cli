@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, Optional, Sequence
+from typing import Any
 
 from aiohttp.web import HTTPCreated, HTTPNoContent
 from yarl import URL
@@ -38,8 +39,8 @@ class Share:
 @rewrite_module
 @dataclass(frozen=True)
 class Quota:
-    credits: Optional[Decimal] = None
-    total_running_jobs: Optional[int] = None
+    credits: Decimal | None = None
+    total_running_jobs: int | None = None
 
 
 @rewrite_module
@@ -71,7 +72,7 @@ class Users(metaclass=NoPublicConstructor):
             total_running_jobs=ret.quota.total_running_jobs,
         )
 
-    async def get_org_quota(self) -> Optional[Quota]:
+    async def get_org_quota(self) -> Quota | None:
         if self._config.org_name is None:
             return None
         try:
@@ -88,7 +89,7 @@ class Users(metaclass=NoPublicConstructor):
         )
 
     async def get_acl(
-        self, user: str, scheme: Optional[str] = None, *, uri: Optional[URL] = None
+        self, user: str, scheme: str | None = None, *, uri: URL | None = None
     ) -> Sequence[Permission]:
         url = self._get_user_url(user) / "permissions"
         if scheme:
@@ -107,7 +108,7 @@ class Users(metaclass=NoPublicConstructor):
         return ret
 
     async def get_shares(
-        self, user: str, scheme: Optional[str] = None, *, uri: Optional[URL] = None
+        self, user: str, scheme: str | None = None, *, uri: URL | None = None
     ) -> Sequence[Share]:
         url = self._get_user_url(user) / "permissions" / "shared"
         if scheme:
@@ -185,6 +186,6 @@ class Users(metaclass=NoPublicConstructor):
         return self._config.api_url / "users" / user.replace("/", ":")
 
 
-def _permission_to_api(perm: Permission) -> Dict[str, Any]:
-    primitive: Dict[str, Any] = {"uri": str(perm.uri), "action": perm.action.value}
+def _permission_to_api(perm: Permission) -> dict[str, Any]:
+    primitive: dict[str, Any] = {"uri": str(perm.uri), "action": perm.action.value}
     return primitive

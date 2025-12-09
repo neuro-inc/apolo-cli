@@ -1,7 +1,8 @@
 import sys
+from collections.abc import Callable, Iterator
 from itertools import product
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any
 
 import pytest
 from yarl import URL

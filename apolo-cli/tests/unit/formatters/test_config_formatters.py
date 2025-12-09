@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import datetime, time
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable, Dict, Union
+from typing import Any
 
 import pytest
 import toml
@@ -65,11 +66,11 @@ RichCmp = Callable[[RenderableType], None]
         pytest.param(Decimal("1.23456"), "1.23", id="decimal"),
     ],
 )
-def test_format_quota_details(quota: Union[None, int, Decimal], expected: str) -> None:
+def test_format_quota_details(quota: int | Decimal | None, expected: str) -> None:
     assert format_quota_details(quota) == expected
 
 
-def _create_minimal_cluster_config(**kwargs: Any) -> Dict[str, Any]:
+def _create_minimal_cluster_config(**kwargs: Any) -> dict[str, Any]:
     """Create minimal cluster config with all required sections."""
     defaults = {
         "orchestrator": OrchestratorConfig(

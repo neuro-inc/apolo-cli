@@ -1,8 +1,8 @@
 import calendar
 import operator
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import time
 from decimal import Decimal
-from typing import Iterable, List, Mapping, Optional, Sequence, Union
 
 import click
 from rich import box
@@ -24,8 +24,8 @@ class ConfigFormatter:
         config: Config,
         available_jobs_counts: Mapping[str, int],
         quota: Quota,
-        org_quota: Optional[Quota],
-        config_cluster: Optional[_ConfigCluster] = None,
+        org_quota: Quota | None,
+        config_cluster: _ConfigCluster | None = None,
     ) -> RenderableType:
         table = Table(
             title="User Configuration:",
@@ -87,7 +87,7 @@ class BalanceFormatter:
         )
 
     @staticmethod
-    def calculate_balance_color(credits: Optional[Decimal] = None) -> str:
+    def calculate_balance_color(credits: Decimal | None = None) -> str:
         if not credits:  # handles both `0` and `None` cases
             return "none"
         return "green" if credits >= 0 else "red"
@@ -97,14 +97,14 @@ class ClustersFormatter:
     def __call__(
         self,
         clusters: Iterable[Cluster],
-        default_cluster: Optional[str],
-        default_org: Optional[str],
+        default_cluster: str | None,
+        default_org: str | None,
     ) -> RenderableType:
-        out: List[RenderableType] = [Text("Available clusters:", style="i")]
+        out: list[RenderableType] = [Text("Available clusters:", style="i")]
         for cluster in clusters:
-            name: Union[str, Text] = cluster.name or ""
+            name: str | Text = cluster.name or ""
             pre = "  "
-            org_names: List[Text] = [
+            org_names: list[Text] = [
                 (
                     Text(org, style="u")
                     if org == default_org and cluster.name == default_cluster
@@ -125,7 +125,7 @@ class ClustersFormatter:
 
 def _format_presets(
     presets: Mapping[str, Preset],
-    available_jobs_counts: Optional[Mapping[str, int]],
+    available_jobs_counts: Mapping[str, int] | None,
 ) -> Table:
     has_gpu = any(
         p.nvidia_gpu or p.nvidia_migs or p.amd_gpu or p.intel_gpu
@@ -227,9 +227,9 @@ def _format_cluster_energy(cluster: _ConfigCluster) -> Sequence[RenderableType]:
 
 class ClusterOrgProjectsFormatter:
     def __call__(
-        self, projects: Iterable[str], current_project: Optional[str]
+        self, projects: Iterable[str], current_project: str | None
     ) -> RenderableType:
-        out: List[RenderableType] = [Text("Available projects:", style="i")]
+        out: list[RenderableType] = [Text("Available projects:", style="i")]
         for project in projects:
             if project == current_project:
                 out.append(Text(f"* {project}", style="bold"))
@@ -251,7 +251,7 @@ class AliasesFormatter:
 _QUOTA_NOT_SET = "unlimited"
 
 
-def format_quota_details(quota: Optional[Union[int, Decimal]]) -> str:
+def format_quota_details(quota: int | Decimal | None) -> str:
     if quota is None:
         return _QUOTA_NOT_SET
     elif isinstance(quota, Decimal):

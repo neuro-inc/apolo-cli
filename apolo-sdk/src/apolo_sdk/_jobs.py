@@ -2,6 +2,7 @@ import asyncio
 import enum
 import json
 import logging
+from collections.abc import AsyncIterator, Iterable, Mapping, Sequence
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -9,13 +10,6 @@ from decimal import Decimal
 from functools import partial
 from typing import (
     Any,
-    AsyncIterator,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
     overload,
 )
 
@@ -63,15 +57,15 @@ INVALID_IMAGE_NAME = "INVALID-IMAGE-NAME"
 class Resources:
     memory: int
     cpu: float
-    nvidia_gpu: Optional[int] = None
-    amd_gpu: Optional[int] = None
-    intel_gpu: Optional[int] = None
-    nvidia_gpu_model: Optional[str] = None
-    amd_gpu_model: Optional[str] = None
-    intel_gpu_model: Optional[str] = None
+    nvidia_gpu: int | None = None
+    amd_gpu: int | None = None
+    intel_gpu: int | None = None
+    nvidia_gpu_model: str | None = None
+    amd_gpu_model: str | None = None
+    intel_gpu_model: str | None = None
     shm: bool = True
-    tpu_type: Optional[str] = None
-    tpu_software_version: Optional[str] = None
+    tpu_type: str | None = None
+    tpu_software_version: str | None = None
 
     @property
     def memory_mb(self) -> int:
@@ -115,15 +109,15 @@ class JobStatus(str, enum.Enum):
         return self in (cls.SUCCEEDED, cls.FAILED, cls.CANCELLED)
 
     @classmethod
-    def items(cls) -> Set["JobStatus"]:
+    def items(cls) -> set["JobStatus"]:
         return {item for item in cls if item != cls.UNKNOWN}
 
     @classmethod
-    def active_items(cls) -> Set["JobStatus"]:
+    def active_items(cls) -> set["JobStatus"]:
         return {item for item in cls.items() if not item.is_finished}
 
     @classmethod
-    def finished_items(cls) -> Set["JobStatus"]:
+    def finished_items(cls) -> set["JobStatus"]:
         return {item for item in cls.items() if item.is_finished}
 
     __format__ = str.__format__  # type: ignore[assignment]
@@ -142,10 +136,10 @@ class HTTPPort:
 class Container:
     image: RemoteImage
     resources: Resources
-    entrypoint: Optional[str] = None
-    command: Optional[str] = None
-    working_dir: Optional[str] = None
-    http: Optional[HTTPPort] = None
+    entrypoint: str | None = None
+    command: str | None = None
+    working_dir: str | None = None
+    http: HTTPPort | None = None
     env: Mapping[str, str] = field(default_factory=dict)
     volumes: Sequence[Volume] = field(default_factory=list)
     secret_env: Mapping[str, URL] = field(default_factory=dict)
@@ -161,7 +155,7 @@ class JobStatusItem:
     transition_time: datetime
     reason: str = ""
     description: str = ""
-    exit_code: Optional[int] = None
+    exit_code: int | None = None
 
 
 @rewrite_module
@@ -171,11 +165,11 @@ class JobStatusHistory:
     reason: str
     description: str
     restarts: int = 0
-    created_at: Optional[datetime] = None
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
-    run_time_seconds: Optional[int] = None
-    exit_code: Optional[int] = None
+    created_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    run_time_seconds: int | None = None
+    exit_code: int | None = None
     transitions: Sequence[JobStatusItem] = field(default_factory=list)
 
     @property
@@ -228,7 +222,7 @@ class JobDescription:
     id: str
     owner: str
     cluster_name: str
-    org_name: Optional[str]
+    org_name: str | None
     project_name: str
     namespace: str
     status: JobStatus
@@ -239,20 +233,20 @@ class JobDescription:
     uri: URL
     total_price_credits: Decimal
     price_credits_per_hour: Decimal
-    name: Optional[str] = None
+    name: str | None = None
     tags: Sequence[str] = ()
-    description: Optional[str] = None
+    description: str | None = None
     http_url: URL = URL()
-    internal_hostname: Optional[str] = None
-    internal_hostname_named: Optional[str] = None
+    internal_hostname: str | None = None
+    internal_hostname_named: str | None = None
     restart_policy: JobRestartPolicy = JobRestartPolicy.NEVER
-    life_span: Optional[float] = None
-    schedule_timeout: Optional[float] = None
-    preset_name: Optional[str] = None
+    life_span: float | None = None
+    schedule_timeout: float | None = None
+    preset_name: str | None = None
     preemptible_node: bool = False
     privileged: bool = False
     priority: JobPriority = JobPriority.NORMAL
-    energy_schedule_name: Optional[str] = None
+    energy_schedule_name: str | None = None
     _internal: JobDescriptionInternal = JobDescriptionInternal()
 
 
@@ -262,15 +256,15 @@ class JobTelemetry:
     cpu: float
     memory_bytes: int
     timestamp: float
-    gpu_duty_cycle: Optional[int] = None
-    gpu_memory_bytes: Optional[int] = None
+    gpu_duty_cycle: int | None = None
+    gpu_memory_bytes: int | None = None
 
     @property
     def memory(self) -> float:
         return self.memory_bytes / 2**20
 
     @property
-    def gpu_memory(self) -> Optional[float]:
+    def gpu_memory(self) -> float | None:
         if self.gpu_memory_bytes is None:
             return None
         return self.gpu_memory_bytes / 2**20
@@ -293,7 +287,7 @@ class StdStream:
         self._closing = True
         await self._ws.close()
 
-    async def read_out(self) -> Optional[Message]:
+    async def read_out(self) -> Message | None:
         if self._closing:
             return None
         msg = await self._ws.receive()
@@ -332,7 +326,7 @@ class Jobs(metaclass=NoPublicConstructor):
         self._config = config
         self._parse = parse
 
-    def _get_monitoring_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_monitoring_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return self._config.get_cluster(cluster_name).monitoring_url
@@ -341,18 +335,18 @@ class Jobs(metaclass=NoPublicConstructor):
         self,
         container: Container,
         *,
-        name: Optional[str] = None,
+        name: str | None = None,
         tags: Sequence[str] = (),
-        description: Optional[str] = None,
+        description: str | None = None,
         scheduler_enabled: bool = False,
         pass_config: bool = False,
         wait_for_jobs_quota: bool = False,
-        schedule_timeout: Optional[float] = None,
+        schedule_timeout: float | None = None,
         restart_policy: JobRestartPolicy = JobRestartPolicy.NEVER,
-        life_span: Optional[float] = None,
-        org_name: Optional[str] = None,
-        priority: Optional[JobPriority] = None,
-        project_name: Optional[str] = None,
+        life_span: float | None = None,
+        org_name: str | None = None,
+        priority: JobPriority | None = None,
+        project_name: str | None = None,
     ) -> JobDescription:
         url = self._config.api_url / "jobs"
         if not project_name:
@@ -397,31 +391,31 @@ class Jobs(metaclass=NoPublicConstructor):
         *,
         image: RemoteImage,
         preset_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        entrypoint: Optional[str] = None,
-        command: Optional[str] = None,
-        working_dir: Optional[str] = None,
-        http: Optional[HTTPPort] = None,
-        env: Optional[Mapping[str, str]] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        entrypoint: str | None = None,
+        command: str | None = None,
+        working_dir: str | None = None,
+        http: HTTPPort | None = None,
+        env: Mapping[str, str] | None = None,
         volumes: Sequence[Volume] = (),
-        secret_env: Optional[Mapping[str, URL]] = None,
+        secret_env: Mapping[str, URL] | None = None,
         secret_files: Sequence[SecretFile] = (),
         disk_volumes: Sequence[DiskVolume] = (),
         tty: bool = False,
         shm: bool = False,
-        name: Optional[str] = None,
+        name: str | None = None,
         tags: Sequence[str] = (),
-        description: Optional[str] = None,
+        description: str | None = None,
         pass_config: bool = False,
         wait_for_jobs_quota: bool = False,
-        schedule_timeout: Optional[float] = None,
+        schedule_timeout: float | None = None,
         restart_policy: JobRestartPolicy = JobRestartPolicy.NEVER,
-        life_span: Optional[float] = None,
+        life_span: float | None = None,
         privileged: bool = False,
-        priority: Optional[JobPriority] = None,
-        energy_schedule_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        priority: JobPriority | None = None,
+        energy_schedule_name: str | None = None,
+        project_name: str | None = None,
     ) -> JobDescription:
         url = (self._config.api_url / "jobs").with_query("from_preset")
         container_payload = _container_to_api(
@@ -470,16 +464,16 @@ class Jobs(metaclass=NoPublicConstructor):
         name: str = "",
         tags: Iterable[str] = (),
         owners: Iterable[str] = (),
-        since: Optional[datetime] = None,
-        until: Optional[datetime] = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
         reverse: bool = False,
-        limit: Optional[int] = None,
-        cluster_name: Optional[str] = None,
-        org_names: Iterable[Optional[str]] = (),
+        limit: int | None = None,
+        cluster_name: str | None = None,
+        org_names: Iterable[str | None] = (),
         project_names: Iterable[str] = (),
-        _materialized: Optional[bool] = None,
-        _being_dropped: Optional[bool] = False,
-        _logs_removed: Optional[bool] = False,
+        _materialized: bool | None = None,
+        _being_dropped: bool | None = False,
+        _logs_removed: bool | None = False,
     ) -> AsyncIterator[JobDescription]:
         if not org_names:
             org_names = [self._config.org_name]
@@ -558,10 +552,10 @@ class Jobs(metaclass=NoPublicConstructor):
         self,
         id: str,
         *,
-        cluster_name: Optional[str] = None,
-        since: Optional[datetime] = None,
+        cluster_name: str | None = None,
+        since: datetime | None = None,
         timestamps: bool = False,
-        separator: Optional[str] = None,
+        separator: str | None = None,
         debug: bool = False,
     ) -> AsyncIterator[bytes]:
         url = self._get_monitoring_url(cluster_name) / id / "log_ws"
@@ -601,7 +595,7 @@ class Jobs(metaclass=NoPublicConstructor):
 
     @asyncgeneratorcontextmanager
     async def top(
-        self, id: str, *, cluster_name: Optional[str] = None
+        self, id: str, *, cluster_name: str | None = None
     ) -> AsyncIterator[JobTelemetry]:
         url = self._get_monitoring_url(cluster_name) / id / "top"
         auth = await self._config._api_auth()
@@ -628,8 +622,8 @@ class Jobs(metaclass=NoPublicConstructor):
         id: str,
         image: RemoteImage,
         *,
-        progress: Optional[AbstractDockerImageProgress] = None,
-        cluster_name: Optional[str] = None,
+        progress: AbstractDockerImageProgress | None = None,
+        cluster_name: str | None = None,
     ) -> None:
         if not image._is_in_apolo_registry:
             raise ValueError(f"Image `{image}` must be in the platform registry")
@@ -674,7 +668,7 @@ class Jobs(metaclass=NoPublicConstructor):
         job_port: int,
         *,
         no_key_check: bool = False,
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> AsyncIterator[None]:
         srv = await asyncio.start_server(
             partial(
@@ -696,7 +690,7 @@ class Jobs(metaclass=NoPublicConstructor):
         id: str,
         job_port: int,
         *,
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> None:
         try:
             loop = asyncio.get_event_loop()
@@ -761,7 +755,7 @@ class Jobs(metaclass=NoPublicConstructor):
         stdin: bool = False,
         stdout: bool = False,
         stderr: bool = False,
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> AsyncIterator[StdStream]:
         url = self._get_monitoring_url(cluster_name) / id / "attach"
         url = url.with_query(
@@ -794,7 +788,7 @@ class Jobs(metaclass=NoPublicConstructor):
         stdin: bool = False,
         stdout: bool = False,
         stderr: bool = False,
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> AsyncIterator[StdStream]:
         url = self._get_monitoring_url(cluster_name) / id / "exec"
         url = url.with_query(
@@ -818,14 +812,14 @@ class Jobs(metaclass=NoPublicConstructor):
             finally:
                 await ws.close()
 
-    async def send_signal(self, id: str, *, cluster_name: Optional[str] = None) -> None:
+    async def send_signal(self, id: str, *, cluster_name: str | None = None) -> None:
         url = self._get_monitoring_url(cluster_name) / id / "kill"
         auth = await self._config._api_auth()
         async with self._core.request("POST", url, auth=auth) as resp:
             resp
 
     async def get_capacity(
-        self, *, cluster_name: Optional[str] = None
+        self, *, cluster_name: str | None = None
     ) -> Mapping[str, int]:
         url = self._get_monitoring_url(cluster_name) / "capacity"
         auth = await self._config._api_auth()
@@ -836,12 +830,12 @@ class Jobs(metaclass=NoPublicConstructor):
 #  ############## Internal helpers ###################
 
 
-def _load_chunk(chunk: bytes) -> Dict[str, Any]:
+def _load_chunk(chunk: bytes) -> dict[str, Any]:
     return json.loads(chunk.decode())
 
 
 def _parse_commit_started_chunk(
-    job_id: str, obj: Dict[str, Any], parse: Parser
+    job_id: str, obj: dict[str, Any], parse: Parser
 ) -> ImageCommitStarted:
     _raise_for_invalid_commit_chunk(obj, expect_started=True)
     details_json = obj.get("details", {})
@@ -852,13 +846,13 @@ def _parse_commit_started_chunk(
 
 
 def _parse_commit_finished_chunk(
-    job_id: str, obj: Dict[str, Any]
+    job_id: str, obj: dict[str, Any]
 ) -> ImageCommitFinished:
     _raise_for_invalid_commit_chunk(obj, expect_started=False)
     return ImageCommitFinished(job_id)
 
 
-def _raise_for_invalid_commit_chunk(obj: Dict[str, Any], expect_started: bool) -> None:
+def _raise_for_invalid_commit_chunk(obj: dict[str, Any], expect_started: bool) -> None:
     _raise_on_error_chunk(obj)
     if "status" not in obj.keys():
         raise DockerError(400, {"message": 'Missing required field: "status"'})
@@ -871,8 +865,8 @@ def _raise_for_invalid_commit_chunk(obj: Dict[str, Any], expect_started: bool) -
         )
 
 
-def _resources_to_api(resources: Resources) -> Dict[str, Any]:
-    value: Dict[str, Any] = {
+def _resources_to_api(resources: Resources) -> dict[str, Any]:
+    value: dict[str, Any] = {
         "memory": resources.memory,
         "cpu": resources.cpu,
         "shm": resources.shm,
@@ -898,7 +892,7 @@ def _resources_to_api(resources: Resources) -> Dict[str, Any]:
     return value
 
 
-def _resources_from_api(data: Dict[str, Any]) -> Resources:
+def _resources_from_api(data: dict[str, Any]) -> Resources:
     tpu_type = tpu_software_version = None
     if "tpu" in data:
         tpu = data["tpu"]
@@ -919,18 +913,18 @@ def _resources_from_api(data: Dict[str, Any]) -> Resources:
     )
 
 
-def _http_port_to_api(port: HTTPPort) -> Dict[str, Any]:
+def _http_port_to_api(port: HTTPPort) -> dict[str, Any]:
     return {"port": port.port, "requires_auth": port.requires_auth}
 
 
-def _http_port_from_api(data: Dict[str, Any]) -> HTTPPort:
+def _http_port_from_api(data: dict[str, Any]) -> HTTPPort:
     return HTTPPort(
         port=data.get("port", -1), requires_auth=data.get("requires_auth", False)
     )
 
 
 def _container_from_api(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     cluster_name: str,
     parse: Parser,
 ) -> Container:
@@ -946,7 +940,7 @@ def _container_from_api(
         command=data.get("command", None),
         working_dir=data.get("working_dir"),
         http=_http_port_from_api(data["http"]) if "http" in data else None,
-        env=data.get("env", dict()),
+        env=data.get("env", {}),
         volumes=[_volume_from_api(v) for v in data.get("volumes", [])],
         secret_env={name: URL(val) for name, val in data.get("secret_env", {}).items()},
         secret_files=[_secret_file_from_api(v) for v in data.get("secret_volumes", [])],
@@ -958,19 +952,19 @@ def _container_from_api(
 def _container_to_api(
     config: Config,
     image: RemoteImage,
-    entrypoint: Optional[str] = None,
-    command: Optional[str] = None,
-    working_dir: Optional[str] = None,
-    http: Optional[HTTPPort] = None,
-    env: Optional[Mapping[str, str]] = None,
+    entrypoint: str | None = None,
+    command: str | None = None,
+    working_dir: str | None = None,
+    http: HTTPPort | None = None,
+    env: Mapping[str, str] | None = None,
     volumes: Sequence[Volume] = (),
-    secret_env: Optional[Mapping[str, URL]] = None,
+    secret_env: Mapping[str, URL] | None = None,
     secret_files: Sequence[SecretFile] = (),
     disk_volumes: Sequence[DiskVolume] = (),
     tty: bool = False,
     shm: bool = False,
-) -> Dict[str, Any]:
-    primitive: Dict[str, Any] = {"image": image.as_docker_url()}
+) -> dict[str, Any]:
+    primitive: dict[str, Any] = {"image": image.as_docker_url()}
     if shm:
         primitive["resources"] = {"shm": shm}
     if entrypoint:
@@ -1018,7 +1012,7 @@ def _calc_status(stat: str) -> JobStatus:
         return JobStatus.UNKNOWN
 
 
-def _job_status_item_from_api(res: Dict[str, Any]) -> JobStatusItem:
+def _job_status_item_from_api(res: dict[str, Any]) -> JobStatusItem:
     return JobStatusItem(
         status=_calc_status(res.get("status", "unknown")),
         transition_time=_parse_datetime(res["transition_time"]),
@@ -1028,7 +1022,7 @@ def _job_status_item_from_api(res: Dict[str, Any]) -> JobStatusItem:
     )
 
 
-def _job_description_from_api(res: Dict[str, Any], parse: Parser) -> JobDescription:
+def _job_description_from_api(res: dict[str, Any], parse: Parser) -> JobDescription:
     # TODO y.s.: maybe, catch KeyErrors and re-raise with an error message like
     #   "SDK and API has incompatible versions: {key} was not found in the API response"
     cluster_name = res["cluster_name"]
@@ -1105,21 +1099,21 @@ def _job_description_from_api(res: Dict[str, Any], parse: Parser) -> JobDescript
 def _job_to_api(
     cluster_name: str,
     project_name: str,
-    name: Optional[str] = None,
-    preset_name: Optional[str] = None,
+    name: str | None = None,
+    preset_name: str | None = None,
     tags: Sequence[str] = (),
-    description: Optional[str] = None,
+    description: str | None = None,
     pass_config: bool = False,
     wait_for_jobs_quota: bool = False,
-    schedule_timeout: Optional[float] = None,
+    schedule_timeout: float | None = None,
     restart_policy: JobRestartPolicy = JobRestartPolicy.NEVER,
-    life_span: Optional[float] = None,
+    life_span: float | None = None,
     privileged: bool = False,
-    org_name: Optional[str] = None,
-    priority: Optional[JobPriority] = None,
-    energy_schedule_name: Optional[str] = None,
-) -> Dict[str, Any]:
-    primitive: Dict[str, Any] = {
+    org_name: str | None = None,
+    priority: JobPriority | None = None,
+    energy_schedule_name: str | None = None,
+) -> dict[str, Any]:
+    primitive: dict[str, Any] = {
         "pass_config": pass_config,
         "project_name": project_name,
     }
@@ -1151,7 +1145,7 @@ def _job_to_api(
     return primitive
 
 
-def _job_telemetry_from_api(value: Dict[str, Any]) -> JobTelemetry:
+def _job_telemetry_from_api(value: dict[str, Any]) -> JobTelemetry:
     return JobTelemetry(
         cpu=value["cpu"],
         memory_bytes=value["memory_bytes"],
@@ -1161,14 +1155,14 @@ def _job_telemetry_from_api(value: Dict[str, Any]) -> JobTelemetry:
     )
 
 
-def _volume_to_api(volume: Volume, config: Config) -> Dict[str, Any]:
+def _volume_to_api(volume: Volume, config: Config) -> dict[str, Any]:
     uri = normalize_storage_path_uri(
         volume.storage_uri,
         config.project_name_or_raise,
         config.cluster_name,
         config.org_name,
     )
-    resp: Dict[str, Any] = {
+    resp: dict[str, Any] = {
         "src_storage_uri": str(uri),
         "dst_path": volume.container_path,
         "read_only": bool(volume.read_only),
@@ -1176,7 +1170,7 @@ def _volume_to_api(volume: Volume, config: Config) -> Dict[str, Any]:
     return resp
 
 
-def _secret_file_to_api(secret_file: SecretFile, config: Config) -> Dict[str, Any]:
+def _secret_file_to_api(secret_file: SecretFile, config: Config) -> dict[str, Any]:
     uri = normalize_secret_uri(
         secret_file.secret_uri,
         config.project_name_or_raise,
@@ -1189,14 +1183,14 @@ def _secret_file_to_api(secret_file: SecretFile, config: Config) -> Dict[str, An
     }
 
 
-def _disk_volume_to_api(volume: DiskVolume, config: Config) -> Dict[str, Any]:
+def _disk_volume_to_api(volume: DiskVolume, config: Config) -> dict[str, Any]:
     uri = normalize_disk_uri(
         volume.disk_uri,
         config.project_name_or_raise,
         config.cluster_name,
         config.org_name,
     )
-    resp: Dict[str, Any] = {
+    resp: dict[str, Any] = {
         "src_disk_uri": str(uri),
         "dst_path": volume.container_path,
         "read_only": bool(volume.read_only),
@@ -1204,7 +1198,7 @@ def _disk_volume_to_api(volume: DiskVolume, config: Config) -> Dict[str, Any]:
     return resp
 
 
-def _volume_from_api(data: Dict[str, Any]) -> Volume:
+def _volume_from_api(data: dict[str, Any]) -> Volume:
     storage_uri = URL(data["src_storage_uri"])
     container_path = data["dst_path"]
     read_only = data.get("read_only", True)
@@ -1213,13 +1207,13 @@ def _volume_from_api(data: Dict[str, Any]) -> Volume:
     )
 
 
-def _secret_file_from_api(data: Dict[str, Any]) -> SecretFile:
+def _secret_file_from_api(data: dict[str, Any]) -> SecretFile:
     secret_uri = URL(data["src_secret_uri"])
     container_path = data["dst_path"]
     return SecretFile(secret_uri, container_path)
 
 
-def _disk_volume_from_api(data: Dict[str, Any]) -> DiskVolume:
+def _disk_volume_from_api(data: dict[str, Any]) -> DiskVolume:
     disk_uri = URL(data["src_disk_uri"])
     container_path = data["dst_path"]
     read_only = data.get("read_only", True)
@@ -1231,10 +1225,10 @@ def _parse_datetime(dt: str) -> datetime: ...
 
 
 @overload
-def _parse_datetime(dt: Optional[str]) -> Optional[datetime]: ...
+def _parse_datetime(dt: str | None) -> datetime | None: ...
 
 
-def _parse_datetime(dt: Optional[str]) -> Optional[datetime]:
+def _parse_datetime(dt: str | None) -> datetime | None:
     if dt is None:
         return None
     return isoparse(dt)

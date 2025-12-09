@@ -3,8 +3,9 @@ import json
 import logging
 import sys
 from collections import namedtuple
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any
 
 import pytest
 from yarl import URL
@@ -19,7 +20,7 @@ SysCapWithCode = namedtuple("SysCapWithCode", ["out", "err", "code"])
 log = logging.getLogger(__name__)
 
 
-_RunCli = Callable[[List[str]], SysCapWithCode]
+_RunCli = Callable[[list[str]], SysCapWithCode]
 
 
 @pytest.fixture()
@@ -27,12 +28,12 @@ def config(root: Root) -> Config:
     return root.client.config
 
 
-_RunDch = Callable[[List[str]], SysCapWithCode]
+_RunDch = Callable[[list[str]], SysCapWithCode]
 
 
 @pytest.fixture()
 def run_dch(capfd: Any, monkeypatch: Any, tmp_path: Path, nmrc_path: Path) -> _RunDch:
-    def _run_dch(arguments: List[str]) -> SysCapWithCode:
+    def _run_dch(arguments: list[str]) -> SysCapWithCode:
 
         log.info("Run 'docker-helper-apolo %s'", " ".join(arguments))
         code = EX_OK

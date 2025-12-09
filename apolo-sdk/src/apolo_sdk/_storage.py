@@ -7,6 +7,14 @@ import logging
 import os
 import re
 import time
+from collections.abc import (
+    AsyncGenerator,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Iterable,
+    Mapping,
+)
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -14,16 +22,7 @@ from stat import S_ISREG
 from typing import (
     AbstractSet,
     Any,
-    AsyncGenerator,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Mapping,
     Optional,
-    Tuple,
-    Union,
     cast,
 )
 
@@ -92,7 +91,7 @@ class FileStatus:
     modification_time: int
     permission: Action
     uri: URL
-    target: Optional[str] = None
+    target: str | None = None
 
     def is_file(self) -> bool:
         return self.type == FileStatusType.FILE
@@ -116,7 +115,7 @@ class DiskUsageInfo:
     used: int
     free: int
     org_name: str
-    uri: Optional[URL] = None
+    uri: URL | None = None
 
 
 @rewrite_module
@@ -156,7 +155,7 @@ class Storage(metaclass=NoPublicConstructor):
 
     def _check_upload(
         self, local: os.stat_result, remote: FileStatus, update: bool, continue_: bool
-    ) -> Optional[int]:
+    ) -> int | None:
         if (
             local.st_mtime - remote.modification_time
             > self._min_time_diff - TIME_THRESHOLD
@@ -175,7 +174,7 @@ class Storage(metaclass=NoPublicConstructor):
 
     def _check_download(
         self, local: os.stat_result, remote: FileStatus, update: bool, continue_: bool
-    ) -> Optional[int]:
+    ) -> int | None:
         # Add 1 because remote.modification_time has been truncated
         # and can be up to 1 second less than the actual value.
         if (
@@ -323,7 +322,7 @@ class Storage(metaclass=NoPublicConstructor):
         async with self._core.request("PUT", url, auth=auth) as resp:
             resp  # resp.status == 201
 
-    async def create(self, uri: URL, data: Union[bytes, AsyncIterator[bytes]]) -> None:
+    async def create(self, uri: URL, data: bytes | AsyncIterator[bytes]) -> None:
         url = self._get_storage_url(uri)
         url = url.with_query(op="CREATE")
         timeout = attr.evolve(self._core.timeout, sock_read=None)
@@ -365,9 +364,9 @@ class Storage(metaclass=NoPublicConstructor):
 
     async def disk_usage(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        uri: Optional[URL] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        uri: URL | None = None,
     ) -> DiskUsageInfo:
         cluster_name = cluster_name or self._config.cluster_name
         org_name_val = org_name or self._config.org_name
@@ -387,7 +386,7 @@ class Storage(metaclass=NoPublicConstructor):
             return _disk_usage_from_api(cluster_name, org_name_val, uri, res)
 
     def _create_disk_usage_uri(
-        self, cluster_name: Optional[str], org_name: Optional[str]
+        self, cluster_name: str | None, org_name: str | None
     ) -> URL:
         if org_name:
             uri = self._normalize_uri(
@@ -405,7 +404,7 @@ class Storage(metaclass=NoPublicConstructor):
 
     @asyncgeneratorcontextmanager
     async def open(
-        self, uri: URL, offset: int = 0, size: Optional[int] = None
+        self, uri: URL, offset: int = 0, size: int | None = None
     ) -> AsyncIterator[bytes]:
         url = self._get_storage_url(uri)
         url = url.with_query(op="OPEN")
@@ -446,7 +445,7 @@ class Storage(metaclass=NoPublicConstructor):
         uri: URL,
         *,
         recursive: bool = False,
-        progress: Optional[AbstractDeleteProgress] = None,
+        progress: AbstractDeleteProgress | None = None,
     ) -> None:
         # TODO (asvetlov): add a minor protection against deleting everything from root
         # or user volume root, however force operation here should allow user to delete
@@ -525,7 +524,7 @@ class Storage(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        progress: Optional[AbstractFileProgress] = None,
+        progress: AbstractFileProgress | None = None,
     ) -> None:
         src = normalize_local_path_uri(src)
         dst = self._normalize_uri(dst)
@@ -542,7 +541,7 @@ class Storage(metaclass=NoPublicConstructor):
                 raise
             # Ignore stat errors for device files like NUL or CON on Windows.
             # See https://bugs.python.org/issue37074
-        offset: Optional[int] = 0
+        offset: int | None = 0
         try:
             dst_stat = await self.stat(dst)
             if dst_stat.is_dir():
@@ -624,9 +623,9 @@ class Storage(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        filter: Optional[AsyncFilterFunc] = None,
+        filter: AsyncFilterFunc | None = None,
         ignore_file_names: AbstractSet[str] = frozenset(),
-        progress: Optional[AbstractRecursiveFileProgress] = None,
+        progress: AbstractRecursiveFileProgress | None = None,
     ) -> None:
         src = normalize_local_path_uri(src)
         dst = self._normalize_uri(dst)
@@ -716,7 +715,7 @@ class Storage(metaclass=NoPublicConstructor):
                 log.debug(f"Skip {child_rel_path}")
                 continue
             if child.is_file():
-                offset: Optional[int] = 0
+                offset: int | None = 0
                 if (update or continue_) and name in dst_files:
                     offset = self._check_upload(
                         child.stat(), dst_files[name], update, continue_
@@ -763,7 +762,7 @@ class Storage(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        progress: Optional[AbstractFileProgress] = None,
+        progress: AbstractFileProgress | None = None,
     ) -> None:
         src = self._normalize_uri(src)
         dst = normalize_local_path_uri(dst)
@@ -771,7 +770,7 @@ class Storage(metaclass=NoPublicConstructor):
         src_stat = await self.stat(src)
         if not src_stat.is_file():
             raise IsADirectoryError(errno.EISDIR, "Is a directory", str(src))
-        offset: Optional[int] = 0
+        offset: int | None = 0
         if update or continue_:
             try:
                 dst_stat = path.stat()
@@ -832,8 +831,8 @@ class Storage(metaclass=NoPublicConstructor):
         *,
         update: bool = False,
         continue_: bool = False,
-        filter: Optional[AsyncFilterFunc] = None,
-        progress: Optional[AbstractRecursiveFileProgress] = None,
+        filter: AsyncFilterFunc | None = None,
+        progress: AbstractRecursiveFileProgress | None = None,
     ) -> None:
         if filter is None:
             filter = _always
@@ -896,7 +895,7 @@ class Storage(metaclass=NoPublicConstructor):
                 log.debug(f"Skip {child_rel_path}")
                 continue
             if child.is_file():
-                offset: Optional[int] = 0
+                offset: int | None = 0
                 if (update or continue_) and name in dst_files:
                     offset = self._check_download(
                         dst_files[name].stat(), child, update, continue_
@@ -953,7 +952,7 @@ def _isrecursive(pattern: str) -> bool:
     return pattern == "**"
 
 
-def _file_status_from_api_ls(base_uri: URL, values: Dict[str, Any]) -> FileStatus:
+def _file_status_from_api_ls(base_uri: URL, values: dict[str, Any]) -> FileStatus:
     path = values["path"]
     try:
         type = FileStatusType(values["type"])
@@ -970,7 +969,7 @@ def _file_status_from_api_ls(base_uri: URL, values: Dict[str, Any]) -> FileStatu
     )
 
 
-def _file_status_from_api_stat(cluster_name: str, values: Dict[str, Any]) -> FileStatus:
+def _file_status_from_api_stat(cluster_name: str, values: dict[str, Any]) -> FileStatus:
     base_uri = URL.build(scheme="storage", authority=cluster_name)
     path = values["path"]
     try:
@@ -991,8 +990,8 @@ def _file_status_from_api_stat(cluster_name: str, values: Dict[str, Any]) -> Fil
 def _disk_usage_from_api(
     cluster_name: str,
     org_name: str,
-    uri: Optional[URL],
-    values: Dict[str, Any],
+    uri: URL | None,
+    values: dict[str, Any],
 ) -> DiskUsageInfo:
     return DiskUsageInfo(
         cluster_name=cluster_name,
@@ -1004,7 +1003,7 @@ def _disk_usage_from_api(
     )
 
 
-def _parse_content_range(rng_str: Optional[str]) -> slice:
+def _parse_content_range(rng_str: str | None) -> slice:
     if rng_str is None:
         raise RuntimeError("Missed header Content-Range")
     m = re.fullmatch(r"bytes (\d+)-(\d+)/(\d+|\*)", rng_str)
@@ -1017,7 +1016,7 @@ def _parse_content_range(rng_str: Optional[str]) -> slice:
     return slice(start, end + 1)
 
 
-ProgressQueueItem = Optional[Tuple[Callable[[Any], None], Any]]
+ProgressQueueItem = Optional[tuple[Callable[[Any], None], Any]]
 
 
 async def run_progress(

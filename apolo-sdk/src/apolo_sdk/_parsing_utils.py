@@ -1,7 +1,6 @@
 import enum
 import re
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
 
 from yarl import URL
 
@@ -21,11 +20,11 @@ class TagOption(enum.Enum):
 @dataclass(frozen=True)
 class RemoteImage:
     name: str
-    tag: Optional[str] = None
-    registry: Optional[str] = None
-    cluster_name: Optional[str] = None
-    org_name: Optional[str] = None
-    project_name: Optional[str] = None
+    tag: str | None = None
+    registry: str | None = None
+    cluster_name: str | None = None
+    org_name: str | None = None
+    project_name: str | None = None
 
     @property
     def _is_in_apolo_registry(self) -> bool:
@@ -38,9 +37,9 @@ class RemoteImage:
         registry: str,
         *,
         cluster_name: str,
-        org_name: Optional[str],
+        org_name: str | None,
         project_name: str,
-        tag: Optional[str] = None,
+        tag: str | None = None,
     ) -> "RemoteImage":
         return RemoteImage(
             name=name,
@@ -53,7 +52,7 @@ class RemoteImage:
 
     @classmethod
     def new_external_image(
-        cls, name: str, registry: Optional[str] = None, *, tag: Optional[str] = None
+        cls, name: str, registry: str | None = None, *, tag: str | None = None
     ) -> "RemoteImage":
         return RemoteImage(name=name, tag=tag, registry=registry)
 
@@ -107,7 +106,7 @@ class RemoteImage:
 @dataclass(frozen=True)
 class LocalImage:
     name: str
-    tag: Optional[str] = None
+    tag: str | None = None
 
     def __str__(self) -> str:
         post = f":{self.tag}" if self.tag else ""
@@ -123,7 +122,7 @@ class _ImageNameParser:
         default_cluster: str,
         default_org: str,
         default_project: str,
-        registry_urls: Dict[str, URL],
+        registry_urls: dict[str, URL],
     ):
         self._default_cluster = default_cluster
         self._default_org_name = default_org
@@ -149,7 +148,7 @@ class _ImageNameParser:
     ) -> RemoteImage:
         try:
             self._validate_image_name(image)
-            tag: Optional[str]
+            tag: str | None
             if tag_option == TagOption.DEFAULT:
                 tag = "latest"
             else:
@@ -229,7 +228,7 @@ class _ImageNameParser:
         return LocalImage(name=name, tag=tag)
 
     def _parse_as_platform_image(
-        self, image: str, default_tag: Optional[str]
+        self, image: str, default_tag: str | None
     ) -> RemoteImage:
         if image.startswith("image:"):
             # Check string representation to detect also trailing "?" and "#".
@@ -292,7 +291,7 @@ class _ImageNameParser:
             project_name=project_name,
         )
 
-    def _find_by_registry(self, image: str) -> Optional[Tuple[str, str]]:
+    def _find_by_registry(self, image: str) -> tuple[str, str] | None:
         for cluster_name, registry in self._registries.items():
             if image.startswith(f"{registry}/"):
                 path = image[len(registry) :].lstrip("/")
@@ -300,8 +299,8 @@ class _ImageNameParser:
         return None
 
     def _split_image_name(
-        self, image: str, default_tag: Optional[str] = None
-    ) -> Tuple[str, Optional[str]]:
+        self, image: str, default_tag: str | None = None
+    ) -> tuple[str, str | None]:
         if image.endswith(":") or image.startswith(":"):
             # case `ubuntu:`, `:latest`
             raise ValueError("empty name or empty tag")
@@ -358,7 +357,7 @@ class _ImageNameParser:
 @dataclass(frozen=True)
 class Tag:
     name: str
-    size: Optional[int] = None
+    size: int | None = None
 
 
 def _get_url_authority(url: URL) -> str:

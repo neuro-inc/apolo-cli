@@ -1,6 +1,6 @@
 import abc
 import operator
-from typing import Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
 
 from rich import box
 from rich.console import Group as RichGroup
@@ -79,7 +79,7 @@ class BucketFormatter:
         self._uri_formatter = uri_formatter
 
     def __call__(
-        self, bucket: Bucket, credentials: Optional[Mapping[str, str]] = None
+        self, bucket: Bucket, credentials: Mapping[str, str] | None = None
     ) -> RenderableType:
         table = Table(
             box=None,

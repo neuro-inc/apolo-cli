@@ -4,7 +4,6 @@ import os
 import random
 import time
 import types
-from typing import Optional
 
 import aiohttp
 from multidict import CIMultiDict
@@ -40,7 +39,7 @@ def _update_headers(
     headers: "CIMultiDict[str]",
     trace_id: str,
     span_id: str,
-    sampled: Optional[bool] = None,
+    sampled: bool | None = None,
 ) -> None:
     """Creates dict with zipkin single header format."""
     # b3={TraceId}-{SpanId}-{SamplingState}-{ParentSpanId}

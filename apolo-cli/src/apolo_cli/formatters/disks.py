@@ -1,7 +1,7 @@
 import abc
 import operator
+from collections.abc import Sequence
 from datetime import timedelta
-from typing import Optional, Sequence
 
 from rich import box
 from rich.console import Group as RichGroup
@@ -113,7 +113,7 @@ class DiskFormatter:
         return table
 
 
-def format_disk_timeout_unused(timeout_unused: Optional[timedelta]) -> str:
+def format_disk_timeout_unused(timeout_unused: timedelta | None) -> str:
     if timeout_unused is not None:
         return format_timedelta(timeout_unused)
     else:

@@ -65,7 +65,7 @@ async def test_queue_calls_saves_args() -> None:
 
     queue, foo = queue_calls(Foo())
     args = (1, 2, 3)
-    kwargs = dict(bar="baz")
+    kwargs = {"bar": "baz"}
     await foo.bar(*args, **kwargs)
     queued_call = await queue.get()
     queued_call()

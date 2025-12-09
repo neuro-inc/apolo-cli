@@ -2,17 +2,13 @@ import abc
 import asyncio
 import errno
 import logging
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import (
     AbstractSet,
-    AsyncIterator,
-    Awaitable,
-    Callable,
     Generic,
-    Optional,
-    Tuple,
     TypeVar,
 )
 
@@ -62,7 +58,7 @@ class FileSystem(Generic[FS_PATH], abc.ABC):
         path: FS_PATH_STAT
         name: str
         size: int
-        modification_time: Optional[float]
+        modification_time: float | None
 
     @abc.abstractmethod
     async def exists(self, path: FS_PATH) -> bool:
@@ -99,7 +95,7 @@ class FileSystem(Generic[FS_PATH], abc.ABC):
         path: FS_PATH,
         body: AsyncIterator[bytes],
         offset: int = 0,
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         pass
 
@@ -124,7 +120,7 @@ class FileSystem(Generic[FS_PATH], abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         # Returns possible interval (min_diff, max_diff)
         pass
 
@@ -193,7 +189,7 @@ class LocalFS(FileSystem[Path]):
         path: Path,
         body: AsyncIterator[bytes],
         offset: int = 0,
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         loop = asyncio.get_event_loop()
         with path.open("rb+" if offset else "wb") as stream:
@@ -217,7 +213,7 @@ class LocalFS(FileSystem[Path]):
     def to_url(self, path: Path) -> URL:
         return URL(path.as_uri())
 
-    async def get_time_diff_to_local(self) -> Tuple[float, float]:
+    async def get_time_diff_to_local(self) -> tuple[float, float]:
         return 0, 0
 
     def parent(self, path: Path) -> Path:
@@ -240,7 +236,7 @@ async def rm(
     fs: FileSystem[FS_PATH],
     path: FS_PATH,
     recursive: bool,
-    progress: Optional[AbstractDeleteProgress] = None,
+    progress: AbstractDeleteProgress | None = None,
 ) -> None:
     if not await fs.exists(path):
         raise FileNotFoundError(errno.ENOENT, "No such file or directory", str(path))
@@ -308,7 +304,7 @@ class FileTransferer(Generic[S_PATH, D_PATH]):
 
     async def _check_transfer(
         self, src: S_PATH, dst: D_PATH, update: bool, continue_: bool
-    ) -> Optional[int]:
+    ) -> int | None:
         src_stat = await self.src_fs.stat(src)
         dst_stat = await self.dst_fs.stat(dst)
 
@@ -342,7 +338,7 @@ class FileTransferer(Generic[S_PATH, D_PATH]):
         *,
         continue_: bool = False,
         update: bool = False,
-        progress: Optional[AbstractFileProgress] = None,
+        progress: AbstractFileProgress | None = None,
     ) -> None:
         if not await self.src_fs.exists(src):
             raise FileNotFoundError(errno.ENOENT, "No such file", str(src))
@@ -399,9 +395,9 @@ class FileTransferer(Generic[S_PATH, D_PATH]):
         *,
         continue_: bool = False,
         update: bool = False,
-        filter: Optional[AsyncFilterFunc] = None,
+        filter: AsyncFilterFunc | None = None,
         ignore_file_names: AbstractSet[str] = frozenset(),
-        progress: Optional[AbstractRecursiveFileProgress] = None,
+        progress: AbstractRecursiveFileProgress | None = None,
     ) -> None:
         if not await self.src_fs.exists(src):
             raise FileNotFoundError(errno.ENOENT, "No such file", str(src))
@@ -482,7 +478,7 @@ class FileTransferer(Generic[S_PATH, D_PATH]):
                 logger.debug(f"Skip {child_rel_path}")
                 continue
             if await self.src_fs.is_file(child):
-                offset: Optional[int] = 0
+                offset: int | None = 0
                 if (update or continue_) and name in dst_files:
                     offset = await self._check_transfer(
                         child, dst_files[name], update=update, continue_=continue_

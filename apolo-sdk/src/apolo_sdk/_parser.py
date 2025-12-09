@@ -1,7 +1,7 @@
 import os
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from yarl import URL
 
@@ -46,8 +46,8 @@ class VolumeParseResult:
 @rewrite_module
 @dataclass(frozen=True)
 class EnvParseResult:
-    env: Dict[str, str]
-    secret_env: Dict[str, URL]
+    env: dict[str, str]
+    secret_env: dict[str, URL]
 
 
 class _Unset:
@@ -61,7 +61,7 @@ class Parser(metaclass=NoPublicConstructor):
 
     def _parse_generic_volume(
         self, volume: str, allow_rw_spec: bool = True, resource_name: str = "volume"
-    ) -> Tuple[str, str, bool]:
+    ) -> tuple[str, str, bool]:
         parts = volume.split(":")
         read_only = False
         if allow_rw_spec and len(parts) == 4:
@@ -77,8 +77,8 @@ class Parser(metaclass=NoPublicConstructor):
     def volume(
         self,
         volume: str,
-        cluster_name: Optional[str] = None,
-        org_name: Union[str, None, _Unset] = _Unset(),
+        cluster_name: str | None = None,
+        org_name: str | _Unset | None = _Unset(),
     ) -> Volume:
         raw_uri, container_path, read_only = self._parse_generic_volume(volume)
         storage_uri = uri_from_cli(
@@ -93,8 +93,8 @@ class Parser(metaclass=NoPublicConstructor):
         )
 
     def _build_volumes(
-        self, input_volumes: List[str], cluster_name: Optional[str] = None
-    ) -> List[Volume]:
+        self, input_volumes: list[str], cluster_name: str | None = None
+    ) -> list[Volume]:
         if "HOME" in input_volumes:
             raise ValueError("--volume=HOME no longer supported")
         if "ALL" in input_volumes:
@@ -103,9 +103,9 @@ class Parser(metaclass=NoPublicConstructor):
         return [self.volume(vol, cluster_name) for vol in input_volumes]
 
     def _build_secret_files(
-        self, input_volumes: List[str], cluster_name: Optional[str] = None
-    ) -> List[SecretFile]:
-        secret_files: List[SecretFile] = []
+        self, input_volumes: list[str], cluster_name: str | None = None
+    ) -> list[SecretFile]:
+        secret_files: list[SecretFile] = []
         for volume in input_volumes:
             raw_uri, container_path, _ = self._parse_generic_volume(
                 volume, allow_rw_spec=False, resource_name="secret file"
@@ -117,8 +117,8 @@ class Parser(metaclass=NoPublicConstructor):
     def _parse_secret_resource(
         self,
         uri: str,
-        cluster_name: Optional[str] = None,
-        org_name: Union[str, None, _Unset] = _Unset(),
+        cluster_name: str | None = None,
+        org_name: str | _Unset | None = _Unset(),
     ) -> URL:
         return uri_from_cli(
             uri,
@@ -129,9 +129,9 @@ class Parser(metaclass=NoPublicConstructor):
         )
 
     def _build_disk_volumes(
-        self, input_volumes: List[str], cluster_name: Optional[str] = None
-    ) -> List[DiskVolume]:
-        disk_volumes: List[DiskVolume] = []
+        self, input_volumes: list[str], cluster_name: str | None = None
+    ) -> list[DiskVolume]:
+        disk_volumes: list[DiskVolume] = []
         for volume in input_volumes:
             raw_uri, container_path, read_only = self._parse_generic_volume(
                 volume, allow_rw_spec=True, resource_name="disk volume"
@@ -143,8 +143,8 @@ class Parser(metaclass=NoPublicConstructor):
     def _parse_disk_resource(
         self,
         uri: str,
-        cluster_name: Optional[str] = None,
-        org_name: Union[str, None, _Unset] = _Unset(),
+        cluster_name: str | None = None,
+        org_name: str | _Unset | None = _Unset(),
     ) -> URL:
         return uri_from_cli(
             uri,
@@ -154,7 +154,7 @@ class Parser(metaclass=NoPublicConstructor):
             allowed_schemes=("disk",),
         )
 
-    def _get_image_parser(self, cluster_name: Optional[str] = None) -> _ImageNameParser:
+    def _get_image_parser(self, cluster_name: str | None = None) -> _ImageNameParser:
         registry = {
             cluster.name: cluster.registry_url
             for cluster in self._config.clusters.values()
@@ -174,14 +174,14 @@ class Parser(metaclass=NoPublicConstructor):
         image: str,
         *,
         tag_option: TagOption = TagOption.DEFAULT,
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> RemoteImage:
         return self._get_image_parser(cluster_name).parse_remote(
             image, tag_option=tag_option
         )
 
     def _local_to_remote_image(
-        self, image: LocalImage, cluster_name: Optional[str] = None
+        self, image: LocalImage, cluster_name: str | None = None
     ) -> RemoteImage:
         return self._get_image_parser(cluster_name).convert_to_platform_image(image)
 
@@ -192,7 +192,7 @@ class Parser(metaclass=NoPublicConstructor):
         self,
         env: Sequence[str],
         env_file: Sequence[str] = (),
-        cluster_name: Optional[str] = None,
+        cluster_name: str | None = None,
     ) -> EnvParseResult:
         env_dict = self._build_env(env, env_file)
         secret_env_dict = self._extract_secret_env(env_dict, cluster_name)
@@ -203,8 +203,8 @@ class Parser(metaclass=NoPublicConstructor):
 
     def _build_env(
         self, env: Sequence[str], env_file: Sequence[str] = ()
-    ) -> Dict[str, str]:
-        lines: List[str] = []
+    ) -> dict[str, str]:
+        lines: list[str] = []
         for filename in env_file:
             lines.extend(_read_lines(filename))
         lines.extend(env)
@@ -221,8 +221,8 @@ class Parser(metaclass=NoPublicConstructor):
         return env_dict
 
     def _extract_secret_env(
-        self, env_dict: Dict[str, str], cluster_name: Optional[str] = None
-    ) -> Dict[str, URL]:
+        self, env_dict: dict[str, str], cluster_name: str | None = None
+    ) -> dict[str, URL]:
         secret_env_dict = {}
         for name, val in env_dict.copy().items():
             if val.startswith("secret:"):
@@ -231,7 +231,7 @@ class Parser(metaclass=NoPublicConstructor):
         return secret_env_dict
 
     def volumes(
-        self, volume: Sequence[str], cluster_name: Optional[str] = None
+        self, volume: Sequence[str], cluster_name: str | None = None
     ) -> VolumeParseResult:
         # N.B. Preserve volumes order when splitting the whole 'volumes' sequence.
 
@@ -259,9 +259,9 @@ class Parser(metaclass=NoPublicConstructor):
         id_or_name_or_uri: str,
         *,
         allowed_schemes: Iterable[str] = (),
-        project_name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Union[None, str, _Unset] = _Unset(),
+        project_name: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | _Unset | None = _Unset(),
         short: bool = False,
     ) -> URL:
         ret = uri_from_cli(
@@ -299,9 +299,9 @@ class Parser(metaclass=NoPublicConstructor):
         uri: URL,
         *,
         allowed_schemes: Iterable[str] = (),
-        project_name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Union[None, str, _Unset] = _Unset(),
+        project_name: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | _Unset | None = _Unset(),
         short: bool = False,
     ) -> URL:
         _check_scheme(uri.scheme, allowed_schemes)
@@ -319,7 +319,7 @@ class Parser(metaclass=NoPublicConstructor):
         ret = uri
         if uri.scheme != "file":
             if ret.host == self._config.cluster_name:
-                prefix: Tuple[str, ...]
+                prefix: tuple[str, ...]
                 if self._config.org_name is None:
                     prefix = ("/", self._config.project_name_or_raise)
                 else:

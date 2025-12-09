@@ -2,7 +2,8 @@ import asyncio
 import socket
 import ssl
 import time
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
+from collections.abc import AsyncIterator, Callable
+from typing import Any
 
 import aiohttp
 import dateutil.parser
@@ -169,13 +170,13 @@ def client_ssl_ctx(tls_certificate_authority: Any) -> ssl.SSLContext:
 class FakeResolver(AbstractResolver):
     _LOCAL_HOST = {0: "127.0.0.1", socket.AF_INET: "127.0.0.1", socket.AF_INET6: "::1"}
 
-    def __init__(self, fakes: Dict[str, int]) -> None:
+    def __init__(self, fakes: dict[str, int]) -> None:
         """fakes -- dns -> port dict"""
         self._fakes = fakes
 
     async def resolve(
         self, host: str, port: int = 0, family: int = socket.AF_INET
-    ) -> List[ResolveResult]:
+    ) -> list[ResolveResult]:
         return [
             {
                 "hostname": host,
@@ -195,11 +196,11 @@ class FakePyPI:
     def __init__(self, ssl_context: ssl.SSLContext) -> None:
         self.app = web.Application()
         self.app.router.add_routes([web.get("/pypi/apolo-cli/json", self.json_info)])
-        self.runner: Optional[web.AppRunner] = None
+        self.runner: web.AppRunner | None = None
         self.ssl_context = ssl_context
-        self.response: Optional[Tuple[int, Dict[str, Any]]] = None
+        self.response: tuple[int, dict[str, Any]] | None = None
 
-    async def start(self) -> Dict[str, int]:
+    async def start(self) -> dict[str, int]:
         port = unused_port()
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -220,7 +221,7 @@ class FakePyPI:
 @pytest.fixture()
 async def fake_pypi(
     ssl_ctx: ssl.SSLContext,
-) -> AsyncIterator[Tuple[FakePyPI, Dict[str, int]]]:
+) -> AsyncIterator[tuple[FakePyPI, dict[str, int]]]:
     fake_pypi = FakePyPI(ssl_ctx)
     info = await fake_pypi.start()
     yield fake_pypi, info
@@ -240,7 +241,7 @@ def get_apolo_cli_txt(old: str, new: str) -> str:
 
 @pytest.fixture()
 async def client(
-    fake_pypi: Tuple[FakePyPI, Dict[str, int]],
+    fake_pypi: tuple[FakePyPI, dict[str, int]],
     make_client: Callable[..., Client],
 ) -> AsyncIterator[Client]:
     resolver = FakeResolver(fake_pypi[1])
@@ -258,7 +259,7 @@ async def client(
 
 
 @pytest.fixture
-def pypi_server(fake_pypi: Tuple[FakePyPI, Dict[str, int]]) -> FakePyPI:
+def pypi_server(fake_pypi: tuple[FakePyPI, dict[str, int]]) -> FakePyPI:
     return fake_pypi[0]
 
 

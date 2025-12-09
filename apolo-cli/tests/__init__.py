@@ -1,6 +1,8 @@
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
-from aiohttp.test_utils import RawTestServer
+from aiohttp.test_utils import (
+    RawTestServer,
+)
 from aiohttp.test_utils import TestClient as _TestClient
 from aiohttp.test_utils import TestServer as _TestServer
 from aiohttp.web import Application, Request, StreamResponse

@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from dateutil.parser import isoparse
 from yarl import URL
@@ -27,10 +27,10 @@ class Disk:
     project_name: str
     org_name: str
     created_at: datetime
-    last_usage: Optional[datetime] = None
-    name: Optional[str] = None
-    timeout_unused: Optional[timedelta] = None
-    used_bytes: Optional[int] = None
+    last_usage: datetime | None = None
+    name: str | None = None
+    timeout_unused: timedelta | None = None
+    used_bytes: int | None = None
 
     @property
     def uri(self) -> URL:
@@ -54,12 +54,12 @@ class Disks(metaclass=NoPublicConstructor):
     def _parse_disk_payload(self, payload: Mapping[str, Any]) -> Disk:
         last_usage_raw = payload.get("last_usage")
         if last_usage_raw is not None:
-            last_usage: Optional[datetime] = isoparse(last_usage_raw)
+            last_usage: datetime | None = isoparse(last_usage_raw)
         else:
             last_usage = None
         life_span_raw = payload.get("life_span")
         if life_span_raw is not None:
-            timeout_unused: Optional[timedelta] = timedelta(seconds=life_span_raw)
+            timeout_unused: timedelta | None = timedelta(seconds=life_span_raw)
         else:
             timeout_unused = None
         org_name = payload.get("org_name")
@@ -80,7 +80,7 @@ class Disks(metaclass=NoPublicConstructor):
             timeout_unused=timeout_unused,
         )
 
-    def _get_disks_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_disks_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return self._config.get_cluster(cluster_name).disks_url
@@ -88,9 +88,9 @@ class Disks(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[Disk]:
         url = self._get_disks_url(cluster_name)
         params = {}
@@ -107,11 +107,11 @@ class Disks(metaclass=NoPublicConstructor):
     async def create(
         self,
         storage: int,
-        timeout_unused: Optional[timedelta] = None,
-        name: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        project_name: Optional[str] = None,
-        org_name: Optional[str] = None,
+        timeout_unused: timedelta | None = None,
+        name: str | None = None,
+        cluster_name: str | None = None,
+        project_name: str | None = None,
+        org_name: str | None = None,
     ) -> Disk:
         url = self._get_disks_url(cluster_name)
         auth = await self._config._api_auth()
@@ -129,9 +129,9 @@ class Disks(metaclass=NoPublicConstructor):
     async def get(
         self,
         disk_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> Disk:
         url = self._get_disks_url(cluster_name) / disk_id_or_name
         auth = await self._config._api_auth()
@@ -143,9 +143,9 @@ class Disks(metaclass=NoPublicConstructor):
     async def rm(
         self,
         disk_id_or_name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         url = self._get_disks_url(cluster_name) / disk_id_or_name
         auth = await self._config._api_auth()
@@ -155,8 +155,8 @@ class Disks(metaclass=NoPublicConstructor):
 
     def _get_url_params(
         self,
-        org_name: Optional[str],
-        project_name: Optional[str],
+        org_name: str | None,
+        project_name: str | None,
     ) -> dict[str, str]:
         params = {
             "project_name": project_name or self._config.project_name_or_raise,

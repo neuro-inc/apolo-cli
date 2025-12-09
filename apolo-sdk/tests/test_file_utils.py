@@ -6,7 +6,7 @@ import shutil
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -87,7 +87,7 @@ async def test_transfer_file_progress(
     src_url = URL((src_dir / "test_file").as_uri())
     dst_url = URL((dst_dir / "test_file").as_uri())
     progress.start.assert_called_once_with(StorageProgressStart(src_url, dst_url, size))
-    assert [call for call in progress.step.call_args_list] == [
+    assert list(progress.step.call_args_list) == [
         ((StorageProgressStep(src_url, dst_url, READ_SIZE, size),),),
         ((StorageProgressStep(src_url, dst_url, 2 * READ_SIZE, size),),),
         ((StorageProgressStep(src_url, dst_url, 3 * READ_SIZE, size),),),
@@ -266,12 +266,12 @@ async def test_transfer_dir_progress(
 
     class MockProgress(AbstractRecursiveFileProgress):
         def __init__(self) -> None:
-            self.entered_dirs: List[StorageProgressEnterDir] = []
-            self.left_dirs: List[StorageProgressLeaveDir] = []
-            self.failed_dirs: List[StorageProgressFail] = []
-            self.started_files: List[StorageProgressStart] = []
-            self.file_steps: List[StorageProgressStep] = []
-            self.completed_files: List[StorageProgressComplete] = []
+            self.entered_dirs: list[StorageProgressEnterDir] = []
+            self.left_dirs: list[StorageProgressLeaveDir] = []
+            self.failed_dirs: list[StorageProgressFail] = []
+            self.started_files: list[StorageProgressStart] = []
+            self.file_steps: list[StorageProgressStep] = []
+            self.completed_files: list[StorageProgressComplete] = []
 
         def enter(self, data: StorageProgressEnterDir) -> None:
             self.entered_dirs.append(data)
@@ -297,7 +297,7 @@ async def test_transfer_dir_progress(
     def _check_progress(path: Path) -> None:
         for subpath in path.iterdir():
             src_url = URL(subpath.as_uri())
-            dst_url = URL((dst_dir / "sub_dir" / (subpath.relative_to(src))).as_uri())
+            dst_url = URL((dst_dir / "sub_dir" / subpath.relative_to(src)).as_uri())
             if subpath.is_file():
                 size = subpath.stat().st_size
                 assert any(

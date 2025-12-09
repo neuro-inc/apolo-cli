@@ -1,6 +1,7 @@
 import tempfile
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncIterator, Iterator, List
+from typing import Any
 from unittest import mock
 
 from apolo_sdk import AppTemplate
@@ -11,7 +12,7 @@ _RunCli = Any
 
 @contextmanager
 def mock_apps_list_template_versions(
-    template_name: str, versions: List[str]
+    template_name: str, versions: list[str]
 ) -> Iterator[None]:
     """Context manager to mock the Apps.list_template_versions method."""
     with mock.patch.object(Apps, "list_template_versions") as mocked:
@@ -37,7 +38,7 @@ def mock_apps_list_template_versions(
 
 
 @contextmanager
-def mock_apps_list_templates(templates: List[AppTemplate]) -> Iterator[None]:
+def mock_apps_list_templates(templates: list[AppTemplate]) -> Iterator[None]:
     """Context manager to mock the Apps.list_templates method."""
     with mock.patch.object(Apps, "list_templates") as mocked:
 

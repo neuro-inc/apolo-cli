@@ -2,7 +2,7 @@ import re
 import shlex
 import subprocess
 import sys
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, cast
 
 import click
 from click.utils import make_default_short_help
@@ -18,7 +18,7 @@ class InternalAlias(NeuroClickMixin, click.Command):
     allow_interspersed_args = False
     allow_extra_args = True
 
-    def __init__(self, name: str, alias: Dict[str, str]) -> None:
+    def __init__(self, name: str, alias: dict[str, str]) -> None:
         super().__init__(name)
         assert "cmd" in alias
         self.alias = alias
@@ -66,7 +66,7 @@ class ExternalAlias(NeuroClickMixin, click.Command):
     allow_interspersed_args = False
     allow_extra_args = True
 
-    def __init__(self, name: str, alias: Dict[str, Any]) -> None:
+    def __init__(self, name: str, alias: dict[str, Any]) -> None:
         assert "exec" in alias
         options = _parse_options(alias.get("options", ""))
         args = _parse_args(alias.get("args", ""))
@@ -88,7 +88,7 @@ class ExternalAlias(NeuroClickMixin, click.Command):
         if ret.returncode:
             sys.exit(ret.returncode)
 
-    def _build_simplified(self, ctx: click.Context) -> List[str]:
+    def _build_simplified(self, ctx: click.Context) -> list[str]:
         cmd = self.alias["exec"]
         ret = shlex.split(cmd)
         for param in self.params:
@@ -96,7 +96,7 @@ class ExternalAlias(NeuroClickMixin, click.Command):
             ret.extend(_process_param(param, val))
         return ret
 
-    def _build_pattern(self, ctx: click.Context) -> List[str]:
+    def _build_pattern(self, ctx: click.Context) -> list[str]:
         cmd = self.alias["exec"]
         replaces = {}
         matches = re.findall(r"{\w+}", cmd)
@@ -138,7 +138,7 @@ class ExternalAlias(NeuroClickMixin, click.Command):
             formatter.write_text(help)
 
 
-async def find_alias(root: Root, cmd_name: str) -> Optional[click.Command]:
+async def find_alias(root: Root, cmd_name: str) -> click.Command | None:
     config = await root.get_user_config()
     alias = config.get("alias", {}).get(cmd_name)
     if alias is None:
@@ -154,9 +154,9 @@ async def find_alias(root: Root, cmd_name: str) -> Optional[click.Command]:
         raise click.UsageError(f"Invalid alias description type for {cmd_name}")
 
 
-async def list_aliases(root: Root) -> List[click.Command]:
+async def list_aliases(root: Root) -> list[click.Command]:
     config = await root.get_user_config()
-    ret: List[click.Command] = []
+    ret: list[click.Command] = []
     for cmd_name, alias in config.get("alias", {}).items():
         if "cmd" in alias:
             ret.append(InternalAlias(cmd_name, alias))
@@ -168,7 +168,7 @@ async def list_aliases(root: Root) -> List[click.Command]:
     return ret
 
 
-def _parse_options(descr: List[str]) -> List[click.Parameter]:
+def _parse_options(descr: list[str]) -> list[click.Parameter]:
     ret = []
     for od in descr:
         opts = []
@@ -208,7 +208,7 @@ def _parse_options(descr: List[str]) -> List[click.Parameter]:
     return ret  # type: ignore
 
 
-def _parse_args(source: str) -> List[click.Parameter]:
+def _parse_args(source: str) -> list[click.Parameter]:
     ret = []
     src1 = re.sub(r"([\[\]]|\.\.\.)", r" \1 ", source)
     src2 = [s for s in re.split(r"\s+|(\S*<.*?>)", src1) if s]
@@ -270,7 +270,7 @@ def _parse_args(source: str) -> List[click.Parameter]:
     return ret  # type: ignore
 
 
-def _validate_exec(cmd: str, options: Set[str], args: Set[str]) -> bool:
+def _validate_exec(cmd: str, options: set[str], args: set[str]) -> bool:
     # Return True for simplified form, False otherwise
     if args & options:
         overlapped = ",".join(args & options)
@@ -299,15 +299,13 @@ def _validate_exec(cmd: str, options: Set[str], args: Set[str]) -> bool:
     return False
 
 
-def _longest(opts: List[str]) -> str:
+def _longest(opts: list[str]) -> str:
     # group long options first
     possible_opts = sorted(opts, key=lambda x: -len(x))
     return possible_opts[0]
 
 
-def _process_param(
-    param: click.Parameter, val: Union[None, str, Tuple[str]]
-) -> List[str]:
+def _process_param(param: click.Parameter, val: str | tuple[str] | None) -> list[str]:
     if isinstance(param, click.Argument):
         if not param.required:
             if not val:

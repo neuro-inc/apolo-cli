@@ -1,5 +1,6 @@
 import abc
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 from rich.console import RenderableType
 from rich.table import Table

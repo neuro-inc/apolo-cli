@@ -1,10 +1,11 @@
 import datetime as dt_module
 import io
 import itertools
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Any, Callable, Optional
+from typing import Any
 
 import pytest
 from dateutil.parser import isoparse
@@ -57,7 +58,7 @@ TEST_JOB_NAME = "test-job-name"
 _NewConsole = Callable[..., Console]
 
 
-def _format_datetime_human(when: Optional[datetime], precise: bool = False) -> str:
+def _format_datetime_human(when: datetime | None, precise: bool = False) -> str:
     return format_datetime_human(when, precise=precise, timezone=timezone.utc)
 
 
@@ -157,8 +158,8 @@ def make_job(
     status: JobStatus,
     reason: str,
     *,
-    name: Optional[str] = None,
-    life_span: Optional[float] = None,
+    name: str | None = None,
+    life_span: float | None = None,
     description: str = "ErrorDesc",
     total_price_credits: Decimal = Decimal("150"),
     price_credits_per_hour: Decimal = Decimal("15"),
@@ -2010,7 +2011,7 @@ class TestTabularJobRow:
         root: Root,
         status: JobStatus,
         image: str = "nginx:latest",
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> JobDescription:
         remote_image = root.client.parse.remote_image(image)
         return JobDescription(

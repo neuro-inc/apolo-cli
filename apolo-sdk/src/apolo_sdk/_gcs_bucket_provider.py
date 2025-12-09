@@ -4,11 +4,12 @@ import base64
 import json
 import logging
 import urllib.parse
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from io import BytesIO
-from typing import Any, AsyncIterator, Awaitable, Callable, Mapping, Optional, Union
+from typing import Any
 
 from aiohttp import ClientResponse, ClientSession
 from dateutil.parser import isoparse
@@ -135,10 +136,10 @@ class GCSProvider(MeasureTimeDiffMixin, BucketProvider):
         self,
         method: str,
         url: str,
-        params: Optional[Mapping[str, str]] = None,
-        headers: Optional[Mapping[str, str]] = None,
-        json: Optional[Mapping[str, Any]] = None,
-        data: Optional[Any] = None,
+        params: Mapping[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
+        json: Mapping[str, Any] | None = None,
+        data: Any | None = None,
     ) -> AsyncIterator[ClientResponse]:
         async with self._session.request(
             method,
@@ -196,7 +197,7 @@ class GCSProvider(MeasureTimeDiffMixin, BucketProvider):
 
     @asyncgeneratorcontextmanager
     async def list_blobs(
-        self, prefix: str, recursive: bool = False, limit: Optional[int] = None
+        self, prefix: str, recursive: bool = False, limit: int | None = None
     ) -> AsyncIterator[BucketEntry]:
         url = f"{self.BASE_URL}/b/{self._gcs_bucket_name}/o"
 
@@ -247,8 +248,8 @@ class GCSProvider(MeasureTimeDiffMixin, BucketProvider):
     async def put_blob(
         self,
         key: str,
-        body: Union[AsyncIterator[bytes], bytes],
-        progress: Optional[Callable[[int], Awaitable[None]]] = None,
+        body: AsyncIterator[bytes] | bytes,
+        progress: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         # Step 1: initiate multipart upload
         url = f"{self.UPLOAD_BASE_URL}/b/{self._gcs_bucket_name}/o"

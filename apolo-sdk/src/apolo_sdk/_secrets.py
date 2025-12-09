@@ -1,6 +1,6 @@
 import base64
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import AsyncIterator, Optional
 
 from yarl import URL
 
@@ -33,7 +33,7 @@ class Secrets(metaclass=NoPublicConstructor):
         self._core = core
         self._config = config
 
-    def _get_secrets_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_secrets_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return self._config.get_cluster(cluster_name).secrets_url
@@ -41,9 +41,9 @@ class Secrets(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[Secret]:
         url = self._get_secrets_url(cluster_name)
         params = {}
@@ -66,9 +66,9 @@ class Secrets(metaclass=NoPublicConstructor):
         self,
         key: str,
         value: bytes,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         url = self._get_secrets_url(cluster_name)
         auth = await self._config._api_auth()
@@ -84,9 +84,9 @@ class Secrets(metaclass=NoPublicConstructor):
     async def get(
         self,
         key: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> bytes:
         url = self._get_secrets_url(cluster_name) / key
         auth = await self._config._api_auth()
@@ -103,9 +103,9 @@ class Secrets(metaclass=NoPublicConstructor):
     async def rm(
         self,
         key: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> None:
         url = self._get_secrets_url(cluster_name) / key
         auth = await self._config._api_auth()

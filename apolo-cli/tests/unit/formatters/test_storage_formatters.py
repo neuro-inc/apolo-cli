@@ -1,5 +1,5 @@
 import time
-from typing import Any, List
+from typing import Any
 
 import pytest
 from yarl import URL
@@ -364,9 +364,9 @@ class TestFilesFormatter:
     @pytest.mark.parametrize(
         "formatter",
         [
-            (SimpleFilesFormatter(color=False)),
-            (VerticalColumnsFilesFormatter(width=100, color=False)),
-            (LongFilesFormatter(human_readable=False, color=False)),
+            SimpleFilesFormatter(color=False),
+            VerticalColumnsFilesFormatter(width=100, color=False),
+            LongFilesFormatter(human_readable=False, color=False),
         ],
     )
     def test_formatter_with_all_entities(
@@ -377,15 +377,15 @@ class TestFilesFormatter:
     @pytest.mark.parametrize(
         "formatter",
         [
-            (SimpleFilesFormatter(color=False)),
-            (VerticalColumnsFilesFormatter(width=100, color=False)),
-            (LongFilesFormatter(human_readable=False, color=False)),
+            SimpleFilesFormatter(color=False),
+            VerticalColumnsFilesFormatter(width=100, color=False),
+            LongFilesFormatter(human_readable=False, color=False),
         ],
     )
     def test_formatter_with_empty_files(
         self, formatter: BaseFilesFormatter, rich_cmp: Any
     ) -> None:
-        files: List[FileStatus] = []
+        files: list[FileStatus] = []
         rich_cmp(formatter(files))
 
     def test_sorter(self) -> None:

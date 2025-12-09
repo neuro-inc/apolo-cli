@@ -5,7 +5,7 @@ import os
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import click
 from aiohttp.client_exceptions import ClientConnectionError
@@ -234,7 +234,7 @@ async def docker(root: Root, docker_config: str) -> None:
         raise ValueError(f"Specified path is not a directory: {config}")
 
     json_path = config_path / "config.json"
-    payload: Dict[str, Any] = {}
+    payload: dict[str, Any] = {}
     if json_path.exists():
         with json_path.open("rb") as file:
             payload = json.load(file)
@@ -278,7 +278,7 @@ async def get_clusters(root: Root) -> None:
 
 @command()
 @argument("cluster_name", required=False, default=None, type=CLUSTER_ALLOW_UNKNOWN)
-async def switch_cluster(root: Root, cluster_name: Optional[str]) -> None:
+async def switch_cluster(root: Root, cluster_name: str | None) -> None:
     """
     Switch the active cluster.
 
@@ -322,7 +322,7 @@ async def switch_org(root: Root, org_name: str) -> None:
 
 @command()
 @argument("project_name", required=False, default=None, type=PROJECT_ALLOW_UNKNOWN)
-async def switch_project(root: Root, project_name: Optional[str]) -> None:
+async def switch_project(root: Root, project_name: str | None) -> None:
     """
     Switch the active project.
 
@@ -348,7 +348,7 @@ async def switch_project(root: Root, project_name: Optional[str]) -> None:
 
 
 async def prompt_cluster(
-    root: Root, *, session: Optional[PromptSession[str]] = None
+    root: Root, *, session: PromptSession[str] | None = None
 ) -> str:
     if session is None:
         session = PromptSession()
@@ -380,7 +380,7 @@ async def prompt_cluster(
 
 
 async def prompt_project(
-    root: Root, *, session: Optional[PromptSession[str]] = None
+    root: Root, *, session: PromptSession[str] | None = None
 ) -> str:
     if session is None:
         session = PromptSession()

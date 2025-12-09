@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Type, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import click
 from click.utils import make_default_short_help
@@ -24,7 +25,7 @@ class Command(click.Command):
 
 
 def command(
-    name: Optional[str] = None, cls: Type[Command] = Command, **kwargs: Any
+    name: str | None = None, cls: type[Command] = Command, **kwargs: Any
 ) -> Command:
     return click.command(name=name, cls=cls, **kwargs)  # type: ignore
 
@@ -51,7 +52,7 @@ class Group(click.Group):
         return decorator
 
 
-def group(name: Optional[str] = None, **kwargs: Any) -> Group:
+def group(name: str | None = None, **kwargs: Any) -> Group:
     kwargs.setdefault("cls", Group)
     return click.group(name=name, **kwargs)  # type: ignore
 

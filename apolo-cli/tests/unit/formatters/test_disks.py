@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, List
+from typing import Any
 
 import pytest
 from dateutil.parser import isoparse
@@ -33,7 +33,7 @@ def test_disk_formatter(rich_cmp: Any) -> None:
 
 
 @pytest.fixture
-def disks_list() -> List[Disk]:
+def disks_list() -> list[Disk]:
     return [
         Disk(
             id="disk-1",
@@ -80,17 +80,17 @@ def disks_list() -> List[Disk]:
     ]
 
 
-def test_disks_formatter_simple(disks_list: List[Disk], rich_cmp: Any) -> None:
+def test_disks_formatter_simple(disks_list: list[Disk], rich_cmp: Any) -> None:
     fmtr = SimpleDisksFormatter()
     rich_cmp(fmtr(disks_list))
 
 
-def test_disks_formatter_short(disks_list: List[Disk], rich_cmp: Any) -> None:
+def test_disks_formatter_short(disks_list: list[Disk], rich_cmp: Any) -> None:
     fmtr = DisksFormatter(str, datetime_formatter=format_datetime_human)
     rich_cmp(fmtr(disks_list))
 
 
-def test_disks_formatter_long(disks_list: List[Disk], rich_cmp: Any) -> None:
+def test_disks_formatter_long(disks_list: list[Disk], rich_cmp: Any) -> None:
     fmtr = DisksFormatter(
         str, long_format=True, datetime_formatter=format_datetime_human
     )

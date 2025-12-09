@@ -1,7 +1,8 @@
 import enum
 import numbers
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Mapping, Tuple, Type, Union
+from typing import Any, Union
 
 from ._errors import ConfigError
 from ._rewrite import rewrite_module
@@ -15,23 +16,23 @@ class ConfigScope(enum.Flag):
 
 
 _ParamType = Union[
-    Type[bool],
-    Type[numbers.Real],
-    Type[numbers.Integral],
-    Type[str],
-    Tuple[Type[List[Any]], Type[bool]],
-    Tuple[Type[List[Any]], Type[str]],
-    Tuple[Type[List[Any]], Type[numbers.Real]],
-    Tuple[Type[List[Any]], Type[numbers.Integral]],
+    type[bool],
+    type[numbers.Real],
+    type[numbers.Integral],
+    type[str],
+    tuple[type[list[Any]], type[bool]],
+    tuple[type[list[Any]], type[str]],
+    tuple[type[list[Any]], type[numbers.Real]],
+    tuple[type[list[Any]], type[numbers.Integral]],
 ]
 
 
 @rewrite_module
 class ConfigBuilder:
-    _config_spec: Dict[str, Dict[str, Tuple[_ParamType, ConfigScope]]]
+    _config_spec: dict[str, dict[str, tuple[_ParamType, ConfigScope]]]
 
     def __init__(self) -> None:
-        self._config_spec = dict()
+        self._config_spec = {}
 
     def _define_param(
         self,
@@ -44,7 +45,7 @@ class ConfigBuilder:
             raise ConfigError("Registering aliases is not supported yet.")
         if section in self._config_spec and name in self._config_spec[section]:
             raise ConfigError(f"Config parameter {section}.{name} already registered")
-        self._config_spec.setdefault(section, dict())
+        self._config_spec.setdefault(section, {})
         self._config_spec[section][name] = (type, scope)
 
     def _get_spec(
@@ -107,7 +108,7 @@ class _VersionRecord:
 @rewrite_module
 class VersionChecker:
     def __init__(self) -> None:
-        self._records: Dict[str, _VersionRecord] = {}
+        self._records: dict[str, _VersionRecord] = {}
         self._has_exclusive: bool = False
 
     def register(

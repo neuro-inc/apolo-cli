@@ -5,7 +5,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from textwrap import dedent
-from typing import Any, List
+from typing import Any
 
 import click
 
@@ -24,9 +24,9 @@ class CommandInfo:
     usage: str = None
     short: str = None
     description: str = None
-    options: List[Option] = field(default_factory=list)
+    options: list[Option] = field(default_factory=list)
     examples: str = None
-    children: List[Any] = field(default_factory=list)  # CommandInfo
+    children: list[Any] = field(default_factory=list)  # CommandInfo
     is_group: bool = False
 
 
@@ -197,13 +197,12 @@ def main():
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-    with open(input_file) as input:
-        with open(output_file, "w") as output:
-            template = input.read()
-            info = parse_command(None, cli, ["apolo"])
-            cli_doc = generate_command_markdown(info, "")
-            generated_md = template.format(cli_doc=cli_doc)
-            output.write(generated_md)
+    with open(input_file) as input, open(output_file, "w") as output:
+        template = input.read()
+        info = parse_command(None, cli, ["apolo"])
+        cli_doc = generate_command_markdown(info, "")
+        generated_md = template.format(cli_doc=cli_doc)
+        output.write(generated_md)
 
 
 if __name__ == "__main__":

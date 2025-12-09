@@ -3,22 +3,21 @@ import functools
 import logging
 import sys
 import warnings
+from collections.abc import (
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Generator,
+    Iterator,
+)
 from functools import partial
 from pathlib import Path
 from types import TracebackType
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Coroutine,
-    Generator,
     Generic,
-    Iterator,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
 )
 
@@ -51,9 +50,9 @@ else:
 
         async def __aexit__(
             self,
-            exc_type: Optional[Type[BaseException]],
-            exc: Optional[BaseException],
-            tb: Optional[TracebackType],
+            exc_type: type[BaseException] | None,
+            exc: BaseException | None,
+            tb: TracebackType | None,
         ) -> None:
             await self.thing.aclose()
 
@@ -76,9 +75,9 @@ class _AsyncIteratorAndContextManager(
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         # Actually it is an AsyncGenerator.
         await self._gen.aclose()  # type: ignore
@@ -125,7 +124,7 @@ class _ContextManager(Generic[_T], Awaitable[_T], AsyncContextManager[_T]):
 
     def __init__(self, coro: Coroutine[Any, Any, _T]) -> None:
         self._coro = coro
-        self._ret: Optional[_T] = None
+        self._ret: _T | None = None
 
     def __await__(self) -> Generator[Any, None, _T]:
         return self._coro.__await__()
@@ -137,10 +136,10 @@ class _ContextManager(Generic[_T], Awaitable[_T], AsyncContextManager[_T]):
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
-    ) -> Optional[bool]:
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> bool | None:
         assert self._ret is not None
         # ret supports async close() protocol
         # Need to teach mypy about this facility
@@ -174,7 +173,7 @@ class retries:
         pass
 
     async def __aexit__(
-        self, type: Type[BaseException], value: BaseException, tb: Any
+        self, type: type[BaseException], value: BaseException, tb: Any
     ) -> bool:
         if type is None:
             # Stop iteration
@@ -191,7 +190,7 @@ def flat(sql: str) -> str:
 
 
 @rewrite_module
-def find_project_root(path: Optional[Path] = None) -> Path:
+def find_project_root(path: Path | None = None) -> Path:
     if path is None:
         path = Path.cwd()
     here = path
@@ -221,7 +220,7 @@ class _NoopProxy:
 def queue_calls(
     any_obj: Any,
     allow_any_for_none: bool = True,
-) -> Tuple["asyncio.Queue[QueuedCall]", Any]:  # Sadly, but there is now way to annotate
+) -> tuple["asyncio.Queue[QueuedCall]", Any]:  # Sadly, but there is now way to annotate
     """Add calls to asyncio.Queue instead executing them directly
 
     Wraps given object into proxy, so trying to call any of its method will produce
@@ -244,7 +243,7 @@ def queue_calls(
     In case `any_obj` is `None` and `allow_any_for_none` is set, then a proxy will not
     raise any AttributeErrors and just absorb all cals silently.
     """
-    queue: "asyncio.Queue[QueuedCall]" = asyncio.Queue()
+    queue: asyncio.Queue[QueuedCall] = asyncio.Queue()
 
     async def add_to_queue(
         real_method: Callable[..., None], *args: Any, **kwargs: Any

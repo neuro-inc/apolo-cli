@@ -1,7 +1,8 @@
 import enum
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, AsyncIterator, List, Optional
+from typing import Any
 
 from aiohttp import WSMsgType
 from yarl import URL
@@ -19,8 +20,8 @@ class AppTemplate:
     title: str
     version: str
     short_description: str = ""
-    tags: List[str] = field(default_factory=list)
-    input: Optional[dict[str, Any]] = None
+    tags: list[str] = field(default_factory=list)
+    input: dict[str, Any] | None = None
     description: str = ""
 
 
@@ -44,7 +45,7 @@ class AppState(str, enum.Enum):
     UNINSTALLED = "uninstalled"
 
     @classmethod
-    def get_active_states(cls) -> List["AppState"]:
+    def get_active_states(cls) -> list["AppState"]:
         return [state for state in cls if state != cls.UNINSTALLED]
 
 
@@ -69,11 +70,11 @@ class App:
 @rewrite_module
 @dataclass(frozen=True)
 class AppEventResource:
-    kind: Optional[str] = None
-    name: Optional[str] = None
-    uid: Optional[str] = None
-    health_status: Optional[str] = None
-    health_message: Optional[str] = None
+    kind: str | None = None
+    name: str | None = None
+    uid: str | None = None
+    health_status: str | None = None
+    health_message: str | None = None
 
 
 @rewrite_module
@@ -82,8 +83,8 @@ class AppEvent:
     created_at: datetime
     state: str
     reason: str
-    message: Optional[str]
-    resources: List[AppEventResource]
+    message: str | None
+    resources: list[AppEventResource]
 
 
 @rewrite_module
@@ -94,9 +95,9 @@ class Apps(metaclass=NoPublicConstructor):
 
     def _build_base_url(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> URL:
         cluster_name = cluster_name or self._config.cluster_name
         if org_name is None:
@@ -127,7 +128,7 @@ class Apps(metaclass=NoPublicConstructor):
         base_url = self._config.api_url.with_path("")
         return base_url / "apis/apps/v2"
 
-    def _get_monitoring_url(self, cluster_name: Optional[str]) -> URL:
+    def _get_monitoring_url(self, cluster_name: str | None) -> URL:
         if cluster_name is None:
             cluster_name = self._config.cluster_name
         return self._config.get_cluster(cluster_name).monitoring_url.with_path(
@@ -137,10 +138,10 @@ class Apps(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list(
         self,
-        states: Optional[List[AppState]] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        states: list[AppState] | None = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[App]:
         url = self._build_v2_base_url() / "instances"
         cluster_name = cluster_name or self._config.cluster_name
@@ -200,9 +201,9 @@ class Apps(metaclass=NoPublicConstructor):
     async def install(
         self,
         app_data: dict[str, Any],
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> App:
         url = (
             self._build_base_url(
@@ -290,9 +291,9 @@ class Apps(metaclass=NoPublicConstructor):
     async def uninstall(
         self,
         app_id: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
         *,
         force: bool = False,
     ) -> None:
@@ -317,11 +318,11 @@ class Apps(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def get_values(
         self,
-        app_id: Optional[str] = None,
-        value_type: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        app_id: str | None = None,
+        value_type: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[AppValue]:
         """Get values from app instances.
 
@@ -364,9 +365,9 @@ class Apps(metaclass=NoPublicConstructor):
     @asyncgeneratorcontextmanager
     async def list_templates(
         self,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[AppTemplate]:
         url = (
             self._build_base_url(
@@ -396,9 +397,9 @@ class Apps(metaclass=NoPublicConstructor):
     async def list_template_versions(
         self,
         name: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[AppTemplate]:
         """List all available versions for a specific app template.
 
@@ -439,11 +440,11 @@ class Apps(metaclass=NoPublicConstructor):
     async def get_template(
         self,
         name: str,
-        version: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
-    ) -> Optional[AppTemplate]:
+        version: str | None = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
+    ) -> AppTemplate | None:
         """Get detailed information for a specific app template.
 
         Args:
@@ -491,9 +492,9 @@ class Apps(metaclass=NoPublicConstructor):
     async def get_output(
         self,
         app_id: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> dict[str, Any]:
         """Get output parameters from an app instance.
 
@@ -530,10 +531,10 @@ class Apps(metaclass=NoPublicConstructor):
         self,
         app_id: str,
         *,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
-        since: Optional[datetime] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
+        since: datetime | None = None,
         timestamps: bool = False,
     ) -> AsyncIterator[bytes]:
         """Get logs for an app instance.
@@ -584,9 +585,9 @@ class Apps(metaclass=NoPublicConstructor):
     async def get_events(
         self,
         app_id: str,
-        cluster_name: Optional[str] = None,
-        org_name: Optional[str] = None,
-        project_name: Optional[str] = None,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
     ) -> AsyncIterator[AppEvent]:
         """Get events for an app instance.
 

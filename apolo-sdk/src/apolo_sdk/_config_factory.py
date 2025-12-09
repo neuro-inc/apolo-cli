@@ -4,8 +4,9 @@ import json
 import os
 import ssl
 import sys
+from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import Any, Awaitable, Callable, List, Mapping, Optional
+from typing import Any
 
 import aiohttp
 import certifi
@@ -44,7 +45,7 @@ DEFAULT_API_URL = URL("https://staging.neu.ro/api/v1")
 
 
 def _make_session(
-    timeout: aiohttp.ClientTimeout, trace_configs: Optional[List[aiohttp.TraceConfig]]
+    timeout: aiohttp.ClientTimeout, trace_configs: list[aiohttp.TraceConfig] | None
 ) -> _ContextManager[aiohttp.ClientSession]:
     return _ContextManager[aiohttp.ClientSession](
         __make_session(timeout, trace_configs)
@@ -52,7 +53,7 @@ def _make_session(
 
 
 async def __make_session(
-    timeout: aiohttp.ClientTimeout, trace_configs: Optional[List[aiohttp.TraceConfig]]
+    timeout: aiohttp.ClientTimeout, trace_configs: list[aiohttp.TraceConfig] | None
 ) -> aiohttp.ClientSession:
     from . import __version__
 
@@ -66,7 +67,7 @@ async def __make_session(
     )
 
 
-def _choose_path(explicit: Optional[Path]) -> Path:
+def _choose_path(explicit: Path | None) -> Path:
     if explicit is not None:
         return explicit.expanduser()
 
@@ -86,10 +87,10 @@ def _choose_path(explicit: Optional[Path]) -> Path:
 class Factory:
     def __init__(
         self,
-        path: Optional[Path] = None,
-        trace_configs: Optional[List[aiohttp.TraceConfig]] = None,
-        trace_id: Optional[str] = None,
-        trace_sampled: Optional[bool] = None,
+        path: Path | None = None,
+        trace_configs: list[aiohttp.TraceConfig] | None = None,
+        trace_id: str | None = None,
+        trace_sampled: bool | None = None,
     ) -> None:
         self._path = _choose_path(path)
         self._trace_configs = [_make_trace_config()]
@@ -238,7 +239,7 @@ class Factory:
 
     async def login_with_passed_config(
         self,
-        config_data: Optional[str] = None,
+        config_data: str | None = None,
         *,
         timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
     ) -> None:
@@ -305,8 +306,8 @@ class Factory:
         self,
         projects: Mapping[Project.Key, Project],
         cluster_name: str,
-        org_name: Optional[str],
-    ) -> Optional[str]:
+        org_name: str | None,
+    ) -> str | None:
         cluster_org_projects = []
         for project in projects.values():
             if project.cluster_name == cluster_name and project.org_name == org_name:
@@ -315,7 +316,7 @@ class Factory:
 
     async def logout(
         self,
-        show_browser_cb: Optional[Callable[[URL], Awaitable[None]]] = None,
+        show_browser_cb: Callable[[URL], Awaitable[None]] | None = None,
     ) -> None:
         if show_browser_cb is not None:
             try:

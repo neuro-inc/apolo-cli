@@ -2,10 +2,11 @@ import asyncio
 import errno
 import json
 import os
+from collections.abc import AsyncIterator, Callable
 from filecmp import dircmp
 from pathlib import Path
 from shutil import copytree
-from typing import Any, AsyncIterator, Callable, List, Tuple
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -35,7 +36,7 @@ FOLDER = Path(__file__).parent
 DATA_FOLDER = FOLDER / "data"
 
 
-def calc_diff(dcmp: "dircmp[str]", *, pre: str = "") -> List[Tuple[str, str]]:
+def calc_diff(dcmp: "dircmp[str]", *, pre: str = "") -> list[tuple[str, str]]:
     ret = []
     for name in dcmp.diff_files:
         ret.append((pre + name, pre + name))
@@ -269,7 +270,7 @@ async def test_storage_ls_legacy(
 
 
 async def make_listiter_response(
-    request: web.Request, file_statuses: List[Any]
+    request: web.Request, file_statuses: list[Any]
 ) -> web.StreamResponse:
     assert request.query == {"op": "LISTSTATUS"}
     assert request.headers["Accept"] == "application/x-ndjson"
@@ -705,7 +706,7 @@ async def test_storage_glob(
 
     async with make_client(srv.make_url("/")) as client:
 
-        async def glob(pattern: str) -> List[URL]:
+        async def glob(pattern: str) -> list[URL]:
             async with client.storage.glob(URL(pattern)) as it:
                 return [uri async for uri in it]
 
