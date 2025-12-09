@@ -226,7 +226,7 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
             )
 
         @asyncgeneratorcontextmanager
-        async def list(uri: URL) -> AsyncIterator[FileStatus]:
+        async def list_meth(uri: URL) -> AsyncIterator[FileStatus]:
             uri = normalize_storage_path_uri(
                 uri, "test-user", "default", org_name="org"
             )
@@ -246,7 +246,7 @@ def test_storage_autocomplete(run_autocomplete: _RunAC) -> None:
                 )
 
         mocked_stat.side_effect = stat
-        mocked_list.side_effect = list
+        mocked_list.side_fect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["storage", "cp", "st"])
         assert bash_out == "uri,storage:,"
@@ -324,7 +324,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
     ):
 
         @asyncgeneratorcontextmanager
-        async def list(cluster_name: str) -> AsyncIterator[Bucket]:
+        async def list_meth(cluster_name: str) -> AsyncIterator[Bucket]:
             yield Bucket(
                 id="bucket-1",
                 name="apolo-my-bucket",
@@ -397,7 +397,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
 
         @asyncgeneratorcontextmanager
         async def list_blobs(uri: URL) -> AsyncIterator[BlobObject]:
-            async with list(uri.host) as it:
+            async with list_meth(uri.host) as it:
                 async for bucket in it:
                     try:
                         key = bucket.get_key_for_uri(uri)
@@ -449,7 +449,7 @@ def test_blob_autocomplete(run_autocomplete: _RunAC) -> None:
                     if "/" not in blob.key[len(key) :].rstrip("/"):
                         yield blob
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
         mocked_blob_is_dir.side_effect = blob_is_dir
         mocked_list_blobs.side_effect = list_blobs
 
@@ -667,7 +667,7 @@ def test_job_autocomplete(run_autocomplete: _RunAC) -> None:
         ]
 
         @asyncgeneratorcontextmanager
-        async def list(
+        async def list_meth(
             *,
             since: datetime | None = None,
             reverse: bool = False,
@@ -685,7 +685,7 @@ def test_job_autocomplete(run_autocomplete: _RunAC) -> None:
                     continue
                 yield job
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["job", "status", "j"])
         assert bash_out == "uri,job:,"
@@ -876,10 +876,10 @@ def test_image_autocomplete(run_autocomplete: _RunAC) -> None:
             ],
         }
 
-        async def list(cluster_name: str) -> list[RemoteImage]:
+        async def list_meth(cluster_name: str) -> list[RemoteImage]:
             return images[cluster_name]
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["image", "size", "i"])
         assert bash_out == "uri,image:,"
@@ -1037,12 +1037,12 @@ def test_nonascii_image_autocomplete(run_autocomplete: _RunAC) -> None:
             ),
         ]
 
-        async def list(cluster_name: str) -> list[RemoteImage]:
+        async def list_meth(cluster_name: str) -> list[RemoteImage]:
             if cluster_name == "default":
                 return images
             return []
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["image", "size", "image:"])
         # BROKEN??
@@ -1137,7 +1137,7 @@ def test_image_tag_autocomplete(run_autocomplete: _RunAC) -> None:
             project_name="other-project",
         )
 
-        async def list(cluster_name: str) -> list[RemoteImage]:
+        async def list_meth(cluster_name: str) -> list[RemoteImage]:
             return [image]
 
         async def tags(image: RemoteImage) -> builtins.list[RemoteImage]:
@@ -1147,7 +1147,7 @@ def test_image_tag_autocomplete(run_autocomplete: _RunAC) -> None:
                 replace(image, tag="latest"),
             ]
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
         mocked_tags.side_effect = tags
 
         zsh_out, bash_out = run_autocomplete(
@@ -1250,11 +1250,11 @@ def test_disk_autocomplete(run_autocomplete: _RunAC) -> None:
         }
 
         @asyncgeneratorcontextmanager
-        async def list(cluster_name: str | None = None) -> AsyncIterator[Disk]:
+        async def list_meth(cluster_name: str | None = None) -> AsyncIterator[Disk]:
             for disk in disks[cluster_name or "default"]:
                 yield disk
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["disk", "get", "d"])
         assert bash_out == (
@@ -1352,11 +1352,11 @@ def test_bucket_autocomplete(run_autocomplete: _RunAC) -> None:
         }
 
         @asyncgeneratorcontextmanager
-        async def list(cluster_name: str | None = None) -> AsyncIterator[Bucket]:
+        async def list_meth(cluster_name: str | None = None) -> AsyncIterator[Bucket]:
             for bucket in buckets[cluster_name or "default"]:
                 yield bucket
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["blob", "statbucket", "b"])
         assert bash_out == (
@@ -1415,11 +1415,11 @@ def test_service_account_autocomplete(run_autocomplete: _RunAC) -> None:
         ]
 
         @asyncgeneratorcontextmanager
-        async def list() -> AsyncIterator[ServiceAccount]:
+        async def list_meth() -> AsyncIterator[ServiceAccount]:
             for account in accounts:
                 yield account
 
-        mocked_list.side_effect = list
+        mocked_list.side_effect = list_meth
 
         zsh_out, bash_out = run_autocomplete(["service-account", "get", "a"])
         assert bash_out == ("plain,account-1,\n" "plain,account-2,")
