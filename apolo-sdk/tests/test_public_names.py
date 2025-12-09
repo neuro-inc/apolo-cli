@@ -19,6 +19,9 @@ def test_module_for_public_names() -> None:
                 # objects from typing are public type hint aliases,
                 # e.g. Callable[...]
                 "typing",
+                # collections.abc are also public type hint aliases,
+                # e.g. Sequence[...]
+                "collections.abc",
                 # We re-export entities from admin client
                 "neuro_admin_client.entities",
                 # We re-export entities from config client
