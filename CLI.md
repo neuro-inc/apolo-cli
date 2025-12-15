@@ -51,12 +51,15 @@
 		* [apolo admin update-resource-preset](#apolo-admin-update-resource-preset)
 	* [apolo app](#apolo-app)
 		* [apolo app configure](#apolo-app-configure)
+		* [apolo app get-input](#apolo-app-get-input)
+		* [apolo app get-revisions](#apolo-app-get-revisions)
 		* [apolo app get-status](#apolo-app-get-status)
 		* [apolo app get-values](#apolo-app-get-values)
 		* [apolo app install](#apolo-app-install)
 		* [apolo app list](#apolo-app-list)
 		* [apolo app logs](#apolo-app-logs)
 		* [apolo app ls](#apolo-app-ls)
+		* [apolo app rollback](#apolo-app-rollback)
 		* [apolo app uninstall](#apolo-app-uninstall)
 	* [apolo app-template](#apolo-app-template)
 		* [apolo app-template get](#apolo-app-template-get)
@@ -1357,12 +1360,15 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo app configure](#apolo-app-configure)_| Reconfigure an app instance using YAML file |
+| _[apolo app get-input](#apolo-app-get-input)_| Get input for an app |
+| _[apolo app get-revisions](#apolo-app-get-revisions)_| Get configuration revisions for an app |
 | _[apolo app get-status](#apolo-app-get-status)_| Get status events for an app |
 | _[apolo app get-values](#apolo-app-get-values)_| Get application values |
 | _[apolo app install](#apolo-app-install)_| Install an app from a YAML file |
 | _[apolo app list](#apolo-app-list)_| List apps |
 | _[apolo app logs](#apolo-app-logs)_| Print the logs for an app |
 | _[apolo app ls](#apolo-app-ls)_| Alias to list |
+| _[apolo app rollback](#apolo-app-rollback)_| Rollback application configuration |
 | _[apolo app uninstall](#apolo-app-uninstall)_| Uninstall an app |
 
 
@@ -1383,7 +1389,52 @@ apolo app configure [OPTIONS] APP_ID
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_\-c, --comment TEXT_|Comment for the configuration.|
 |_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
+
+
+
+
+### apolo app get-input
+
+Get input for an app.<br/><br/>APP_ID: ID of the app to get input for.
+
+**Usage:**
+
+```bash
+apolo app get-input [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_\-o, --output \[yaml &#124; json]_|Output format \(default: yaml).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+|_\-r, --revision INTEGER_|Revision number to get input for. If not specified, the latest revision is used.|
+
+
+
+
+### apolo app get-revisions
+
+Get configuration revisions for an app.<br/><br/>APP_ID: ID of the app to get configuration revisions for.
+
+**Usage:**
+
+```bash
+apolo app get-revisions [OPTIONS] APP_ID
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_\-o, --output \[table &#124; json]_|Output format \(default: table).|
 
 
 
@@ -1526,6 +1577,29 @@ Name | Description|
 |_--org ORG_|Look on a specified org \(the current org by default).|
 |_--project PROJECT_|Look on a specified project \(the current project by default).|
 |_\-s, --state \[queued &#124; progressing &#124; healthy &#124; degraded &#124; errored &#124; uninstalling &#124; uninstalled]_|Filter out apps by state \(multiple option).|
+
+
+
+
+### apolo app rollback
+
+Rollback application configuration.<br/><br/>APP\_ID: ID of the app to rollback. REVISION_NUMBER: Target revision number.
+
+**Usage:**
+
+```bash
+apolo app rollback [OPTIONS] APP_ID REVISION_NUMBER
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_\-c, --comment TEXT_|Comment for the rollback.|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 

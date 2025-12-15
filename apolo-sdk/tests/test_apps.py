@@ -6,7 +6,14 @@ import pytest
 from aiohttp import web
 from aiohttp.web_ws import WebSocketResponse
 
-from apolo_sdk import App, AppEvent, AppEventResource, Client
+from apolo_sdk import (
+    App,
+    AppConfigurationRevision,
+    AppEvent,
+    AppEventResource,
+    AppState,
+    Client,
+)
 
 from tests import _TestServerFactory
 
@@ -24,9 +31,10 @@ def app_payload() -> dict[str, Any]:
                 "project_name": "test3",
                 "org_name": "superorg",
                 "cluster_name": "default",
+                "namespace": "test3",
                 "creator": "test-user",
-                "created_at": "2025-05-07T11:00:00+00:00",
-                "updated_at": "2025-05-07T11:00:00+00:00",
+                "created_at": "2025-05-07 11:00:00+00:00",
+                "updated_at": "2025-05-07 11:00:00+00:00",
                 "state": "errored",
                 "endpoints": [],
             },
@@ -40,8 +48,9 @@ def app_payload() -> dict[str, Any]:
                 "org_name": "superorg",
                 "cluster_name": "default",
                 "creator": "test-user",
-                "created_at": "2025-05-07T11:00:00+00:00",
-                "updated_at": "2025-05-07T11:00:00+00:00",
+                "namespace": "test3",
+                "created_at": "2025-05-07 11:00:00+00:00",
+                "updated_at": "2025-05-07 11:00:00+00:00",
                 "state": "errored",
                 "endpoints": [],
             },
@@ -107,10 +116,11 @@ async def test_apps_install(
             "project_name": "project_name",
             "org_name": "org_name",
             "cluster_name": "cluster_name",
+            "namespace": "namespace",
             "state": "state",
             "creator": "creator",
-            "created_at": "created_at",
-            "updated_at": "updated_at",
+            "created_at": "2025-05-07 11:00:00+00:00",
+            "updated_at": "2025-05-07 11:00:00+00:00",
             "endpoints": [],
         }
         assert request.method == "POST"
@@ -160,10 +170,11 @@ async def test_apps_configure(
             "project_name": "test3",
             "org_name": "superorg",
             "cluster_name": "default",
+            "namespace": "namespace",
             "state": "state",
             "creator": "creator",
-            "created_at": "created_at",
-            "updated_at": "updated_at",
+            "created_at": "2025-05-07 11:00:00+00:00",
+            "updated_at": "2025-05-07 11:00:00+00:00",
             "endpoints": [],
         }
         if request.method == "POST":
@@ -1010,3 +1021,369 @@ async def test_apps_get_events_empty(
                 events.append(event)
 
         assert len(events) == 0
+
+
+async def test_apps_get(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """Test getting a specific app instance by ID."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+    response_data = {
+        "id": app_id,
+        "name": "superorg-test3-stable-diffusion-704285b2",
+        "display_name": "Stable Diffusion",
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "apolo-test3",
+        "state": "healthy",
+        "creator": "test-user",
+        "created_at": "2025-05-07T11:00:00+00:00",
+        "updated_at": "2025-05-07T12:00:00+00:00",
+        "endpoints": ["https://app.example.com"],
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        assert request.path == f"/apis/apps/v2/instances/{app_id}"
+        return web.json_response(response_data)
+
+    web_app = web.Application()
+    web_app.router.add_get(f"/apis/apps/v2/instances/{app_id}", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        app = await client.apps.get(app_id)
+
+        assert isinstance(app, App)
+        assert app.id == app_id
+        assert app.name == "superorg-test3-stable-diffusion-704285b2"
+        assert app.display_name == "Stable Diffusion"
+        assert app.template_name == "stable-diffusion"
+        assert app.template_version == "master"
+        assert app.project_name == "test3"
+        assert app.org_name == "superorg"
+        assert app.cluster_name == "default"
+        assert app.namespace == "apolo-test3"
+        assert app.state == "healthy"
+        assert app.creator == "test-user"
+        assert app.endpoints == ["https://app.example.com"]
+
+
+@pytest.fixture
+def app_revisions_payload() -> list[dict[str, Any]]:
+    return [
+        {
+            "revision_number": 3,
+            "creator": "test-user",
+            "comment": "Updated configuration",
+            "created_at": "2025-11-27T14:00:00+00:00",
+            "end_at": None,
+        },
+        {
+            "revision_number": 2,
+            "creator": "test-user",
+            "comment": "Initial configuration",
+            "created_at": "2025-11-27T13:00:00+00:00",
+            "end_at": "2025-11-27T14:00:00+00:00",
+        },
+        {
+            "revision_number": 1,
+            "creator": "test-user",
+            "comment": None,
+            "created_at": "2025-11-27T12:00:00+00:00",
+            "end_at": "2025-11-27T13:00:00+00:00",
+        },
+    ]
+
+
+async def test_apps_get_revisions(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_revisions_payload: list[dict[str, Any]],
+) -> None:
+    """Test getting configuration revisions for an app instance."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        assert request.path == f"/apis/apps/v2/instances/{app_id}/revisions"
+        return web.json_response(app_revisions_payload)
+
+    web_app = web.Application()
+    web_app.router.add_get(f"/apis/apps/v2/instances/{app_id}/revisions", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        revisions = await client.apps.get_revisions(app_id)
+
+        assert len(revisions) == 3
+        assert isinstance(revisions[0], AppConfigurationRevision)
+        assert revisions[0].revision_number == 3
+        assert revisions[0].creator == "test-user"
+        assert revisions[0].comment == "Updated configuration"
+        assert revisions[0].end_at is None
+
+        assert revisions[1].revision_number == 2
+        assert revisions[1].comment == "Initial configuration"
+        assert revisions[1].end_at == "2025-11-27T14:00:00+00:00"
+
+        assert revisions[2].revision_number == 1
+        assert revisions[2].comment is None
+        assert revisions[2].end_at == "2025-11-27T13:00:00+00:00"
+
+
+async def test_apps_rollback(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """Test rolling back an app instance to a previous revision."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+    revision_number = 2
+    response_data = {
+        "id": app_id,
+        "name": "superorg-test3-stable-diffusion-704285b2",
+        "display_name": "Stable Diffusion",
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "apolo-test3",
+        "state": "progressing",
+        "creator": "test-user",
+        "created_at": "2025-05-07T11:00:00+00:00",
+        "updated_at": "2025-11-27T15:00:00+00:00",
+        "endpoints": [],
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "POST"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = (
+            f"{base_path}/instances/{app_id}/revisions/{revision_number}/rollback"
+        )
+        assert request.path == expected_path
+        payload = await request.json()
+        assert payload == {"comment": "Rolling back to previous version"}
+        return web.json_response(response_data)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_post(
+        f"{base_path}/instances/{app_id}/revisions/{revision_number}/rollback",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        app = await client.apps.rollback(
+            app_id=app_id,
+            revision_number=revision_number,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+            comment="Rolling back to previous version",
+        )
+
+        assert isinstance(app, App)
+        assert app.id == app_id
+        assert app.state == "progressing"
+
+
+async def test_apps_rollback_no_comment(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """Test rolling back an app instance without a comment."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+    revision_number = 1
+    response_data = {
+        "id": app_id,
+        "name": "superorg-test3-stable-diffusion-704285b2",
+        "display_name": "Stable Diffusion",
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "apolo-test3",
+        "state": "progressing",
+        "creator": "test-user",
+        "created_at": "2025-05-07T11:00:00+00:00",
+        "updated_at": "2025-11-27T15:00:00+00:00",
+        "endpoints": [],
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "POST"
+        payload = await request.json()
+        assert payload == {}
+        return web.json_response(response_data)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_post(
+        f"{base_path}/instances/{app_id}/revisions/{revision_number}/rollback",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        app = await client.apps.rollback(
+            app_id=app_id,
+            revision_number=revision_number,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert isinstance(app, App)
+        assert app.id == app_id
+
+
+@pytest.fixture
+def app_input_payload() -> dict[str, Any]:
+    return {
+        "display_name": "My App",
+        "input": {
+            "http": {
+                "port": 8080,
+                "host": "0.0.0.0",
+            },
+            "resources": {
+                "cpu": "2",
+                "memory": "4Gi",
+            },
+        },
+    }
+
+
+async def test_apps_get_input(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_input_payload: dict[str, Any],
+) -> None:
+    """Test getting input parameters for an app instance."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/input"
+        assert request.path == expected_path
+        return web.json_response(app_input_payload)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/input",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        input_data = await client.apps.get_input(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        )
+
+        assert input_data == app_input_payload
+        assert input_data["display_name"] == "My App"
+        assert input_data["input"]["http"]["port"] == 8080
+        assert input_data["input"]["resources"]["cpu"] == "2"
+
+
+async def test_apps_get_input_with_revision(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_input_payload: dict[str, Any],
+) -> None:
+    """Test getting input parameters for a specific revision."""
+    app_id = "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4"
+    revision = 2
+    revision_input_payload = {
+        "display_name": "My App (Old Version)",
+        "input": {
+            "http": {
+                "port": 8080,
+                "host": "localhost",
+            },
+            "resources": {
+                "cpu": "1",
+                "memory": "2Gi",
+            },
+        },
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/{app_id}/revisions/{revision}/input"
+        assert request.path == expected_path
+        return web.json_response(revision_input_payload)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/{app_id}/revisions/{revision}/input",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        input_data = await client.apps.get_input(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+            revision=revision,
+        )
+
+        assert input_data == revision_input_payload
+        assert input_data["display_name"] == "My App (Old Version)"
+        assert input_data["input"]["http"]["host"] == "localhost"
+        assert input_data["input"]["resources"]["cpu"] == "1"
+
+
+async def test_apps_list_with_states_filter(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_payload: dict[str, Any],
+) -> None:
+    """Test listing apps with state filter."""
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.path == "/apis/apps/v2/instances"
+        # Query parameters can be a list or single value
+        states_param = request.query.getall("states")
+        assert states_param is not None
+        # Convert to list if it's a single value
+        if isinstance(states_param, str):
+            states_list = [states_param]
+        else:
+            states_list = states_param
+        assert set(states_list) == {"healthy", "progressing"}
+        return web.json_response(app_payload)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        apps = []
+        async with client.apps.list(
+            states=[AppState.HEALTHY, AppState.PROGRESSING],
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        ) as it:
+            async for app in it:
+                apps.append(app)
+
+        assert len(apps) == 2

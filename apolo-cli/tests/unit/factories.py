@@ -10,6 +10,7 @@ def _app_factory(
     cluster_name: str = "test-cluster",
     project_name: str = "test-project",
     org_name: str = "test-org",
+    namespace: str = "",
     state: str = "running",
     creator: str = "test-user",
     created_at: str = "2025-05-07T11:00:00+00:00",

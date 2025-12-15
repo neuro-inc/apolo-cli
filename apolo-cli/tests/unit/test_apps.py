@@ -1,10 +1,19 @@
+import json
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
 from typing import Any
 from unittest import mock
 
-from apolo_sdk import App, AppEvent, AppEventResource, AppValue
+import yaml
+
+from apolo_sdk import (
+    App,
+    AppConfigurationRevision,
+    AppEvent,
+    AppEventResource,
+    AppValue,
+)
 from apolo_sdk._apps import Apps
 
 from .factories import _app_factory
@@ -501,4 +510,230 @@ def test_app_get_status_with_message(run_cli: _RunCli) -> None:
     assert "degraded" in capture.out
     assert "DeploymentFailed" in capture.out
     assert "Deployment exceeded its progress deadline" in capture.out
+    assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_get_revisions(
+    revisions: list[AppConfigurationRevision],
+) -> Iterator[None]:
+    """Context manager to mock the Apps.get_revisions method."""
+    with mock.patch.object(Apps, "get_revisions") as mocked:
+
+        async def get_revisions(**kwargs: Any) -> list[AppConfigurationRevision]:
+            return revisions
+
+        mocked.side_effect = get_revisions
+        yield
+
+
+def test_app_get_revisions_json_output(run_cli: _RunCli) -> None:
+    """Test the app get-revisions command with JSON output."""
+    revisions = [
+        AppConfigurationRevision(
+            revision_number=3,
+            creator="test-user",
+            comment="Updated configuration",
+            created_at=datetime.fromisoformat("2025-11-27T14:00:00+00:00"),
+            end_at=None,
+        ),
+    ]
+
+    with mock_apps_get_revisions(revisions):
+        capture = run_cli(["app", "get-revisions", "app-123", "--output", "json"])
+
+    assert not capture.err
+    assert json.loads(capture.out) == [
+        {
+            "revision_number": 3,
+            "creator": "test-user",
+            "comment": "Updated configuration",
+            "created_at": "2025-11-27 14:00:00+00:00",
+            "end_at": None,
+        },
+    ]
+
+
+@contextmanager
+def mock_apps_rollback() -> Iterator[None]:
+    """Context manager to mock the Apps.rollback method."""
+    with mock.patch.object(Apps, "rollback") as mocked:
+
+        async def rollback(**kwargs: Any) -> App:
+            return _app_factory(state="progressing")
+
+        mocked.side_effect = rollback
+        yield mocked
+
+
+def test_app_rollback(run_cli: _RunCli) -> None:
+    """Test the app rollback command."""
+    app_id = "app-123"
+    revision_number = "2"
+
+    with mock_apps_rollback() as mock:
+        capture = run_cli(["app", "rollback", app_id, revision_number])
+        mock.assert_called_once_with(
+            app_id=app_id,
+            revision_number=revision_number,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            comment=None,
+        )
+
+    assert not capture.err
+    assert f"App {app_id} rolled back to revision {revision_number}" in capture.out
+    assert capture.code == 0
+
+
+def test_app_rollback_with_comment(run_cli: _RunCli) -> None:
+    """Test the app rollback command with comment."""
+    app_id = "app-123"
+    revision_number = "2"
+    comment = "Rolling back due to issues"
+
+    with mock_apps_rollback() as mock:
+        capture = run_cli(
+            ["app", "rollback", app_id, revision_number, "--comment", comment]
+        )
+        mock.assert_called_once_with(
+            app_id=app_id,
+            revision_number=revision_number,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            comment=comment,
+        )
+
+    assert not capture.err
+    assert f"App {app_id} rolled back to revision {revision_number}" in capture.out
+    assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_get_input(input_data: dict[str, Any]) -> Iterator[None]:
+    """Context manager to mock the Apps.get_input method."""
+    with mock.patch.object(Apps, "get_input") as mocked:
+
+        async def get_input(**kwargs: Any) -> dict[str, Any]:
+            return input_data
+
+        mocked.side_effect = get_input
+        yield mocked
+
+
+def test_app_get_input(run_cli: _RunCli) -> None:
+    """Test the app get-input command."""
+    app_id = "app-123"
+    input_data = {
+        "http": {
+            "port": 8080,
+            "host": "0.0.0.0",
+        },
+        "preset": "cpu-small",
+    }
+
+    with mock_apps_get_input(input_data) as mock:
+        capture = run_cli(["app", "get-input", app_id])
+        mock.assert_called_once_with(
+            app_id=app_id,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            revision=None,
+        )
+
+    assert not capture.err
+    assert yaml.safe_load(capture.out) == input_data
+
+
+def test_app_get_input_json_output(run_cli: _RunCli) -> None:
+    """Test the app get-input command."""
+    app_id = "app-123"
+    input_data = {
+        "http": {
+            "port": 8080,
+            "host": "0.0.0.0",
+        },
+        "preset": "cpu-small",
+    }
+
+    with mock_apps_get_input(input_data) as mock:
+        capture = run_cli(["app", "get-input", app_id, "--output", "json"])
+        mock.assert_called_once_with(
+            app_id=app_id,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            revision=None,
+        )
+
+    assert not capture.err
+    assert json.loads(capture.out) == input_data
+
+
+def test_app_get_input_with_revision(run_cli: _RunCli) -> None:
+    """Test the app get-input command with revision."""
+    app_id = "app-123"
+    revision = "2"
+    input_data = {
+        "http": {
+            "port": 8080,
+            "host": "0.0.0.0",
+        },
+        "preset": "cpu-small",
+    }
+
+    with mock_apps_get_input(input_data) as mock:
+        capture = run_cli(["app", "get-input", app_id, "--revision", revision])
+        mock.assert_called_once_with(
+            app_id=app_id,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            revision=int(revision),
+        )
+
+    assert not capture.err
+    assert yaml.safe_load(capture.out) == input_data
+
+
+def test_app_get_input_empty(run_cli: _RunCli) -> None:
+    """Test the app get-input command with empty input."""
+    app_id = "app-123"
+    input_data = {}
+
+    with mock_apps_get_input(input_data):
+        capture = run_cli(["app", "get-input", app_id])
+
+    assert not capture.err
+    assert capture.out == "{}"
+    # Empty YAML should still produce some output (even if just "{}" or empty)
+    assert capture.code == 0
+
+
+def test_app_get_input_quiet_mode(run_cli: _RunCli) -> None:
+    """Test the app get-input command in quiet mode."""
+    app_id = "app-123"
+    input_data = {
+        "http": {
+            "port": 8080,
+            "host": "0.0.0.0",
+        },
+        "preset": "cpu-small",
+    }
+
+    with mock_apps_get_input(input_data) as mock:
+        capture = run_cli(["-q", "app", "get-input", app_id])
+        mock.assert_called_once_with(
+            app_id=app_id,
+            cluster_name=None,
+            org_name=None,
+            project_name=None,
+            revision=None,
+        )
+
+    assert not capture.err
+    assert yaml.safe_load(capture.out) == input_data
     assert capture.code == 0

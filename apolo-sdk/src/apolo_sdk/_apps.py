@@ -1,3 +1,4 @@
+import builtins
 import enum
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -60,6 +61,7 @@ class App:
     project_name: str
     org_name: str
     cluster_name: str
+    namespace: str
     state: str
     creator: str
     created_at: datetime
@@ -82,9 +84,19 @@ class AppEventResource:
 class AppEvent:
     created_at: datetime
     state: str
-    reason: str
+    reason: str | None
     message: str | None
     resources: list[AppEventResource]
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class AppConfigurationRevision:
+    revision_number: int
+    creator: str
+    comment: str | None
+    created_at: datetime
+    end_at: datetime | None
 
 
 @rewrite_module
@@ -135,6 +147,25 @@ class Apps(metaclass=NoPublicConstructor):
             "/api/v1"
         )
 
+    @staticmethod
+    def _parse_app_read_instance(item: dict[str, Any]) -> App:
+        return App(
+            id=item["id"],
+            name=item["name"],
+            created_at=datetime.fromisoformat(item["created_at"]),
+            updated_at=datetime.fromisoformat(item["updated_at"]),
+            creator=item["creator"],
+            display_name=item["display_name"],
+            template_name=item["template_name"],
+            template_version=item["template_version"],
+            project_name=item["project_name"],
+            org_name=item["org_name"],
+            cluster_name=item["cluster_name"],
+            namespace=item["namespace"],
+            state=item["state"],
+            endpoints=item["endpoints"],
+        )
+
     @asyncgeneratorcontextmanager
     async def list(
         self,
@@ -159,21 +190,7 @@ class Apps(metaclass=NoPublicConstructor):
         async with self._core.request("GET", url, auth=auth) as resp:
             data = await resp.json()
             for item in data["items"]:
-                yield App(
-                    id=item["id"],
-                    name=item["name"],
-                    display_name=item["display_name"],
-                    template_name=item["template_name"],
-                    template_version=item["template_version"],
-                    project_name=item["project_name"],
-                    org_name=item["org_name"],
-                    cluster_name=item["cluster_name"],
-                    state=item["state"],
-                    creator=item["creator"],
-                    created_at=item["created_at"],
-                    updated_at=item["updated_at"],
-                    endpoints=item["endpoints"],
-                )
+                yield self._parse_app_read_instance(item)
 
     async def get(self, app_id: str) -> App:
         url = self._build_v2_base_url() / "instances" / app_id
@@ -182,21 +199,7 @@ class Apps(metaclass=NoPublicConstructor):
         async with self._core.request("GET", url, auth=auth) as resp:
             resp.raise_for_status()
             item = await resp.json()
-            return App(
-                id=item["id"],
-                name=item["name"],
-                display_name=item["display_name"],
-                template_name=item["template_name"],
-                template_version=item["template_version"],
-                project_name=item["project_name"],
-                org_name=item["org_name"],
-                cluster_name=item["cluster_name"],
-                creator=item["creator"],
-                created_at=item["created_at"],
-                updated_at=item["updated_at"],
-                endpoints=item["endpoints"],
-                state=item["state"],
-            )
+            return self._parse_app_read_instance(item)
 
     async def install(
         self,
@@ -218,21 +221,7 @@ class Apps(metaclass=NoPublicConstructor):
         async with self._core.request("POST", url, json=app_data, auth=auth) as resp:
             resp.raise_for_status()
             item = await resp.json()
-            return App(
-                id=item.get("id"),
-                name=item.get("name"),
-                display_name=item.get("display_name"),
-                template_name=item.get("template_name"),
-                template_version=item.get("template_version"),
-                project_name=item.get("project_name"),
-                org_name=item.get("org_name"),
-                cluster_name=cluster_name or self._config.cluster_name,
-                creator=item.get("creator"),
-                created_at=item.get("created_at"),
-                updated_at=item.get("updated_at"),
-                state=item.get("state"),
-                endpoints=[],
-            )
+            return self._parse_app_read_instance(item)
 
     def _can_configure_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
         if existing_app.template_name != app_data["template_name"]:
@@ -245,6 +234,7 @@ class Apps(metaclass=NoPublicConstructor):
         self,
         app_id: str,
         app_data: dict[str, Any],
+        comment: str | None = None,
     ) -> App:
         existing_app = await self.get(app_id)
         if not self._can_configure_app(existing_app, app_data):
@@ -265,6 +255,8 @@ class Apps(metaclass=NoPublicConstructor):
             configure_payload["display_name"] = app_data["display_name"]
         if "input" in app_data:
             configure_payload["input"] = app_data["input"]
+        if comment is not None:
+            configure_payload["comment"] = comment
 
         auth = await self._config._api_auth()
         async with self._core.request(
@@ -272,21 +264,7 @@ class Apps(metaclass=NoPublicConstructor):
         ) as resp:
             resp.raise_for_status()
             item = await resp.json()
-            return App(
-                id=item["id"],
-                name=item["name"],
-                display_name=item["display_name"],
-                template_name=item["template_name"],
-                template_version=item["template_version"],
-                project_name=existing_app.project_name,
-                org_name=existing_app.org_name,
-                cluster_name=existing_app.cluster_name,
-                state=item["state"],
-                creator=item["creator"],
-                created_at=item["created_at"],
-                updated_at=item["updated_at"],
-                endpoints=[],
-            )
+            return self._parse_app_read_instance(item)
 
     async def uninstall(
         self,
@@ -634,3 +612,80 @@ class Apps(metaclass=NoPublicConstructor):
                     message=item.get("message"),
                     resources=resources,
                 )
+
+    async def get_revisions(
+        self,
+        app_id: str,
+    ) -> builtins.list[AppConfigurationRevision]:
+        url = self._build_v2_base_url() / "instances" / app_id / "revisions"
+
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+            return [
+                AppConfigurationRevision(
+                    revision_number=item["revision_number"],
+                    creator=item["creator"],
+                    comment=item["comment"],
+                    created_at=item["created_at"],
+                    end_at=item["end_at"],
+                )
+                for item in data
+            ]
+
+    async def rollback(
+        self,
+        app_id: str,
+        revision_number: int,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
+        comment: str | None = None,
+    ) -> App:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name or self._config.cluster_name,
+                org_name=org_name or self._config.org_name,
+                project_name=project_name or self._config.project_name_or_raise,
+            )
+            / "instances"
+            / app_id
+            / "revisions"
+            / str(revision_number)
+            / "rollback"
+        )
+        auth = await self._config._api_auth()
+        payload = {}
+        if comment is not None:
+            payload["comment"] = comment
+        async with self._core.request("POST", url, json=payload, auth=auth) as resp:
+            resp.raise_for_status()
+            item = await resp.json()
+            return self._parse_app_read_instance(item)
+
+    async def get_input(
+        self,
+        app_id: str,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
+        revision: int | None = None,
+    ) -> dict[str, Any]:
+        url = (
+            self._build_base_url(
+                cluster_name=cluster_name or self._config.cluster_name,
+                org_name=org_name or self._config.org_name,
+                project_name=project_name or self._config.project_name_or_raise,
+            )
+            / "instances"
+            / app_id
+        )
+        if revision is not None:
+            url = url / "revisions" / str(revision) / "input"
+        else:
+            url = url / "input"
+        auth = await self._config._api_auth()
+        async with self._core.request("GET", url, auth=auth) as resp:
+            resp.raise_for_status()
+            return await resp.json()
