@@ -7,7 +7,7 @@ azure-core==1.37.0
 azure-storage-blob==12.27.1
 # upgrade setup.py after pinning certtifi to new version
 certifi==2025.11.12
-click==8.1.8
+click==8.3.1
 ConfigUpdater==3.2
 contextlib2==21.6.0
 humanize==4.13.0
