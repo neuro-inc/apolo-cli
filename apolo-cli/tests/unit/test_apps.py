@@ -555,7 +555,7 @@ def test_app_get_revisions_json_output(run_cli: _RunCli) -> None:
 
 
 @contextmanager
-def mock_apps_rollback() -> Iterator[None]:
+def mock_apps_rollback() -> Iterator[mock.Mock]:
     """Context manager to mock the Apps.rollback method."""
     with mock.patch.object(Apps, "rollback") as mocked:
 
@@ -612,7 +612,7 @@ def test_app_rollback_with_comment(run_cli: _RunCli) -> None:
 
 
 @contextmanager
-def mock_apps_get_input(input_data: dict[str, Any]) -> Iterator[None]:
+def mock_apps_get_input(input_data: dict[str, Any]) -> Iterator[mock.Mock]:
     """Context manager to mock the Apps.get_input method."""
     with mock.patch.object(Apps, "get_input") as mocked:
 
@@ -702,7 +702,7 @@ def test_app_get_input_with_revision(run_cli: _RunCli) -> None:
 def test_app_get_input_empty(run_cli: _RunCli) -> None:
     """Test the app get-input command with empty input."""
     app_id = "app-123"
-    input_data = {}
+    input_data: dict[str, Any] = {}
 
     with mock_apps_get_input(input_data):
         capture = run_cli(["app", "get-input", app_id])
