@@ -6,7 +6,12 @@ import sys
 import click
 import yaml
 
-from apolo_sdk import AppEvent, AppState, AppValue, IllegalArgumentError
+from apolo_sdk import (
+    AppEvent,
+    AppState,
+    AppValue,
+    IllegalArgumentError,
+)
 
 from .click_types import CLUSTER, ORG, PROJECT
 from .formatters.app_values import (
@@ -16,10 +21,12 @@ from .formatters.app_values import (
 )
 from .formatters.apps import (
     AppEventsFormatter,
+    AppRevisionsFormatter,
     AppsFormatter,
     BaseAppEventsFormatter,
     BaseAppsFormatter,
     SimpleAppEventsFormatter,
+    SimpleAppRevisionsFormatter,
     SimpleAppsFormatter,
 )
 from .job import _parse_date
@@ -222,10 +229,17 @@ async def install(
     required=True,
     help="Path to the app configuration YAML file.",
 )
+@option(
+    "-c",
+    "--comment",
+    type=str,
+    help="Comment for the configuration.",
+)
 async def configure(
     root: Root,
     app_id: str,
     file_path: str,
+    comment: str | None,
 ) -> None:
     """
     Reconfigure an app instance using YAML file.
@@ -245,6 +259,7 @@ async def configure(
             resp = await root.client.apps.configure(
                 app_id=app_id,
                 app_data=app_data,
+                comment=comment,
             )
             root.print(apps_fmtr([resp]))
     except IllegalArgumentError as e:
@@ -461,6 +476,162 @@ async def get_status(
                 root.print("No events found.")
 
 
+@command()
+@argument("app_id")
+@option(
+    "-o",
+    "--output",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    help="Output format (default: table).",
+)
+async def get_revisions(
+    root: Root,
+    app_id: str,
+    output_format: str,
+) -> None:
+    """
+    Get configuration revisions for an app.
+
+    APP_ID: ID of the app to get configuration revisions for.
+    """
+    with root.status("Fetching app revisions"):
+        revisions = await root.client.apps.get_revisions(app_id=app_id)
+
+    if output_format == "json":
+        root.print(json.dumps(revisions, indent=2, default=json_default))
+    else:
+        formatter = (
+            SimpleAppRevisionsFormatter() if root.quiet else AppRevisionsFormatter()
+        )
+        with root.pager():
+            if revisions:
+                root.print(formatter(revisions))
+            else:
+                root.print("No revisions found.")
+
+
+@command()
+@argument("app_id")
+@argument("revision_number")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+@option(
+    "-c",
+    "--comment",
+    type=str,
+    help="Comment for the rollback.",
+)
+async def rollback(
+    root: Root,
+    app_id: str,
+    revision_number: int,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    comment: str | None,
+) -> None:
+    """
+    Rollback application configuration.
+
+    APP_ID: ID of the app to rollback.
+    REVISION_NUMBER: Target revision number.
+    """
+    with root.status(
+        f"Rolling back app [bold]{app_id}[/bold] to revision "
+        f"[bold]{revision_number}[/bold]"
+    ):
+        await root.client.apps.rollback(
+            app_id=app_id,
+            revision_number=revision_number,
+            cluster_name=cluster,
+            org_name=org,
+            project_name=project,
+            comment=comment,
+        )
+        root.print(
+            f"App [bold]{app_id}[/bold] rolled back to revision "
+            f"[bold]{revision_number}[/bold].",
+            markup=True,
+        )
+
+
+@command()
+@argument("app_id")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+@option(
+    "-r",
+    "--revision",
+    type=int,
+    help=(
+        "Revision number to get input for. "
+        "If not specified, the latest revision is used."
+    ),
+)
+@option(
+    "-o",
+    "--output",
+    "output_format",
+    type=click.Choice(["yaml", "json"]),
+    default="yaml",
+    help="Output format (default: yaml).",
+)
+async def get_input(
+    root: Root,
+    app_id: str,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    revision: int | None,
+    output_format: str,
+) -> None:
+    """
+    Get input for an app.
+
+    APP_ID: ID of the app to get input for.
+    """
+    with root.status(f"Getting input for app [bold]{app_id}[/bold]"):
+        input = await root.client.apps.get_input(
+            app_id=app_id,
+            cluster_name=cluster,
+            org_name=org,
+            project_name=project,
+            revision=revision,
+        )
+    if output_format == "json":
+        root.print(json.dumps(input, indent=2, default=json_default))
+    else:
+        root.print(yaml.dump(input, sort_keys=True, indent=2))
+
+
 app.add_command(list_cmd)
 app.add_command(alias(list_cmd, "ls", help="Alias to list", deprecated=False))
 app.add_command(install)
@@ -469,3 +640,6 @@ app.add_command(uninstall)
 app.add_command(get_values)
 app.add_command(logs)
 app.add_command(get_status)
+app.add_command(get_revisions)
+app.add_command(rollback)
+app.add_command(get_input)

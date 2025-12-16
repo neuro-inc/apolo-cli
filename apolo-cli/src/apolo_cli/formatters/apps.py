@@ -5,7 +5,7 @@ from rich.console import Group, RenderableType
 from rich.table import Table, box
 from rich.text import Text
 
-from apolo_sdk import App, AppEvent, AppEventResource
+from apolo_sdk import App, AppConfigurationRevision, AppEvent, AppEventResource
 
 
 class BaseAppsFormatter:
@@ -25,7 +25,7 @@ class SimpleAppsFormatter(BaseAppsFormatter):
 class AppsFormatter(BaseAppsFormatter):
     def __call__(self, apps: list[App]) -> Table:
         table = Table(box=box.SIMPLE_HEAVY)
-        table.add_column("ID")
+        table.add_column("ID", no_wrap=True)
         table.add_column("Name")
         table.add_column("Display Name")
         table.add_column("Template")
@@ -91,7 +91,7 @@ class AppEventsFormatter(BaseAppEventsFormatter):
             # REASON line
             reason_line = Text()
             reason_line.append("REASON: ", style="bold")
-            reason_line.append(event.reason)
+            reason_line.append(event.reason or "")
             renderables.append(reason_line)
 
             # Message (if present)
@@ -143,3 +143,40 @@ class AppEventsFormatter(BaseAppEventsFormatter):
             )
             line.append(")")
         renderables.append(line)
+
+
+class BaseAppRevisionsFormatter:
+    def __call__(self, revisions: list[AppConfigurationRevision]) -> Table:
+        raise NotImplementedError("Subclasses must implement __call__")
+
+
+class SimpleAppRevisionsFormatter(BaseAppRevisionsFormatter):
+    def __call__(self, revisions: list[AppConfigurationRevision]) -> Table:
+        table = Table.grid()
+        table.add_column("")
+        for revision in revisions:
+            table.add_row(str(revision.revision_number))
+        return table
+
+
+class AppRevisionsFormatter(BaseAppRevisionsFormatter):
+    def __call__(self, revisions: list[AppConfigurationRevision]) -> Table:
+        table = Table(box=box.SIMPLE_HEAVY)
+        table.add_column("Revision Number")
+        table.add_column("Creator")
+        table.add_column("Comment")
+        table.add_column("Created At")
+        table.add_column("End At")
+
+        for revision in revisions:
+            is_current = revision.end_at is None
+            style = "bold" if is_current else None
+            table.add_row(
+                str(revision.revision_number),
+                revision.creator,
+                revision.comment or "",
+                str(revision.created_at),
+                str(revision.end_at) if revision.end_at else "~",
+                style=style,
+            )
+        return table

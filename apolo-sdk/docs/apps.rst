@@ -13,11 +13,12 @@ Apps
 
    Application management subsystem. Allows listing and uninstalling applications, as well as browsing available application templates.
 
-   .. method:: list(cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[App]]
+   .. method:: list(states: Optional[list[AppState]] = None, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[App]]
       :async:
 
       List applications, async iterator. Yields :class:`App` instances.
 
+      :param list[AppState] states: Optional list of app states to filter by.
       :param str cluster_name: cluster to list applications. Default is current cluster.
       :param str org_name: org to list applications. Default is current org.
       :param str project_name: project to list applications. Default is current project.
@@ -32,7 +33,7 @@ Apps
       :param str org_name: org to install application. Default is current org.
       :param str project_name: project to install application. Default is current project.
 
-   .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> None
+   .. method:: uninstall(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None, *, force: bool = False) -> None
       :async:
 
       Uninstall an application instance.
@@ -41,6 +42,7 @@ Apps
       :param str cluster_name: cluster where the application is deployed. Default is current cluster.
       :param str org_name: org where the application is deployed. Default is current org.
       :param str project_name: project where the application is deployed. Default is current project.
+      :param bool force: Force uninstall the application. Default is False.
 
    .. method:: list_templates(cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppTemplate]]
       :async:
@@ -71,6 +73,16 @@ Apps
       :param str cluster_name: cluster to get template from. Default is current cluster.
       :param str org_name: org to get template from. Default is current org.
       :param str project_name: project to get template from. Default is current project.
+
+   .. method:: get(app_id: str) -> App
+      :async:
+
+      Get a specific application instance by ID.
+
+      :param str app_id: The ID of the application instance.
+      :return: The application instance.
+      :rtype: App
+      :raises ResourceNotFound: If app instance not found.
 
    .. method:: get_output(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> dict[str, Any]
       :async:
@@ -112,13 +124,60 @@ Apps
       :param datetime since: Optional timestamp to start logs from.
       :param bool timestamps: Include timestamps in the logs output.
 
-   .. method:: configure(app_id: str, app_data: dict) -> App
+   .. method:: get_events(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None) -> AsyncContextManager[AsyncIterator[AppEvent]]
+      :async:
+
+      Get events for an app instance, async iterator. Yields :class:`AppEvent` instances.
+
+      :param str app_id: The ID of the app instance.
+      :param str cluster_name: Cluster where the app is deployed. Default is current cluster.
+      :param str org_name: Organization where the app is deployed. Default is current org.
+      :param str project_name: Project where the app is deployed. Default is current project.
+
+   .. method:: get_revisions(app_id: str) -> list[AppConfigurationRevision]
+      :async:
+
+      Get configuration revision history for an app instance.
+
+      :param str app_id: The ID of the app instance.
+      :return: List of configuration revisions.
+      :rtype: list[AppConfigurationRevision]
+
+   .. method:: rollback(app_id: str, revision_number: int, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None, comment: Optional[str] = None) -> App
+      :async:
+
+      Rollback an app instance to a previous configuration revision.
+
+      :param str app_id: The ID of the app instance.
+      :param int revision_number: The revision number to rollback to.
+      :param str cluster_name: Cluster where the app is deployed. Default is current cluster.
+      :param str org_name: Organization where the app is deployed. Default is current org.
+      :param str project_name: Project where the app is deployed. Default is current project.
+      :param str comment: Optional comment describing the rollback.
+      :return: The updated application instance.
+      :rtype: App
+
+   .. method:: get_input(app_id: str, cluster_name: Optional[str] = None, org_name: Optional[str] = None, project_name: Optional[str] = None, revision: Optional[int] = None) -> dict[str, Any]
+      :async:
+
+      Get input parameters for an app instance, optionally for a specific revision.
+
+      :param str app_id: The ID of the app instance.
+      :param str cluster_name: Cluster where the app is deployed. Default is current cluster.
+      :param str org_name: Organization where the app is deployed. Default is current org.
+      :param str project_name: Project where the app is deployed. Default is current project.
+      :param int revision: Optional revision number to get input for. Default is current revision.
+      :return: Dictionary containing input parameters.
+      :rtype: dict[str, Any]
+
+   .. method:: configure(app_id: str, app_data: dict, comment: Optional[str] = None) -> App
       :async:
 
       Reconfigure an application instance with new input data and display name.
 
       :param str app_id: The ID of the application instance to reconfigure.
       :param dict app_data: Dictionary containing application update data. The structure is the same as in :meth:`install`.
+      :param str comment: Optional comment describing the configuration change.
 
 ===
 
@@ -154,9 +213,33 @@ Apps
 
       Organization the application belongs to, :class:`str`.
 
+   .. attribute:: cluster_name
+
+      Cluster the application belongs to, :class:`str`.
+
+   .. attribute:: namespace
+
+      Kubernetes namespace where the application is deployed, :class:`str`.
+
    .. attribute:: state
 
       Current state of the application, :class:`str`.
+
+   .. attribute:: creator
+
+      Username of the user who created the application, :class:`str`.
+
+   .. attribute:: created_at
+
+      Timestamp when the application was created, :class:`datetime`.
+
+   .. attribute:: updated_at
+
+      Timestamp when the application was last updated, :class:`datetime`.
+
+   .. attribute:: endpoints
+
+      List of endpoint URLs for the application, :class:`list` of :class:`str`.
 
 ===
 
@@ -168,6 +251,10 @@ Apps
 
       The template name, :class:`str`.
 
+   .. attribute:: title
+
+      The template title, :class:`str`.
+
    .. attribute:: version
 
       Template version, :class:`str`.
@@ -176,9 +263,17 @@ Apps
 
       Short description of the template, :class:`str`.
 
+   .. attribute:: description
+
+      Full description of the template, :class:`str`.
+
    .. attribute:: tags
 
       List of template tags, :class:`list` of :class:`str`.
+
+   .. attribute:: input
+
+      Input schema definition for the template, :class:`dict` or :class:`None`.
 
 ===
 
@@ -201,3 +296,119 @@ Apps
    .. attribute:: value
 
       The actual value, can be any type.
+
+===
+
+.. class:: AppState
+
+   Enumeration of possible application states.
+
+   .. attribute:: QUEUED
+
+      Application is queued for deployment.
+
+   .. attribute:: PROGRESSING
+
+      Application deployment is in progress.
+
+   .. attribute:: HEALTHY
+
+      Application is healthy and running.
+
+   .. attribute:: DEGRADED
+
+      Application is running but in a degraded state.
+
+   .. attribute:: ERRORED
+
+      Application has encountered an error.
+
+   .. attribute:: UNINSTALLING
+
+      Application is being uninstalled.
+
+   .. attribute:: UNINSTALLED
+
+      Application has been uninstalled.
+
+   .. method:: get_active_states() -> list[AppState]
+
+      Get all active states (all states except UNINSTALLED).
+
+===
+
+.. class:: AppEvent
+
+   *Read-only* :class:`~dataclasses.dataclass` for describing an application event.
+
+   .. attribute:: created_at
+
+      Timestamp when the event was created, :class:`datetime`.
+
+   .. attribute:: state
+
+      Application state at the time of the event, :class:`str`.
+
+   .. attribute:: reason
+
+      Reason for the event, :class:`str` or :class:`None`.
+
+   .. attribute:: message
+
+      Event message, :class:`str` or :class:`None`.
+
+   .. attribute:: resources
+
+      List of resources associated with the event, :class:`list` of :class:`AppEventResource`.
+
+===
+
+.. class:: AppEventResource
+
+   *Read-only* :class:`~dataclasses.dataclass` for describing a resource in an application event.
+
+   .. attribute:: kind
+
+      Resource kind (e.g., "Deployment", "Service"), :class:`str` or :class:`None`.
+
+   .. attribute:: name
+
+      Resource name, :class:`str` or :class:`None`.
+
+   .. attribute:: uid
+
+      Resource UID, :class:`str` or :class:`None`.
+
+   .. attribute:: health_status
+
+      Health status of the resource, :class:`str` or :class:`None`.
+
+   .. attribute:: health_message
+
+      Health status message, :class:`str` or :class:`None`.
+
+===
+
+.. class:: AppConfigurationRevision
+
+   *Read-only* :class:`~dataclasses.dataclass` for describing a configuration revision.
+
+   .. attribute:: revision_number
+
+      The revision number, :class:`int`.
+
+   .. attribute:: creator
+
+      Username of the user who created the revision, :class:`str`.
+
+   .. attribute:: comment
+
+      Comment describing the revision, :class:`str` or :class:`None`.
+
+   .. attribute:: created_at
+
+      Timestamp when the revision was created, :class:`datetime`.
+
+   .. attribute:: end_at
+
+      Timestamp when the revision ended (if applicable), :class:`datetime` or :class:`None`.

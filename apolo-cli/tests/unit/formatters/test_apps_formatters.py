@@ -3,12 +3,14 @@ from typing import Any
 
 import pytest
 
-from apolo_sdk import App, AppEvent, AppEventResource
+from apolo_sdk import App, AppConfigurationRevision, AppEvent, AppEventResource
 
 from apolo_cli.formatters.apps import (
     AppEventsFormatter,
+    AppRevisionsFormatter,
     AppsFormatter,
     SimpleAppEventsFormatter,
+    SimpleAppRevisionsFormatter,
     SimpleAppsFormatter,
 )
 
@@ -131,3 +133,65 @@ class TestAppEventsFormatter:
         ]
         formatter = AppEventsFormatter()
         rich_cmp(formatter(events))
+
+
+class TestAppRevisionsFormatter:
+    @pytest.fixture
+    def revisions(self) -> list[AppConfigurationRevision]:
+        return [
+            AppConfigurationRevision(
+                revision_number=1,
+                creator="admin-user",
+                comment="Initial configuration",
+                created_at=datetime.fromisoformat("2025-11-27T12:00:00+00:00"),
+                end_at=datetime.fromisoformat("2025-11-27T13:00:00+00:00"),
+            ),
+            AppConfigurationRevision(
+                revision_number=2,
+                creator="test-user",
+                comment="Update one",
+                created_at=datetime.fromisoformat("2025-11-27T13:00:00+00:00"),
+                end_at=datetime.fromisoformat("2025-11-27T14:00:00+00:00"),
+            ),
+            AppConfigurationRevision(
+                revision_number=3,
+                creator="test-user",
+                comment="Some new changes",
+                created_at=datetime.fromisoformat("2025-11-27T14:00:00+00:00"),
+                end_at=None,
+            ),
+        ]
+
+    def test_app_revisions_formatter(
+        self, revisions: list[AppConfigurationRevision], rich_cmp: Any
+    ) -> None:
+        formatter = AppRevisionsFormatter()
+        rich_cmp(formatter(revisions))
+
+    def test_simple_app_revisions_formatter(
+        self, revisions: list[AppConfigurationRevision], rich_cmp: Any
+    ) -> None:
+        formatter = SimpleAppRevisionsFormatter()
+        rich_cmp(formatter(revisions))
+
+    def test_app_revisions_formatter_empty(self, rich_cmp: Any) -> None:
+        formatter = AppRevisionsFormatter()
+        rich_cmp(formatter([]))
+
+    def test_simple_app_revisions_formatter_empty(self, rich_cmp: Any) -> None:
+        formatter = SimpleAppRevisionsFormatter()
+        rich_cmp(formatter([]))
+
+    def test_app_revisions_formatter_with_none_comment(self, rich_cmp: Any) -> None:
+        """Test that None comments are displayed as empty string."""
+        revisions = [
+            AppConfigurationRevision(
+                revision_number=1,
+                creator="test-user",
+                comment=None,
+                created_at=datetime.fromisoformat("2025-11-27T12:00:00+00:00"),
+                end_at=datetime.fromisoformat("2025-11-27T13:00:00+00:00"),
+            ),
+        ]
+        formatter = AppRevisionsFormatter()
+        rich_cmp(formatter(revisions))

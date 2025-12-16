@@ -44,6 +44,7 @@ from ._admin import (
 )
 from ._apps import (
     App,
+    AppConfigurationRevision,
     AppEvent,
     AppEventResource,
     Apps,
@@ -147,6 +148,7 @@ __all__ = (
     "AbstractRecursiveFileProgress",
     "Action",
     "App",
+    "AppConfigurationRevision",
     "AppEvent",
     "AppEventResource",
     "AppState",
