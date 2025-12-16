@@ -138,7 +138,7 @@ from ._url_utils import CLUSTER_SCHEMES as SCHEMES
 from ._users import Action, Permission, Quota, Share, Users
 from ._utils import _ContextManager, find_project_root
 
-__version__ = "25.12.0"
+__version__ = "25.12.1"
 
 
 __all__ = (
