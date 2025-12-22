@@ -11,7 +11,7 @@ click==8.1.8
 ConfigUpdater==3.2
 contextlib2==21.6.0
 humanize==4.13.0
-importlib-metadata==8.7.0; python_version<"3.10"
+importlib-metadata==8.7.1; python_version<"3.10"
 multidict<7.0
 neuro-config-client==25.11.0
 packaging==25.0
