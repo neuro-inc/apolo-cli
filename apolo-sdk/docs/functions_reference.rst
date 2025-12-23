@@ -143,7 +143,7 @@ Config Factory
                               for handling authorization.
 
       :param ~yarl.URL url: Apolo Platform API URL,
-                            ``URL("https://staging.neu.ro/api/v1")`` by default.
+                            ``URL("https://api.apolo.us/api/v1/")`` by default.
 
       :param aiohttp.ClientTimeout timeout: optional timeout for HTTP operations, see
                                             also :ref:`timeouts`.
@@ -175,7 +175,7 @@ Config Factory
                                authorization code.
 
       :param ~yarl.URL url: Apolo Platform API URL,
-                            ``URL("https://staging.neu.ro/api/v1")`` by default.
+                            ``URL("https://api.apolo.us/api/v1/")`` by default.
 
       :param aiohttp.ClientTimeout timeout: optional timeout for HTTP operations, see
                                             also :ref:`timeouts`.
@@ -195,7 +195,7 @@ Config Factory
       :param str token: authorization token.
 
       :param ~yarl.URL url: Apolo Platform API URL,
-                            ``URL("https://staging.neu.ro/api/v1")`` by default.
+                            ``URL("https://api.apolo.us/api/v1/")`` by default.
 
       :param aiohttp.ClientTimeout timeout: optional timeout for HTTP operations, see
                                             also :ref:`timeouts`.
