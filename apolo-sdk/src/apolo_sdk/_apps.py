@@ -122,6 +122,7 @@ class Apps(metaclass=NoPublicConstructor):
                 raise ValueError("Project name is required")
 
         # Get the base URL without the /api/v1 prefix
+        raise RuntimeError("don't merge, use apps_url")
         base_url = self._config.api_url.with_path("")
         url = (
             base_url

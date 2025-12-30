@@ -22,6 +22,7 @@ from ._service_accounts import ServiceAccounts
 from ._storage import Storage
 from ._users import Users
 from ._utils import NoPublicConstructor
+from ._vcluster import VCluster
 from ._version_utils import VersionChecker
 
 
@@ -62,6 +63,7 @@ class Client(metaclass=NoPublicConstructor):
         self._service_accounts = ServiceAccounts._create(self._core, self._config)
         self._buckets = Buckets._create(self._core, self._config, self._parser)
         self._apps = Apps._create(self._core, self._config)
+        self._vcluster = VCluster._create(self._core, self._config)
         self._images: Images | None = None
         self._version_checker: VersionChecker = VersionChecker._create(
             self._core, self._config, plugin_manager
@@ -148,6 +150,10 @@ class Client(metaclass=NoPublicConstructor):
     @property
     def apps(self) -> Apps:
         return self._apps
+
+    @property
+    def vcluster(self) -> Apps:
+        return self._vcluster
 
     @property
     def parse(self) -> Parser:

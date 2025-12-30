@@ -146,6 +146,10 @@
 		* [apolo storage mv](#apolo-storage-mv)
 		* [apolo storage rm](#apolo-storage-rm)
 		* [apolo storage tree](#apolo-storage-tree)
+	* [apolo vcluster](#apolo-vcluster)
+		* [apolo vcluster create-service-account](#apolo-vcluster-create-service-account)
+		* [apolo vcluster delete-service-account](#apolo-vcluster-delete-service-account)
+		* [apolo vcluster list-service-accounts](#apolo-vcluster-list-service-accounts)
 	* [apolo attach](#apolo-attach)
 	* [apolo cp](#apolo-cp)
 	* [apolo exec](#apolo-exec)
@@ -214,6 +218,7 @@ Name | Description|
 | _[apolo secret](#apolo-secret)_| Operations with secrets |
 | _[apolo service-account](#apolo-service-account)_| Operations with service accounts |
 | _[apolo storage](#apolo-storage)_| Storage operations |
+| _[apolo vcluster](#apolo-vcluster)_| Operations with applications |
 
 
 **Commands:**
@@ -3848,6 +3853,94 @@ Name | Description|
 |_\-a, --all_|do not ignore entries starting with .|
 |_\-s, --size_|Print the size in bytes of each file.|
 |_--sort \[name &#124; size &#124; time]_|sort by given field, default is name|
+
+
+
+
+## apolo vcluster
+
+Operations with applications.
+
+**Usage:**
+
+```bash
+apolo vcluster [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+
+
+**Commands:**
+
+|Usage|Description|
+|---|---|
+| _[apolo vcluster create\-service-account](#apolo-vcluster-create-service-account)_|  |
+| _[apolo vcluster delete\-service-account](#apolo-vcluster-delete-service-account)_|  |
+| _[apolo vcluster list\-service-accounts](#apolo-vcluster-list-service-accounts)_|  |
+
+
+
+
+### apolo vcluster create-service-account
+
+**Usage:**
+
+```bash
+apolo vcluster create-service-account [OPTIONS] NAME
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo vcluster delete-service-account
+
+**Usage:**
+
+```bash
+apolo vcluster delete-service-account [OPTIONS] NAME
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
+
+
+
+
+### apolo vcluster list-service-accounts
+
+**Usage:**
+
+```bash
+apolo vcluster list-service-accounts [OPTIONS]
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+|_--cluster CLUSTER_|Look on a specified cluster \(the current cluster by default).|
+|_--org ORG_|Look on a specified org \(the current org by default).|
+|_--project PROJECT_|Look on a specified project \(the current project by default).|
 
 
 

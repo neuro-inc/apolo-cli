@@ -77,6 +77,7 @@ class _ConfigData:
     auth_token: _AuthToken
     url: URL
     admin_url: URL | None
+    vcluster_url: URL
     version: str
     project_name: str | None
     cluster_name: str
@@ -372,6 +373,10 @@ class Config(metaclass=NoPublicConstructor):
         return self._config_data.admin_url
 
     @property
+    def vcluster_url(self) -> URL | None:
+        return self._config_data.vcluster_url
+
+    @property
     def service_accounts_url(self) -> URL:
         # TODO: use URL returned from server when available
         return self._config_data.url / "service_accounts"
@@ -559,6 +564,7 @@ def _load(path: Path) -> _ConfigData:
             admin_url = None
         else:
             admin_url = URL(payload["admin_url"])
+        vcluster_url = URL(payload["vcluster_url"])
         auth_config = _deserialize_auth_config(payload)
         clusters = _deserialize_clusters(payload)
         projects = _deserialize_projects(payload)
@@ -576,6 +582,7 @@ def _load(path: Path) -> _ConfigData:
             auth_token=auth_token,
             url=api_url,
             admin_url=admin_url,
+            vcluster_url=vcluster_url,
             version=version,
             project_name=project_name,
             cluster_name=cluster_name,
@@ -583,7 +590,14 @@ def _load(path: Path) -> _ConfigData:
             clusters=clusters,
             projects=projects,
         )
-    except (AttributeError, KeyError, TypeError, ValueError, sqlite3.DatabaseError):
+    except (
+        AttributeError,
+        KeyError,
+        TypeError,
+        IndexError,
+        ValueError,
+        sqlite3.DatabaseError,
+    ):
         raise ConfigError(MALFORMED_CONFIG_MSG)
 
 
