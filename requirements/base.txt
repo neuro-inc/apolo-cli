@@ -19,7 +19,7 @@ python-dateutil==2.9.0.post0
 python-jose==3.5.0
 pyyaml==6.0.3
 rich==14.2.0
-ruamel.yaml==0.18.17
+ruamel.yaml==0.19.1
 toml==0.10.2
 wcwidth==0.2.14
 yarl==1.22.0
