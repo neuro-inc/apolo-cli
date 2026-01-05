@@ -2,7 +2,7 @@
 -e apolo-cli
 aiobotocore==3.0.0
 aiodocker==0.24.0
-aiohttp==3.13.2
+aiohttp==3.13.3
 azure-core==1.37.0
 azure-storage-blob==12.27.1
 # upgrade setup.py after pinning certtifi to new version
