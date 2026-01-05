@@ -11,10 +11,11 @@ from neuro_config_client import (
     DisksConfig,
     DNSConfig,
     EnergyConfig,
+    GrafanaConfig,
     IngressConfig,
-    MetricsConfig,
     MonitoringConfig,
     OrchestratorConfig,
+    PrometheusConfig,
     RegistryConfig,
     SecretsConfig,
     StorageConfig,
@@ -65,7 +66,8 @@ def _create_minimal_cluster_config(**kwargs: Any) -> dict[str, Any]:
         "registry": RegistryConfig(url=URL("https://registry.example.com")),
         "monitoring": MonitoringConfig(url=URL("https://monitoring.example.com")),
         "secrets": SecretsConfig(url=URL("https://secrets.example.com")),
-        "metrics": MetricsConfig(url=URL("https://metrics.example.com")),
+        "grafana": GrafanaConfig(url=URL("https://grafana.example.com")),
+        "prometheus": PrometheusConfig(url=URL("https://prometheus.example.com")),
         "dns": DNSConfig(name="example.com"),
         "disks": DisksConfig(
             url=URL("https://disks.example.com"), storage_limit_per_user=100 * 1024**3
