@@ -178,19 +178,28 @@ class Apps(metaclass=NoPublicConstructor):
         cluster_name = cluster_name or self._config.cluster_name
         org_name = org_name or self._config.org_name
         project_name = project_name or self._config.project_name_or_raise
+        current_page = 1
         url = url.update_query(
             cluster=cluster_name,
             org=org_name,
             project=project_name,
+            page=current_page,
         )
         if states:
             url = url.update_query(states=[state.value for state in states])
 
         auth = await self._config._api_auth()
-        async with self._core.request("GET", url, auth=auth) as resp:
-            data = await resp.json()
+        while True:
+            async with self._core.request("GET", url, auth=auth) as resp:
+                data = await resp.json()
             for item in data["items"]:
                 yield self._parse_app_read_instance(item)
+
+            total_pages = data.get("pages", 1)
+            if current_page >= total_pages:
+                break
+            current_page += 1
+            url = url.update_query(page=current_page)
 
     async def get(self, app_id: str) -> App:
         url = self._build_v2_base_url() / "instances" / app_id
@@ -590,9 +599,11 @@ class Apps(metaclass=NoPublicConstructor):
         )
 
         auth = await self._config._api_auth()
-        async with self._core.request("GET", url, auth=auth) as resp:
-            resp.raise_for_status()
-            data = await resp.json()
+        current_page = 1
+        while True:
+            async with self._core.request("GET", url, auth=auth) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
             for item in data.get("items", []):
                 resources = []
                 for res in item.get("resources", []):
@@ -612,6 +623,11 @@ class Apps(metaclass=NoPublicConstructor):
                     message=item.get("message"),
                     resources=resources,
                 )
+            total_pages = data.get("pages", 1)
+            if current_page >= total_pages:
+                break
+            current_page += 1
+            url = url.update_query(page=current_page)
 
     async def get_revisions(
         self,

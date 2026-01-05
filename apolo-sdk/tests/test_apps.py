@@ -1,3 +1,4 @@
+import math
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
@@ -19,9 +20,9 @@ from tests import _TestServerFactory
 
 
 @pytest.fixture
-def app_payload() -> dict[str, Any]:
-    return {
-        "items": [
+def app_payload_factory() -> Callable[[int, int], dict[str, Any]]:
+    def inner(page: int = 1, page_size: int = 50) -> dict[str, Any]:
+        data = [
             {
                 "id": "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
                 "name": "superorg-test3-stable-diffusion-704285b2",
@@ -54,22 +55,29 @@ def app_payload() -> dict[str, Any]:
                 "state": "errored",
                 "endpoints": [],
             },
-        ],
-        "total": 2,
-        "page": 1,
-        "size": 50,
-        "pages": 1,
-    }
+        ]
+        return {
+            "items": data[(page - 1) * page_size : page * page_size],
+            "total": len(data),
+            "page": page,
+            "size": page_size,
+            "pages": int(math.ceil(len(data) / page_size)),
+        }
+
+    return inner
 
 
 async def test_apps_list(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
-    app_payload: dict[str, Any],
+    app_payload_factory: Callable[[int, int | None], dict[str, Any]],
 ) -> None:
     async def handler(request: web.Request) -> web.Response:
         assert request.path == "/apis/apps/v2/instances"
-        return web.json_response(app_payload)
+        assert request.query.get("page") is not None
+        page = int(request.query.get("page", 1))
+        size = int(request.query.get("size", 50))
+        return web.json_response(app_payload_factory(page, size))
 
     web_app = web.Application()
     web_app.router.add_get("/apis/apps/v2/instances", handler)
@@ -990,6 +998,58 @@ async def test_apps_get_events(
         assert len(events[2].resources) == 0
 
 
+async def test_apps_get_events_pager(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    app_events_payload: dict[str, Any],
+) -> None:
+    app_id = "1"
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        expected_path = f"{base_path}/instances/1/events"
+        assert request.path == expected_path
+        page = int(request.query.get("page", 1))
+        page_size = int(request.query.get("size", 1))
+        resp = {
+            "items": app_events_payload["items"][
+                (page - 1) * page_size : page * page_size
+            ],
+            "total": app_events_payload["total"],
+            "page": page,
+            "size": page_size,
+            "pages": int(math.ceil(app_events_payload["total"] / page_size)),
+        }
+        return web.json_response(resp)
+
+    web_app = web.Application()
+    base_path = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app.router.add_get(
+        f"{base_path}/instances/1/events",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        events = []
+        async with client.apps.get_events(
+            app_id=app_id,
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test3",
+        ) as it:
+            async for event in it:
+                events.append(event)
+
+        assert len(events) == 3
+
+        assert isinstance(events[0], AppEvent)
+        assert events[0].state == "healthy"
+        assert events[1].state == "progressing"
+        assert events[2].state == "queued"
+
+
 async def test_apps_get_events_empty(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
@@ -1354,7 +1414,7 @@ async def test_apps_get_input_with_revision(
 async def test_apps_list_with_states_filter(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
-    app_payload: dict[str, Any],
+    app_payload_factory: Callable[[int, int], dict[str, Any]],
 ) -> None:
     """Test listing apps with state filter."""
 
@@ -1369,7 +1429,9 @@ async def test_apps_list_with_states_filter(
         else:
             states_list = states_param
         assert set(states_list) == {"healthy", "progressing"}
-        return web.json_response(app_payload)
+        page = int(request.query.get("page", 1))
+        size = int(request.query.get("size", 50))
+        return web.json_response(app_payload_factory(page, size))
 
     web_app = web.Application()
     web_app.router.add_get("/apis/apps/v2/instances", handler)
