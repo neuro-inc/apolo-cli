@@ -21,7 +21,7 @@ from tests import _TestServerFactory
 
 @pytest.fixture
 def app_payload_factory() -> Callable[[int, int], dict[str, Any]]:
-    def inner(page: int = 100, page_size: int = 50) -> dict[str, Any]:
+    def inner(page: int = 1, page_size: int = 50) -> dict[str, Any]:
         data = [
             {
                 "id": "704285b2-aab1-4b0a-b8ff-bfbeb37f89e4",
@@ -70,13 +70,14 @@ def app_payload_factory() -> Callable[[int, int], dict[str, Any]]:
 async def test_apps_list(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
-    app_payload_factory: Callable[[int, int], dict[str, Any]],
+    app_payload_factory: Callable[[int, int | None], dict[str, Any]],
 ) -> None:
     async def handler(request: web.Request) -> web.Response:
         assert request.path == "/apis/apps/v2/instances"
         assert request.query.get("page") is not None
-        page = int(request.query.get("page"))
-        return web.json_response(app_payload_factory(page=page))
+        page = int(request.query.get("page", 1))
+        size = int(request.query.get("size", 50))
+        return web.json_response(app_payload_factory(page, size))
 
     web_app = web.Application()
     web_app.router.add_get("/apis/apps/v2/instances", handler)
@@ -1010,7 +1011,7 @@ async def test_apps_get_events_pager(
         expected_path = f"{base_path}/instances/1/events"
         assert request.path == expected_path
         page = int(request.query.get("page", 1))
-        page_size = request.query.get("size", 1)
+        page_size = int(request.query.get("size", 1))
         resp = {
             "items": app_events_payload["items"][
                 (page - 1) * page_size : page * page_size
@@ -1429,7 +1430,8 @@ async def test_apps_list_with_states_filter(
             states_list = states_param
         assert set(states_list) == {"healthy", "progressing"}
         page = int(request.query.get("page", 1))
-        return web.json_response(app_payload_factory(page=page))
+        size = int(request.query.get("size", 50))
+        return web.json_response(app_payload_factory(page, size))
 
     web_app = web.Application()
     web_app.router.add_get("/apis/apps/v2/instances", handler)
