@@ -293,6 +293,7 @@ class Factory:
             auth_token=token,
             url=url,
             admin_url=server_config.admin_url,
+            vcluster_url=server_config.vcluster_url,
             version=__version__,
             cluster_name=cluster_name,
             org_name=org_name,

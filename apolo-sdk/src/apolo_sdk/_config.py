@@ -57,6 +57,7 @@ SCHEMA = {
                            refresh_token TEXT,
                            url TEXT,
                            admin_url TEXT,
+                           vcluster_url TEXT,
                            version TEXT,
                            project_name TEXT,
                            cluster_name TEXT,
@@ -77,6 +78,7 @@ class _ConfigData:
     auth_token: _AuthToken
     url: URL
     admin_url: URL | None
+    vcluster_url: URL | None
     version: str
     project_name: str | None
     cluster_name: str
@@ -371,6 +373,9 @@ class Config(metaclass=NoPublicConstructor):
     def admin_url(self) -> URL | None:
         return self._config_data.admin_url
 
+    def vcluster_url(self) -> URL | None:
+        return self._config_data.vcluster_url
+
     @property
     def service_accounts_url(self) -> URL:
         # TODO: use URL returned from server when available
@@ -548,7 +553,8 @@ def _load(path: Path) -> _ConfigData:
             cur.execute(
                 """
                 SELECT auth_config, token, expiration_time, refresh_token,
-                       url, admin_url, version, project_name, cluster_name,
+                       url, admin_url, vcluster_url,
+                       version, project_name, cluster_name,
                        org_name, clusters, projects
                 FROM main ORDER BY timestamp DESC LIMIT 1"""
             )
@@ -559,6 +565,11 @@ def _load(path: Path) -> _ConfigData:
             admin_url = None
         else:
             admin_url = URL(payload["admin_url"])
+        # temporarily support old servers without the url
+        try:
+            vcluster_url = URL(payload["vcluster_url"])
+        except IndexError:
+            vcluster_url = None
         auth_config = _deserialize_auth_config(payload)
         clusters = _deserialize_clusters(payload)
         projects = _deserialize_projects(payload)
@@ -576,6 +587,7 @@ def _load(path: Path) -> _ConfigData:
             auth_token=auth_token,
             url=api_url,
             admin_url=admin_url,
+            vcluster_url=vcluster_url,
             version=version,
             project_name=project_name,
             cluster_name=cluster_name,
@@ -859,6 +871,10 @@ def _save(config: _ConfigData, path: Path, suppress_errors: bool = True) -> None
             admin_url = None
         else:
             admin_url = str(config.admin_url)
+        if not config.vcluster_url:
+            vcluster_url = None
+        else:
+            vcluster_url = str(config.admin_url)
         auth_config = _serialize_auth_config(config.auth_config)
         clusters = _serialize_clusters(config.clusters)
         projects = _serialize_projects(config.projects)
@@ -878,10 +894,11 @@ def _save(config: _ConfigData, path: Path, suppress_errors: bool = True) -> None
         cur.execute(
             """
             INSERT INTO main
-            (auth_config, token, expiration_time, refresh_token, url, admin_url,
+            (auth_config, token, expiration_time, refresh_token,
+             url, admin_url, vcluster_url,
              version, project_name, cluster_name, org_name, clusters, projects,
              timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 auth_config,
                 token.token,
@@ -889,6 +906,7 @@ def _save(config: _ConfigData, path: Path, suppress_errors: bool = True) -> None
                 token.refresh_token,
                 url,
                 admin_url,
+                vcluster_url,
                 version,
                 project_name,
                 cluster_name,
