@@ -373,6 +373,7 @@ class Config(metaclass=NoPublicConstructor):
     def admin_url(self) -> URL | None:
         return self._config_data.admin_url
 
+    @property
     def vcluster_url(self) -> URL | None:
         return self._config_data.vcluster_url
 
@@ -595,7 +596,14 @@ def _load(path: Path) -> _ConfigData:
             clusters=clusters,
             projects=projects,
         )
-    except (AttributeError, KeyError, TypeError, ValueError, sqlite3.DatabaseError):
+    except (
+        AttributeError,
+        KeyError,
+        TypeError,
+        IndexError,
+        ValueError,
+        sqlite3.DatabaseError,
+    ):
         raise ConfigError(MALFORMED_CONFIG_MSG)
 
 
@@ -874,7 +882,7 @@ def _save(config: _ConfigData, path: Path, suppress_errors: bool = True) -> None
         if not config.vcluster_url:
             vcluster_url = None
         else:
-            vcluster_url = str(config.admin_url)
+            vcluster_url = str(config.vcluster_url)
         auth_config = _serialize_auth_config(config.auth_config)
         clusters = _serialize_clusters(config.clusters)
         projects = _serialize_projects(config.projects)
