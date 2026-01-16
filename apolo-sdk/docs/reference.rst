@@ -17,6 +17,7 @@ Reference
    config_reference
    jobs_reference
    apps
+   vcluster_reference
    storage_reference
    images_reference
    users_reference

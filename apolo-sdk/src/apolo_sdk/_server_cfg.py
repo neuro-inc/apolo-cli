@@ -112,6 +112,7 @@ class ResourcePool:
 @rewrite_module
 @dataclass(frozen=True)
 class Project:
+    @rewrite_module
     @dataclass(frozen=True)
     class Key:
         cluster_name: str
@@ -158,6 +159,7 @@ class Cluster:
 @dataclass(frozen=True)
 class _ServerConfig:
     admin_url: URL | None
+    vcluster_url: URL | None
     auth_config: _AuthConfig
     clusters: Mapping[str, Cluster]
     projects: Mapping[Project.Key, Project]
@@ -391,12 +393,16 @@ async def get_server_config(
         admin_url: URL | None = None
         if "admin_url" in payload:
             admin_url = URL(payload["admin_url"])
+        vcluster_url: URL | None = None
+        if "vcluster_url" in payload:
+            vcluster_url = URL(payload["vcluster_url"])
         if headers and not payload.get("authorized", False):
             raise AuthError("Cannot authorize user")
         clusters = _parse_clusters(payload)
         projects = _parse_projects(payload)
         return _ServerConfig(
             admin_url=admin_url,
+            vcluster_url=vcluster_url,
             auth_config=auth_config,
             clusters=clusters,
             projects=projects,

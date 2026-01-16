@@ -70,6 +70,7 @@ async def test_get_server_config_no_clusters(
         clusters={},
         projects={},
         admin_url=None,
+        vcluster_url=None,
     )
 
 
@@ -115,6 +116,7 @@ async def test_get_server_config_no_callback_urls(
         clusters={},
         projects={},
         admin_url=None,
+        vcluster_url=None,
     )
 
 
@@ -122,6 +124,7 @@ async def test_get_server_config_with_token(
     aiohttp_client: _TestClientFactory,
 ) -> None:
     admin_url = "https://admin-api.dev.apolo.us"
+    vcluster_url = "https://vcluster-api.dev.apolo.us"
     registry_url = "https://registry.api.dev.apolo.us"
     storage_url = "https://storage.api.dev.apolo.us"
     users_url = "https://api.dev.apolo.us/users"
@@ -139,6 +142,7 @@ async def test_get_server_config_with_token(
     JSON = {
         "authorized": True,
         "admin_url": admin_url,
+        "vcluster_url": vcluster_url,
         "auth_url": auth_url,
         "token_url": token_url,
         "logout_url": logout_url,
@@ -342,6 +346,7 @@ async def test_get_server_config_with_token(
             success_redirect_url=URL(success_redirect_url),
         ),
         admin_url=URL(admin_url),
+        vcluster_url=URL(vcluster_url),
         clusters={
             "default": Cluster(
                 registry_url=URL(registry_url),
@@ -535,6 +540,7 @@ async def test_get_server_config_with_token_no_clusters(
         clusters={},
         projects={},
         admin_url=None,
+        vcluster_url=None,
     )
 
 

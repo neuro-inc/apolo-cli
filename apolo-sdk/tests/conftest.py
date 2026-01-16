@@ -384,6 +384,10 @@ def make_client(
             admin_url = URL(url) / ".." / ".." / "apis" / "admin" / "v1"
         else:
             admin_url = kwargs["admin_url"]
+        if "vcluster_url" not in kwargs:
+            vcluster_url = URL(url) / ".." / ".." / "apis" / "vcluster" / "v1"
+        else:
+            vcluster_url = kwargs["vcluster_url"]
         if plugin_manager is None:
             plugin_manager = PluginManager()
         if clusters:
@@ -397,6 +401,7 @@ def make_client(
             auth_token=_AuthToken.create_non_expiring(token),
             url=URL(url),
             admin_url=admin_url,
+            vcluster_url=vcluster_url,
             version=__version__,
             cluster_name=cluster_name,
             org_name=org_name,
