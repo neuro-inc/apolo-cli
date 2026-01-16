@@ -26,7 +26,7 @@ class KubeServiceAccount:
 
 @rewrite_module
 class VCluster(metaclass=NoPublicConstructor):
-    DEFAULT_TTL: Final[ClassVar[timedelta]] = YEAR
+    DEFAULT_TTL: ClassVar[Final[timedelta]] = YEAR
 
     def __init__(self, core: _Core, config: Config) -> None:
         self._core = core
