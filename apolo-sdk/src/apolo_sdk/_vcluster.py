@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, ClassVar, Final
+from typing import Any, ClassVar
 
 import yaml
 from yarl import URL
@@ -26,7 +26,7 @@ class KubeServiceAccount:
 
 @rewrite_module
 class VCluster(metaclass=NoPublicConstructor):
-    DEFAULT_TTL: ClassVar[Final[timedelta]] = YEAR
+    DEFAULT_TTL: ClassVar[timedelta] = YEAR
 
     def __init__(self, core: _Core, config: Config) -> None:
         self._core = core
