@@ -1,38 +1,17 @@
-import builtins
-import codecs
-import json
-import sys
-from pathlib import Path
-
-import click
-import yaml
-
-from apolo_sdk import (
-    AppEvent,
-    AppState,
-    AppValue,
-    IllegalArgumentError,
-)
+import logging
 
 from .click_types import CLUSTER, ORG, PROJECT
-from .formatters.app_values import (
-    AppValuesFormatter,
-    BaseAppValuesFormatter,
-    SimpleAppValuesFormatter,
+from .formatters.utils import get_datetime_formatter
+from .formatters.vcluster import (
+    BaseKubeConfigFormatter,
+    KubeConfigFormatter,
+    SimpleKubeConfigFormatter,
 )
-from .formatters.apps import (
-    AppEventsFormatter,
-    AppRevisionsFormatter,
-    AppsFormatter,
-    BaseAppEventsFormatter,
-    BaseAppsFormatter,
-    SimpleAppEventsFormatter,
-    SimpleAppRevisionsFormatter,
-    SimpleAppsFormatter,
-)
-from .job import _parse_date
+from .parse_utils import parse_timedelta
 from .root import Root
-from .utils import alias, argument, command, group, json_default, option
+from .utils import argument, command, group, option
+
+log = logging.getLogger(__name__)
 
 
 @group()
@@ -58,27 +37,44 @@ def vcluster() -> None:
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
+@option("--long-format", is_flag=True, help="Output all info about service accounts.")
+@option(
+    "--all-users",
+    is_flag=True,
+    default=False,
+    help="Show accounts for all project users.",
+)
 async def list_service_accounts(
     root: Root,
+    all_users: bool,
+    long_format: bool,
     cluster: str | None,
     org: str | None,
     project: str | None,
 ) -> None:
     """List kubernetes service accounts"""
+    if root.quiet:
+        fmtr: BaseKubeConfigFormatter = SimpleKubeConfigFormatter()
+    else:
+        fmtr = KubeConfigFormatter(
+            datetime_formatter=get_datetime_formatter(root.iso_datetime_format),
+            long_format=long_format,
+        )
+
     accs = []
     with root.status("Fetching apps") as status:
         async with root.client.vcluster.list_service_accounts(
             cluster_name=cluster,
             org_name=org,
             project_name=project,
+            all_users=all_users,
         ) as it:
             async for acc in it:
                 accs.append(acc)
                 status.update(f"Fetching service accounts ({len(accs)} loaded)")
 
     with root.pager():
-        for acc in accs:
-            root.print(f"{acc.user} {acc.name}")
+        root.print(fmtr(accs))
 
 
 @command()
@@ -106,13 +102,13 @@ async def delete_service_account(
     name: str,
 ) -> None:
     """Delete kubernetes service account"""
-    await root.client.vcluster.delete_service_account(
+    acc = await root.client.vcluster.delete_service_account(
         name,
         cluster_name=cluster,
         org_name=org,
         project_name=project,
     )
-    root.print(f"Deleted {name}")
+    root.print(f"Deleted {acc.name}")
 
 
 @command()
@@ -132,34 +128,153 @@ async def delete_service_account(
     type=PROJECT,
     help="Look on a specified project (the current project by default).",
 )
+@option(
+    "--ttl",
+    type=str,
+    metavar="TTL",
+    help=(
+        "Expiration time in the format '1y2m3d4h5m6s' " "(some parts may be missing)."
+    ),
+    show_default=True,
+)
 async def create_service_account(
     root: Root,
     cluster: str | None,
     org: str | None,
     project: str | None,
     name: str,
+    ttl: str | None,
 ) -> None:
     """Create kubernetes service account"""
-    js = await root.client.vcluster.create_service_account(
+    log.debug(
+        f"Create kube service account {name} for cluster={cluster}, "
+        f"org={org}, project={project}, user={root.client.config.username}"
+    )
+    if ttl is None:
+        sa_ttl = root.client.vcluster.DEFAULT_TTL
+    else:
+        sa_ttl = parse_timedelta(ttl)
+    log.debug(f"TTL: {sa_ttl}")
+    await root.client.vcluster.create_service_account(
+        name,
+        cluster_name=cluster,
+        org_name=org,
+        project_name=project,
+        ttl=sa_ttl,
+    )
+    root.print(f"Created {name}")
+
+    await root.client.vcluster.activate_service_account(
         name,
         cluster_name=cluster,
         org_name=org,
         project_name=project,
     )
-    root.print(f"Created {name}")
-
-    kube_dir = Path("~/.kube").resolve()
-    config_file = kube_dir / "config"
-    old_config_file = kube_dir / "config.bak"
-    if config_file.exists():
-        if old_config_file.exists():
-            # On Windows .rename() doesn't override the file silently
-            old_config_file.unlink()
-        config_file.rename(old_config_file)
-    with config_file.open("rw") as f:
-        f.write(json.dumps(js))
+    root.print(f"Kube config is switched to {name}")
 
 
+@command()
+@argument("name")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+async def activate_service_account(
+    root: Root,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    name: str,
+) -> None:
+    """Activate kubernetes service account"""
+    log.debug(
+        f"Activate kube service account {name} for cluster={cluster}, "
+        f"org={org}, project={project}, user={root.client.config.username}"
+    )
+    await root.client.vcluster.activate_service_account(
+        name,
+        cluster_name=cluster,
+        org_name=org,
+        project_name=project,
+    )
+    root.print(f"Kube config is switched to {name}")
+
+
+@command()
+@argument("name")
+@option(
+    "--cluster",
+    type=CLUSTER,
+    help="Look on a specified cluster (the current cluster by default).",
+)
+@option(
+    "--org",
+    type=ORG,
+    help="Look on a specified org (the current org by default).",
+)
+@option(
+    "--project",
+    type=PROJECT,
+    help="Look on a specified project (the current project by default).",
+)
+@option(
+    "--ttl",
+    type=str,
+    metavar="TTL",
+    help=(
+        "Expiration time in the format '1y2m3d4h5m6s' " "(some parts may be missing)."
+    ),
+    show_default=True,
+)
+async def regenerate_service_account(
+    root: Root,
+    cluster: str | None,
+    org: str | None,
+    project: str | None,
+    name: str,
+    ttl: str | None,
+) -> None:
+    """Regenerate kubernetes service account"""
+    log.debug(
+        f"Regenerate kube service account {name} for cluster={cluster}, "
+        f"org={org}, project={project}, user={root.client.config.username}"
+    )
+    if ttl is None:
+        sa_ttl = root.client.vcluster.DEFAULT_TTL
+    else:
+        sa_ttl = parse_timedelta(ttl)
+    log.debug(f"TTL: {sa_ttl}")
+    await root.client.vcluster.regenerate_service_account(
+        name,
+        cluster_name=cluster,
+        org_name=org,
+        project_name=project,
+        ttl=sa_ttl,
+    )
+    root.print(f"Regenerated config for {name}")
+
+    await root.client.vcluster.activate_service_account(
+        name,
+        cluster_name=cluster,
+        org_name=org,
+        project_name=project,
+    )
+    root.print(f"Kube config is switched to {name}")
+
+
+vcluster.add_command(activate_service_account)
 vcluster.add_command(create_service_account)
-vcluster.add_command(list_service_accounts)
 vcluster.add_command(delete_service_account)
+vcluster.add_command(list_service_accounts)
+vcluster.add_command(regenerate_service_account)

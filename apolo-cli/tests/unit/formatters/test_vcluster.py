@@ -1,6 +1,5 @@
 from typing import Any
 
-import pytest
 from dateutil.parser import isoparse
 
 from apolo_sdk import KubeServiceAccount

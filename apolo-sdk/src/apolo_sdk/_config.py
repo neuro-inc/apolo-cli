@@ -239,6 +239,27 @@ class Config(metaclass=NoPublicConstructor):
                 f"{list(self._config_data.clusters)}. {tip}"
             ) from None
 
+    def get_project_key(
+        self,
+        cluster_name: str | None = None,
+        org_name: str | None = None,
+        project_name: str | None = None,
+    ) -> Project.Key:
+        # calculate the project key based on config values and
+        # explicitly passed arguments
+        cluster_name = cluster_name or self.cluster_name
+        if org_name is None:
+            org_name = self.org_name
+            if org_name is None:
+                raise ValueError("Organization name is required")
+        if project_name is None:
+            project_name = self.project_name
+            if project_name is None:
+                raise ValueError("Project name is required")
+        return Project.Key(
+            cluster_name=cluster_name, org_name=org_name, project_name=project_name
+        )
+
     async def _fetch_config(self) -> _ServerConfig:
         token = await self.token()
         return await get_server_config(self._core._session, self.api_url, token)

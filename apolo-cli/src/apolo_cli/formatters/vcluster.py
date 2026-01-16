@@ -1,6 +1,6 @@
 import abc
 import operator
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from rich import box
 from rich.console import Group as RichGroup
@@ -10,7 +10,7 @@ from rich.text import Text
 
 from apolo_sdk import KubeServiceAccount
 
-from apolo_cli.formatters.utils import DatetimeFormatter, URIFormatter
+from apolo_cli.formatters.utils import DatetimeFormatter
 
 
 class BaseKubeConfigFormatter(abc.ABC):

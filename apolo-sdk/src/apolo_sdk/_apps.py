@@ -111,27 +111,18 @@ class Apps(metaclass=NoPublicConstructor):
         org_name: str | None = None,
         project_name: str | None = None,
     ) -> URL:
-        cluster_name = cluster_name or self._config.cluster_name
-        if org_name is None:
-            org_name = self._config.org_name
-            if org_name is None:
-                raise ValueError("Organization name is required")
-        if project_name is None:
-            project_name = self._config.project_name
-            if project_name is None:
-                raise ValueError("Project name is required")
+        pk = self._config.get_project_key(cluster_name, org_name, project_name)
 
-        # Get the base URL without the /api/v1 prefix
-        raise RuntimeError("don't merge, use apps_url")
+        # Get TODO: the base URL without the /api/v1 prefix
         base_url = self._config.api_url.with_path("")
         url = (
             base_url
             / "apis/apps/v1/cluster"
-            / cluster_name
+            / pk.cluster_name
             / "org"
-            / org_name
+            / pk.org_name
             / "project"
-            / project_name
+            / pk.project_name
         )
         return url
 

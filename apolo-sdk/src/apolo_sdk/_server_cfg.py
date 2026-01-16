@@ -112,6 +112,7 @@ class ResourcePool:
 @rewrite_module
 @dataclass(frozen=True)
 class Project:
+    @rewrite_module
     @dataclass(frozen=True)
     class Key:
         cluster_name: str

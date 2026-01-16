@@ -152,7 +152,7 @@ class Client(metaclass=NoPublicConstructor):
         return self._apps
 
     @property
-    def vcluster(self) -> Apps:
+    def vcluster(self) -> VCluster:
         return self._vcluster
 
     @property
