@@ -2,9 +2,10 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Self
 
 import yaml
+from dateutil.parser import isoparse
 from yarl import URL
 
 from ._config import Config
@@ -22,6 +23,15 @@ class KubeServiceAccount:
     name: str
     created_at: datetime
     expired_at: datetime
+
+    @classmethod
+    def _parse(cls, item: dict[str, str]) -> Self:
+        return cls(
+            name=item["name"],
+            user=item["user"],
+            created_at=isoparse(item["created_at"]),
+            expired_at=isoparse(item["expired_at"]),
+        )
 
 
 @rewrite_module
@@ -158,8 +168,8 @@ class VCluster(metaclass=NoPublicConstructor):
             ret = await resp.json()
             assert isinstance(ret, list)
             for item in ret:
-                sa = KubeServiceAccount(**item)
-                if all_users or sa.user != self._config.username:
+                sa = KubeServiceAccount._parse(item)
+                if all_users or sa.user == self._config.username:
                     yield sa
 
     async def delete_service_account(
@@ -177,7 +187,7 @@ class VCluster(metaclass=NoPublicConstructor):
         async with self._core.request("DELETE", url, auth=auth) as resp:
             resp.raise_for_status()
             ret = await resp.json()
-            return KubeServiceAccount(**ret)
+            return KubeServiceAccount._parse(ret)
 
 
 def _merge_group(
