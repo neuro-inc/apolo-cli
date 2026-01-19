@@ -129,13 +129,11 @@ def test_app_install(run_cli: _RunCli, tmp_path: Any) -> None:
     """Test the app install command."""
     # Create a temporary app.yaml file
     app_yaml = tmp_path / "app.yaml"
-    app_yaml.write_text(
-        """
+    app_yaml.write_text("""
     template_name: test-template
     template_version: 1.0
     input: {}
-    """
-    )
+    """)
 
     with mock_apps_install():
         capture = run_cli(["app", "install", "-f", str(app_yaml)])
@@ -148,12 +146,10 @@ def test_app_install(run_cli: _RunCli, tmp_path: Any) -> None:
 def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
     """Test the app update command."""
     app_yaml = tmp_path / "app.yaml"
-    app_yaml.write_text(
-        """
+    app_yaml.write_text("""
     display_name: New app name
     input: {}
-    """
-    )
+    """)
 
     with mock_apps_configure():
         capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])

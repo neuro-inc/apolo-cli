@@ -675,16 +675,14 @@ def test_tree(helper: Helper, data: _Data, tmp_path: Path) -> None:
     capture = helper.run_cli(["storage", "tree", helper.tmpstorage])
     assert capture.err == ""
 
-    expected = textwrap.dedent(
-        f"""\
+    expected = textwrap.dedent(f"""\
          {helper.tmpstorage}
          ├── bar
          ├── folder
          │   └── baz
          └── foo
 
-         1 directories, 3 files"""
-    )
+         1 directories, 3 files""")
     if sys.platform == "win32":
         trans = str.maketrans(
             "".join(TreeFormatter.ANSI_DELIMS), "".join(TreeFormatter.SIMPLE_DELIMS)

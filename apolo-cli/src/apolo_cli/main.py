@@ -341,12 +341,10 @@ def print_options(
 
     formatter = ctx.make_formatter()
     formatter.write_text("Options available for any command.")
-    EXAMPLE = dedent(
-        """\
+    EXAMPLE = dedent("""\
         # Show config without colors
         apolo --color=no config show
-    """
-    )
+    """)
     format_example(EXAMPLE, formatter)
 
     opts = []
