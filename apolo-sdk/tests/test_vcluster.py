@@ -541,7 +541,7 @@ async def test_create_service_accounts(
         }
 
 
-async def test_regenerate_service_accounts(
+async def test_regenerate_service_account(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
 ) -> None:
@@ -639,3 +639,61 @@ async def test_regenerate_service_accounts(
                 },
             ],
         }
+
+
+async def test_activate_service_account(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+    monkeypatch: Any,
+) -> None:
+    cfg = {
+        "apiVersion": "v1",
+        "clusters": [
+            {
+                "cluster": {
+                    "certificate-authority-data": "<cert-data>",
+                    "server": "https://example.dev.apolo.us:443",
+                },
+                "name": "kubernetes",
+            }
+        ],
+        "contexts": [
+            {
+                "context": {
+                    "cluster": "kubernetes",
+                    "user": "andrew-ac3",
+                    "namespace": "default",
+                },
+                "name": "kubernetes-super-admin@kubernetes",
+            }
+        ],
+        "current-context": "kubernetes-super-admin@kubernetes",
+        "kind": "Config",
+        "users": [
+            {
+                "name": "andrew-ac3",
+                "user": {
+                    "token": "<token-data>",
+                },
+            }
+        ],
+    }
+
+    web_app = web.Application()
+    srv = await aiohttp_server(web_app)
+    async with make_client(srv.make_url("/")) as client:
+        folder = client.config.path / "default" / "superorg" / "test"
+        folder.mkdir(parents=True)
+        with (folder / f"{client.config.username}-name.yaml").open("w") as f:
+            yaml.safe_dump(cfg, f)
+        monkeypatch.setenv("HOME", str(client.config.path.parent))
+        config_file = client.config.path.parent / ".kube" / "config"
+        assert not config_file.exists()
+        await client.vcluster.activate_service_account(
+            "name",
+            cluster_name="default",
+            org_name="superorg",
+            project_name="test",
+        )
+        txt = config_file.read_text()
+        assert yaml.safe_load(txt) == cfg

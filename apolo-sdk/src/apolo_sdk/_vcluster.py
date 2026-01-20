@@ -140,13 +140,15 @@ class VCluster(metaclass=NoPublicConstructor):
         pk = self._config.get_project_key(cluster_name, org_name, project_name)
         folder = self._config.path / pk.cluster_name / pk.org_name / pk.project_name
         fname = folder / f"{self._config.username}-{name}.yaml"
-        kube_config_fname = Path("~/.kube/config").resolve()
+        kube_config_folder = Path.home() / ".kube"
+        kube_config_fname = kube_config_folder / "config"
         with fname.open() as fp:
             config = yaml.safe_load(fp)
         if kube_config_fname.exists():
             with kube_config_fname.open() as fp:
                 kube_config = yaml.safe_load(fp)
         else:
+            kube_config_folder.mkdir(parents=True, exist_ok=True)
             kube_config = {}
         _merge_configs(kube_config, config)
         with kube_config_fname.open("w") as fp:
@@ -214,3 +216,5 @@ def _merge_configs(kube_config: dict[str, Any], sa_config: dict[str, Any]) -> No
     _merge_group(kube_config, sa_config, "contexts")
     _merge_group(kube_config, sa_config, "users")
     kube_config["current-context"] = sa_config["current-context"]
+    kube_config.setdefault("apiVersion", sa_config["apiVersion"])
+    kube_config.setdefault("kind", sa_config["kind"])
