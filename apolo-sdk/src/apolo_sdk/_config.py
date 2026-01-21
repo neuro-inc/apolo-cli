@@ -48,9 +48,7 @@ CMD_RE = re.compile("[A-Za-z][A-Za-z0-9-]*")
 MALFORMED_CONFIG_MSG = "Malformed config. " + RELOGIN_TEXT
 
 
-SCHEMA = {
-    "main": flat(
-        """
+SCHEMA = {"main": flat("""
         CREATE TABLE main (auth_config TEXT,
                            token TEXT,
                            expiration_time REAL,
@@ -64,9 +62,7 @@ SCHEMA = {
                            org_name TEXT,
                            clusters TEXT,
                            projects TEXT,
-                           timestamp REAL)"""
-    )
-}
+                           timestamp REAL)""")}
 
 
 logger = logging.getLogger(__package__)
@@ -572,14 +568,12 @@ def _load(path: Path) -> _ConfigData:
         with _open_db_ro(path) as db:
             cur = db.cursor()
             # only one row is always present normally
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT auth_config, token, expiration_time, refresh_token,
                        url, admin_url, vcluster_url,
                        version, project_name, cluster_name,
                        org_name, clusters, projects
-                FROM main ORDER BY timestamp DESC LIMIT 1"""
-            )
+                FROM main ORDER BY timestamp DESC LIMIT 1""")
             payload = cur.fetchone()
 
         api_url = URL(payload["url"])
@@ -633,11 +627,9 @@ def _load_recovery_data(path: Path) -> _ConfigRecoveryData:
         with _open_db_ro(path, skip_schema_check=True) as db:
             cur = db.cursor()
             # only one row is always present normally
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT refresh_token, url, cluster_name, org_name
-                FROM main ORDER BY timestamp DESC LIMIT 1"""
-            )
+                FROM main ORDER BY timestamp DESC LIMIT 1""")
             payload = cur.fetchone()
 
         org_name = payload["org_name"]

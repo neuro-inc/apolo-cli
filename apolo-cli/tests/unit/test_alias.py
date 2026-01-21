@@ -53,16 +53,14 @@ class TestInternalAlias:
         capture = run_cli(["lsl", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} lsl [OPTIONS]
 
             Alias for "{prog_name} storage ls -l"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_internal_alias_help_custom_msg(
@@ -84,8 +82,7 @@ class TestInternalAlias:
         capture = run_cli(["lsl", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} lsl [OPTIONS]
 
             Alias for "{prog_name} storage ls -l"
@@ -94,8 +91,7 @@ class TestInternalAlias:
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     async def test_internal_alias_short_help(self, root: Root, nmrc_path: Path) -> None:
@@ -144,16 +140,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_no_arg_help_custom_msg(
@@ -168,8 +162,7 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script"
@@ -178,8 +171,7 @@ class TestExternalAliasArgs:
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     async def test_external_alias_short_help(self, root: Root, nmrc_path: Path) -> None:
@@ -223,16 +215,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] ARG
 
             Alias for "script {{arg}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_arg_help_fix_casing(
@@ -245,16 +235,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] ARG
 
             Alias for "script {{arg}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_two_arg2(
@@ -296,16 +284,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] ARG1 ARG2
 
             Alias for "script {{arg1}} {{arg2}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_optional_arg_provided(
@@ -346,16 +332,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] [ARG]
 
             Alias for "script {{arg}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_multiple_arg_provided(
@@ -383,16 +367,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] ARG...
 
             Alias for "script {{arg}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_optional_multiple_arg_provided(
@@ -441,16 +423,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] [ARG]...
 
             Alias for "script {{arg}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_three_args_regular_multiple_optional_help(
@@ -472,16 +452,14 @@ class TestExternalAliasArgs:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS] ARG1 ARG2... [ARG3]
 
             Alias for "script {{arg1}} {{arg2}} {{arg3}}"
 
             Options:
               --help  Show this message and exit.
-        """
-        )
+        """)
         assert expected == capture.out
 
 
@@ -498,8 +476,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -507,8 +484,7 @@ class TestExternalAliasOptions:
             Options:
               --help  Show this message and exit.
               --opt
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_flag_help_with_help_str(
@@ -530,8 +506,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -539,8 +514,7 @@ class TestExternalAliasOptions:
             Options:
               --help  Show this message and exit.
               --opt   Option description.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_flag_short_long_help_with_help_str(
@@ -562,8 +536,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -571,8 +544,7 @@ class TestExternalAliasOptions:
             Options:
               --help     Show this message and exit.
               -o, --opt  Option description.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_short_long_help_with_help_str(
@@ -594,8 +566,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -603,8 +574,7 @@ class TestExternalAliasOptions:
             Options:
               --help         Show this message and exit.
               -o, --opt VAL  Option description.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_metaval_lowercased(
@@ -626,8 +596,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -635,8 +604,7 @@ class TestExternalAliasOptions:
             Options:
               --help         Show this message and exit.
               -o, --opt VAL  Description.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_short_long_help_with_help_str_inversed_order(
@@ -658,8 +626,7 @@ class TestExternalAliasOptions:
         capture = run_cli(["user-cmd", "--help"])
         assert capture.code == 0
         prog_name = Path(sys.argv[0]).name
-        expected = inspect.cleandoc(
-            f"""\
+        expected = inspect.cleandoc(f"""\
             Usage: {prog_name} user-cmd [OPTIONS]
 
             Alias for "script {{opt}}"
@@ -667,8 +634,7 @@ class TestExternalAliasOptions:
             Options:
               --help         Show this message and exit.
               -o, --opt VAL  Option description.
-        """
-        )
+        """)
         assert expected == capture.out
 
     def test_external_alias_option_call_flag_short(
