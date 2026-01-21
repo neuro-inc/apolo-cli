@@ -314,6 +314,7 @@ def make_client(
             auth_token=_AuthToken.create_non_expiring(token),
             url=URL(url),
             admin_url=URL(url) / ".." / ".." / "apis" / "admin" / "v1",
+            vcluster_url=URL(url) / ".." / ".." / "apis" / "vcluster" / "v1",
             version=__version__,
             cluster_name=cluster_name,
             org_name=clusters[cluster_name].orgs[0],

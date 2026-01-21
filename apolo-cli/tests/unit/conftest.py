@@ -169,6 +169,7 @@ def nmrc_path(tmp_path: Path, token: str, auth_config: _AuthConfig) -> Path:
         auth_token=_AuthToken.create_non_expiring(token),
         url=URL("https://api.dev.apolo.us/api/v1"),
         admin_url=URL("https://api.dev.apolo.us/apis/admin/v1"),
+        vcluster_url=URL("https://api.dev.apolo.us/apis/vcluster/v1"),
         version=__version__,
         cluster_name=cluster_config.name,
         org_name=cluster_config.orgs[0],
