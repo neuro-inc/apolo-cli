@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar
 
 import yaml
 from dateutil.parser import isoparse
@@ -25,7 +25,7 @@ class KubeServiceAccount:
     expired_at: datetime
 
     @classmethod
-    def _parse(cls, item: dict[str, str]) -> Self:
+    def _parse(cls, item: dict[str, str]) -> "KubeServiceAccount":
         return cls(
             name=item["name"],
             user=item["user"],
