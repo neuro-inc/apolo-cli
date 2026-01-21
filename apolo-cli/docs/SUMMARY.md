@@ -18,6 +18,7 @@
 * [service-account](service-account.md)
 * [shortcuts](shortcuts.md)
 * [storage](storage.md)
+* [vcluster](vcluster.md)
 
 ## Topics
 

@@ -13,7 +13,7 @@ from apolo_sdk import Bucket
 from apolo_cli.formatters.utils import DatetimeFormatter, URIFormatter
 
 
-class BaseBucketsFormatter:
+class BaseBucketsFormatter(abc.ABC):
     @abc.abstractmethod
     def __call__(self, buckets: Sequence[Bucket]) -> RenderableType:
         pass
