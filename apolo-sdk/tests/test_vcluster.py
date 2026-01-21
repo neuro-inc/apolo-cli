@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import yaml
@@ -400,8 +400,8 @@ async def test_list_service_accounts(
         assert isinstance(sas[0], KubeServiceAccount)
         assert sas[0].user == "user"
         assert sas[0].name == "name"
-        assert sas[0].created_at == datetime(2025, 5, 7, 11, 0, 0, tzinfo=UTC)
-        assert sas[0].expired_at == datetime(2026, 5, 7, 11, 0, 0, tzinfo=UTC)
+        assert sas[0].created_at == datetime(2025, 5, 7, 11, 0, 0, tzinfo=timezone.utc)
+        assert sas[0].expired_at == datetime(2026, 5, 7, 11, 0, 0, tzinfo=timezone.utc)
 
 
 async def test_delete_service_accounts(
@@ -437,8 +437,8 @@ async def test_delete_service_accounts(
         assert isinstance(sa, KubeServiceAccount)
         assert sa.user == "user"
         assert sa.name == "name"
-        assert sa.created_at == datetime(2025, 5, 7, 11, 0, 0, tzinfo=UTC)
-        assert sa.expired_at == datetime(2026, 5, 7, 11, 0, 0, tzinfo=UTC)
+        assert sa.created_at == datetime(2025, 5, 7, 11, 0, 0, tzinfo=timezone.utc)
+        assert sa.expired_at == datetime(2026, 5, 7, 11, 0, 0, tzinfo=timezone.utc)
 
 
 async def test_create_service_accounts(
