@@ -14,7 +14,7 @@ humanize==4.13.0
 importlib-metadata==8.7.1; python_version<"3.10"
 multidict<7.0
 neuro-config-client==25.12.0
-packaging==25.0
+packaging==26.0
 python-dateutil==2.9.0.post0
 python-jose==3.5.0
 pyyaml==6.0.3
