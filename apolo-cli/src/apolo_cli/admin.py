@@ -1639,6 +1639,11 @@ async def get_projects(root: Root, cluster_name: str, org: str | None = None) ->
     help="Is this project is default, e.g. new cluster users will be automatically "
     "added to it",
 )
+@option(
+    "--no-virtual-kube/--has-virtual-kube",
+    default=False,
+    help="Has this project virtual kubernetes support",
+)
 async def add_project(
     root: Root,
     name: str,
@@ -1646,6 +1651,7 @@ async def add_project(
     org: str | None,
     default_role: str,
     default: bool = False,
+    has_virtual_kube: bool = False,
 ) -> None:
     """
     Add new project to specified cluster.
@@ -1658,6 +1664,7 @@ async def add_project(
         org_name=_get_org(root, org),
         default_role=_ProjectUserRoleType(default_role),
         is_default=default,
+        has_virtual_kube=has_virtual_kube,
     )
     if not root.quiet:
         root.print(

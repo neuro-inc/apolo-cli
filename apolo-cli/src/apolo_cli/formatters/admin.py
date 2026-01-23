@@ -315,6 +315,7 @@ class ProjectsFormatter:
         table.add_column("Org name")
         table.add_column("Default role")
         table.add_column("Is default project")
+        table.add_column("Has virtual kube")
         rows = []
 
         for project in projects:
@@ -325,6 +326,7 @@ class ProjectsFormatter:
                     project.org_name,
                     project.default_role.value,
                     str(project.is_default),
+                    str(project.has_virtual_kube),
                 )
             )
         rows.sort(key=operator.itemgetter(0))
@@ -352,6 +354,10 @@ class ProjectFormatter:
         table.add_row(
             "Is default project",
             str(project.is_default),
+        )
+        table.add_row(
+            "Has voirtual kube",
+            str(project.has_virtual_kube),
         )
         return table
 
