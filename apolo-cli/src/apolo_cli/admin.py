@@ -1642,7 +1642,7 @@ async def get_projects(root: Root, cluster_name: str, org: str | None = None) ->
 @option(
     "--no-virtual-kube/--has-virtual-kube",
     default=False,
-    help="Has this project virtual kubernetes support",
+    help="Has this project virtual kubernetes support (no vkube by default)",
 )
 async def add_project(
     root: Root,

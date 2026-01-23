@@ -666,7 +666,7 @@ Name | Description|
 |_--help_|Show this message and exit.|
 |_--default_|Is this project is default, e.g. new cluster users will be automatically added to it|
 |_\--default-role \[ROLE]_|Default role for new users added to project  \[default: writer]|
-|_\--no-virtual-kube / --has-virtual-kube_|Has this project virtual kubernetes support|
+|_\--no-virtual-kube / --has-virtual-kube_|Has this project virtual kubernetes support \(no vkube by default)|
 |_--org ORG_|org name for org-cluster projects|
 
 
