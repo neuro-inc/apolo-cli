@@ -82,7 +82,7 @@ repos:
     - -ignore
     - 'SC1004:'
 - repo: https://github.com/sirosen/check-jsonschema
-  rev: 0.36.0
+  rev: 0.36.1
   hooks:
   - id: check-github-actions
 ci:
