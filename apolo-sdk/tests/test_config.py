@@ -602,6 +602,11 @@ async def test_fetch(
                         "memory": 2 * 2**30,
                     }
                 ],
+                "apps": {
+                    "app_proxy_url": "some.url",
+                    "launchpad_use_subdomain": True,
+                    "apps_hostname_templates": ["temp", "late"],
+                },
             }
         ],
         "projects": [
@@ -651,7 +656,11 @@ async def test_fetch(
                         scheduler_enabled=False,
                     )
                 },
-                apps=AppsConfig(hostname_templates=()),
+                apps=AppsConfig(
+                    hostname_templates=["temp", "late"],
+                    launchpad_use_subdomain=True,
+                    app_proxy_url=URL("some.url"),
+                ),
             )
         }
 
