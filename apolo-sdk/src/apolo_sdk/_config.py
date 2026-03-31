@@ -9,7 +9,7 @@ import sqlite3
 import sys
 import time
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import asdict, dataclass, replace
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
@@ -584,7 +584,7 @@ def _load(path: Path) -> _ConfigData:
         # temporarily support old servers without the url
         try:
             vcluster_url = URL(payload["vcluster_url"])
-        except IndexError:
+        except (IndexError, TypeError):
             vcluster_url = None
         auth_config = _deserialize_auth_config(payload)
         clusters = _deserialize_clusters(payload)
@@ -698,7 +698,7 @@ def _deserialize_clusters(payload: dict[str, Any]) -> dict[str, Cluster]:
                 _deserialize_resource_preset(data)
                 for data in cluster_config.get("presets", [])
             ),
-            apps=AppsConfig(**cluster_config.get("apps", {})),
+            apps=_deserialize_apps_config(cluster_config.get("apps", {})),
         )
         ret[cluster.name] = cluster
     return ret
@@ -865,6 +865,17 @@ def _deserialize_tpu_preset(payload: dict[str, Any]) -> TPUPreset:
     )
 
 
+def _deserialize_apps_config(payload: dict[str, Any]) -> AppsConfig:
+    app_proxy_url_raw = payload.get("app_proxy_url")
+    app_proxy_url = URL(app_proxy_url_raw) if app_proxy_url_raw else None
+
+    return AppsConfig(
+        hostname_templates=payload.get("apps_hostname_templates", ()),
+        app_proxy_url=app_proxy_url,
+        launchpad_use_subdomain=payload.get("launchpad_use_subdomain", False),
+    )
+
+
 def _deserialize_auth_token(payload: dict[str, Any]) -> _AuthToken:
     auth_payload = payload["auth_token"]
     return _AuthToken(
@@ -992,7 +1003,7 @@ def _serialize_clusters(clusters: Mapping[str, Cluster]) -> str:
                 _serialize_resource_preset(name, preset)
                 for name, preset in cluster.presets.items()
             ],
-            "apps": asdict(cluster.apps),
+            "apps": _serialize_apps_config(cluster.apps),
         }
         ret.append(cluster_config)
     return json.dumps(ret)
@@ -1087,6 +1098,16 @@ def _serialize_resource_preset(name: str, preset: Preset) -> dict[str, Any]:
             "type": preset.tpu.type,
             "software_version": preset.tpu.software_version,
         }
+    return result
+
+
+def _serialize_apps_config(apps_config: AppsConfig) -> dict[str, Any]:
+    result = {
+        "apps_hostname_templates": apps_config.hostname_templates,
+        "launchpad_use_subdomain": apps_config.launchpad_use_subdomain,
+    }
+    if apps_config.app_proxy_url:
+        result["app_proxy_url"] = str(apps_config.app_proxy_url)
     return result
 
 

@@ -5,7 +5,6 @@ import shlex
 import subprocess
 import sys
 import uuid
-from asyncio import AbstractEventLoop
 from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -943,7 +942,7 @@ def test_e2e_job_top(helper: Helper) -> None:
 
 
 @pytest.mark.e2e
-def test_e2e_job_top_filtering(helper: Helper, event_loop: AbstractEventLoop) -> None:
+def test_e2e_job_top_filtering(helper: Helper) -> None:
     job_name = f"test-job-{str(uuid4())[:8]}"
     description = str(uuid4())
     command = "bash -c 'sleep 1000; echo test_e2e_job_top_filtering'"
@@ -997,14 +996,18 @@ def test_e2e_job_top_filtering(helper: Helper, event_loop: AbstractEventLoop) ->
                 assert stdout.index(job1_id) > stdout.index(job2_id)
                 break
 
-    checks = [
-        event_loop.run_in_executor(None, _check1),
-        event_loop.run_in_executor(None, _check2),
-        event_loop.run_in_executor(None, _check3),
-        event_loop.run_in_executor(None, _check4),
-        event_loop.run_in_executor(None, _check5),
-    ]
-    event_loop.run_until_complete(asyncio.gather(*checks))
+    async def run_checks() -> None:
+        loop = asyncio.get_event_loop()
+        checks = [
+            loop.run_in_executor(None, _check1),
+            loop.run_in_executor(None, _check2),
+            loop.run_in_executor(None, _check3),
+            loop.run_in_executor(None, _check4),
+            loop.run_in_executor(None, _check5),
+        ]
+        await asyncio.gather(*checks)
+
+    asyncio.run(run_checks())
 
     helper.kill_job(job1_id, wait=True)
     helper.kill_job(job2_id, wait=True)

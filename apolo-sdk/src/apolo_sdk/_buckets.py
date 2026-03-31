@@ -221,10 +221,10 @@ class Buckets(metaclass=NoPublicConstructor):
         url = self._get_buckets_url(cluster_name)
         auth = await self._config._api_auth()
         headers = {"Accept": "application/x-ndjson"}
-        params = {}
-        params["org_name"] = org_name or self._config.org_name
-        if project_name:
-            params["project_name"] = project_name
+        params = {
+            "org_name": org_name or self._config.org_name,
+            "project_name": project_name or self._config.project_name_or_raise,
+        }
         async with self._core.request(
             "GET", url, headers=headers, auth=auth, params=params
         ) as resp:

@@ -95,7 +95,9 @@ def _create_minimal_cluster_config(**kwargs: Any) -> dict[str, Any]:
         "ingress": IngressConfig(acme_environment=ACMEEnvironment.STAGING),
         "energy": _EnergyConfig(co2_grams_eq_per_kwh=0.0, schedules=[]),
         "apps": AppsConfig(
-            apps_hostname_templates=[], app_proxy_url=URL("https://apps.example.com")
+            apps_hostname_templates=[],
+            app_proxy_url=URL("https://apps.example.com"),
+            launchpad_use_subdomain=True,
         ),
     }
     defaults.update(kwargs)

@@ -137,6 +137,8 @@ class Project:
 @dataclass(frozen=True)
 class AppsConfig:
     hostname_templates: Sequence[str] = ()
+    app_proxy_url: URL | None = None
+    launchpad_use_subdomain: bool = False
 
 
 @rewrite_module
@@ -266,8 +268,13 @@ def _parse_cluster_config(payload: dict[str, Any]) -> Cluster:
 
     apps_payload = payload.get("apps", {})
     if apps_payload:
+        app_proxy_url = None
+        if "app_proxy_url" in apps_payload:
+            app_proxy_url = URL(apps_payload["app_proxy_url"])
         apps_config = AppsConfig(
-            hostname_templates=apps_payload.get("apps_hostname_templates", [])
+            hostname_templates=apps_payload.get("apps_hostname_templates", []),
+            launchpad_use_subdomain=apps_payload.get("launchpad_use_subdomain", False),
+            app_proxy_url=app_proxy_url,
         )
     else:
         apps_config = AppsConfig()
