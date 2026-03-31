@@ -5,6 +5,15 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.3.0 (2026-03-31)
+
+## Features
+
+- Add support for vcluster-based projects and their kubernetes configurations. ([#3430](https://github.com/neuro-inc/apolo-cli/issues/3430))
+- Support ``--has-virtual-kube`` option for project creation, show this flag when printing the project's information. ([#3435](https://github.com/neuro-inc/apolo-cli/issues/3435))
+- Expose apps configs (output proxy URL and lauchpad tweaks) at `client.config.clusters[<cluster-name>].apps`. ([#3461](https://github.com/neuro-inc/apolo-cli/issues/3461))
+
+
 # Apolo SDK/CLI 26.1.0 (2026-01-05)
 
 ## Bugfixes
