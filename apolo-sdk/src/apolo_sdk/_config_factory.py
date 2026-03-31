@@ -130,7 +130,7 @@ class Factory:
     async def _get(self, *, timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT) -> Client:
         session = await _make_session(timeout, self._trace_configs)
         try:
-            client = Client._create(
+            client: Client = Client._create(
                 session,
                 self._path,
                 self._trace_id,

@@ -584,7 +584,7 @@ def _load(path: Path) -> _ConfigData:
         # temporarily support old servers without the url
         try:
             vcluster_url = URL(payload["vcluster_url"])
-        except IndexError:
+        except (IndexError, TypeError):
             vcluster_url = None
         auth_config = _deserialize_auth_config(payload)
         clusters = _deserialize_clusters(payload)
