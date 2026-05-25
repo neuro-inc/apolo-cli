@@ -8,9 +8,7 @@ import aiohttp
 from neuro_config_client import AMDGPU as _AMDGPU
 from neuro_config_client import AMDGPUPreset as _AMDGPUPreset
 from neuro_config_client import Cluster as _ConfigCluster
-from neuro_config_client import (
-    ConfigClientBase,
-)
+from neuro_config_client import ConfigClientBase
 from neuro_config_client import EnergyConfig as _EnergyConfig
 from neuro_config_client import EnergySchedule as _EnergySchedule
 from neuro_config_client import EnergySchedulePeriod as _EnergySchedulePeriod
