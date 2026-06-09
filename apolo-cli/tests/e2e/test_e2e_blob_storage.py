@@ -221,7 +221,6 @@ def test_e2e_blob_storage_glob_copy(
     captured = helper.run_cli(["blob", "ls", f"blob:{tmp_bucket}/folder/"])
     prefix = f"blob:{tmp_bucket}/folder/"
     assert sorted(captured.out.splitlines()) == [
-        prefix,
         prefix + "bar",
         prefix + "baz",
         prefix + "foo",

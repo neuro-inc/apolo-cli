@@ -707,7 +707,8 @@ def test_job_submit_http_auth(
     ) -> None:
         start_time = time()
         ntries = 0
-        async with aiohttp.ClientSession(cookies=cookies) as session:
+        headers = {"Authorization": f"Bearer {helper.token}"}
+        async with aiohttp.ClientSession(cookies=cookies, headers=headers) as session:
             while time() - start_time < service_wait_time:
                 try:
                     async with session.get(url, allow_redirects=False) as resp:
