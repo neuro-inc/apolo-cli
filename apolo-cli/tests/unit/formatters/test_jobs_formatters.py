@@ -2382,7 +2382,6 @@ class TestTabularJobsFormatter:
         rich_cmp(formatter(jobs))
 
     def test_dates(self, rich_cmp: Any) -> None:
-        now = datetime.now(timezone.utc)
         items = [
             JobStatusHistory(
                 status=JobStatus.PENDING,
@@ -2412,9 +2411,9 @@ class TestTabularJobsFormatter:
                 status=JobStatus.FAILED,
                 reason="ErrorReason",
                 description="ErrorDesc",
-                created_at=now - timedelta(hours=3, minutes=25, seconds=45),
-                started_at=now - timedelta(minutes=20),
-                finished_at=now - timedelta(seconds=12),
+                created_at=datetime.now(timezone.utc) - timedelta(seconds=12345),
+                started_at=datetime.now(timezone.utc) - timedelta(seconds=1234),
+                finished_at=datetime.now(timezone.utc) - timedelta(seconds=12),
             ),
         ]
         jobs = [
