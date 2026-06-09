@@ -102,10 +102,12 @@ class AppConfigurationRevision:
 
 @rewrite_module
 def validate_app_preset(
-    preset_name: str | None,
+    preset_name: str | Mapping[str, Any] | None,
     available_presets: Mapping[str, object],
     cluster_name: str,
 ) -> None:
+    if isinstance(preset_name, dict):
+        preset_name = preset_name.get("name")
     if preset_name and preset_name not in available_presets:
         available = ", ".join(sorted(available_presets))
         raise IllegalArgumentError(

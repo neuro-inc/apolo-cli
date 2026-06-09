@@ -2,6 +2,7 @@ import builtins
 import codecs
 import json
 import sys
+from typing import Any
 
 import click
 import yaml
@@ -197,7 +198,7 @@ async def install(
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
-    preset_name = (app_data.get("input") or {}).get("preset")
+    preset_name = _get_preset_name(app_data)
     cluster_name = cluster or root.client.config.cluster_name
     try:
         validate_app_preset(
@@ -264,7 +265,7 @@ async def configure(
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
-    preset_name = (app_data.get("input") or {}).get("preset")
+    preset_name = _get_preset_name(app_data)
     cluster_name = root.client.config.cluster_name
     try:
         validate_app_preset(preset_name, root.client.config.presets, cluster_name)
@@ -296,6 +297,13 @@ async def configure(
             f"App [bold]{app_id}[/bold] configured using [bold]{file_path}[/bold].",
             markup=True,
         )
+
+
+def _get_preset_name(app_data: dict[str, Any]) -> str | None:
+    preset = (app_data.get("input") or {}).get("preset")
+    if isinstance(preset, dict):
+        return preset.get("name")
+    return preset
 
 
 @command()

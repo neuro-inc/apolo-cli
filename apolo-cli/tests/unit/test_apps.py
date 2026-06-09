@@ -176,6 +176,24 @@ def test_app_install_with_valid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
     assert capture.code == 0
 
 
+def test_app_install_with_valid_nested_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App install accepts Shell-style nested preset payloads."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "template_name: shell\n"
+        "template_version: v26.4.0\n"
+        "input:\n"
+        "  preset:\n"
+        "    name: cpu-small\n"
+    )
+
+    with mock_apps_install():
+        capture = run_cli(["app", "install", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
 def test_app_install_with_invalid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
     """App install fails early when preset is not available on the cluster."""
     app_yaml = tmp_path / "app.yaml"
@@ -214,6 +232,22 @@ def test_app_configure_with_valid_preset(run_cli: _RunCli, tmp_path: Any) -> Non
     """App configure succeeds when preset exists in the cluster."""
     app_yaml = tmp_path / "app.yaml"
     app_yaml.write_text("display_name: New name\ninput:\n  preset: cpu-small\n")
+
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
+def test_app_configure_with_valid_nested_preset(
+    run_cli: _RunCli, tmp_path: Any
+) -> None:
+    """App configure accepts Shell-style nested preset payloads."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "display_name: New name\ninput:\n  preset:\n    name: cpu-small\n"
+    )
 
     with mock_apps_configure():
         capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
