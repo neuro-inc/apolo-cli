@@ -101,8 +101,8 @@ def test_revoke_no_effect(helper: Helper) -> None:
     uri = f"storage://{helper.cluster_uri_base}/{uuid4()}"
     with pytest.raises(subprocess.CalledProcessError) as cm:
         helper.run_cli(["-v", "acl", "revoke", uri, "public"])
-    assert cm.value.returncode == 77
-    assert "Forbidden" in cm.value.stderr
+    assert cm.value.returncode == 127
+    assert "Operation has no effect" in cm.value.stderr
     assert f"Using resource '{uri}'" in cm.value.stderr
 
 
@@ -153,10 +153,10 @@ def test_list_role(request: Any, helper: Helper) -> None:
 
 @pytest.mark.e2e
 def test_list_role_forbidden(request: Any, helper: Helper) -> None:
-    captured = helper.run_cli(["acl", "ls", "-u", "admin"])
-    assert captured.err == ""
-    captured = helper.run_cli(["acl", "ls", "-u", "admin", "--shared"])
-    assert captured.err == ""
+    with pytest.raises(subprocess.CalledProcessError):
+        helper.run_cli(["acl", "ls", "-u", "admin"])
+    with pytest.raises(subprocess.CalledProcessError):
+        helper.run_cli(["acl", "ls", "-u", "admin", "--shared"])
 
 
 @pytest.mark.e2e
