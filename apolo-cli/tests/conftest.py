@@ -30,6 +30,8 @@ from apolo_sdk._server_cfg import (
 )
 from apolo_sdk._tracing import _make_trace_config
 
+pytest_plugins = ("aiohttp.pytest_plugin",)
+
 
 def pytest_addoption(parser: Any, pluginmanager: Any) -> None:
     parser.addoption(

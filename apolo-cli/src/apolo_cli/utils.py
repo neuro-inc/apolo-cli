@@ -16,6 +16,7 @@ from typing import (
     Any,
     TypeVar,
     cast,
+    overload,
 )
 
 import click
@@ -289,13 +290,39 @@ class Command(NeuroClickMixin, click.Command):
             return ctx.invoke(self.callback, **ctx.params)
 
 
+def _default_click_name(func: Callable[..., Any]) -> str:
+    return func.__name__.lower().replace("_", "-")
+
+
+@overload
+def command(
+    name: Callable[..., Any], cls: type[Command] = Command, **kwargs: Any
+) -> Command: ...
+
+
+@overload
 def command(
     name: str | None = None, cls: type[Command] = Command, **kwargs: Any
-) -> Command:
-    return click.command(name=name, cls=cls, **kwargs)  # type: ignore
+) -> Callable[[Callable[..., Any]], Command]: ...
+
+
+def command(
+    name: str | Callable[..., Any] | None = None,
+    cls: type[Command] = Command,
+    **kwargs: Any,
+) -> Callable[[Callable[..., Any]], Command] | Command:
+    def decorator(func: Callable[..., Any]) -> Command:
+        cmd_name = name if isinstance(name, str) else _default_click_name(func)
+        return click.command(name=cmd_name, cls=cls, **kwargs)(func)
+
+    if callable(name):
+        return decorator(name)
+    return decorator
 
 
 class Group(NeuroGroupMixin, click.Group):
+    skip_init = False
+
     def command(  # type: ignore
         self, *args: Any, **kwargs: Any
     ) -> Callable[[Callable[..., Any]], Command]:
@@ -317,16 +344,38 @@ class Group(NeuroGroupMixin, click.Group):
         return decorator
 
     def invoke(self, ctx: click.Context) -> None:
-        if not ctx.args and not ctx.protected_args:
+        protected_args = getattr(
+            ctx, "_protected_args", getattr(ctx, "protected_args", [])
+        )
+        if not ctx.args and not protected_args:
             print_help(ctx)
         else:
             super().invoke(ctx)
 
 
-def group(name: str | None = None, **kwargs: Any) -> Group:
+@overload
+def group(name: Callable[..., Any], **kwargs: Any) -> Group: ...
+
+
+@overload
+def group(
+    name: str | None = None, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Group]: ...
+
+
+def group(
+    name: str | Callable[..., Any] | None = None, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Group] | Group:
     kwargs.setdefault("cls", Group)
     kwargs.setdefault("invoke_without_command", True)
-    return click.group(name=name, **kwargs)  # type: ignore
+
+    def decorator(func: Callable[..., Any]) -> Group:
+        group_name = name if isinstance(name, str) else _default_click_name(func)
+        return cast(Group, click.group(name=group_name, **kwargs)(func))
+
+    if callable(name):
+        return decorator(name)
+    return decorator
 
 
 def print_help(ctx: click.Context) -> None:
@@ -342,12 +391,13 @@ def print_help(ctx: click.Context) -> None:
     ctx.exit()
 
 
-class DeprecatedGroup(NeuroGroupMixin, click.MultiCommand):
+class DeprecatedGroup(Group):
     def __init__(
         self, origin: click.MultiCommand, name: str | None = None, **attrs: Any
     ) -> None:
         attrs.setdefault("help", f"Alias for {origin.name}")
         attrs.setdefault("deprecated", True)
+        attrs.setdefault("invoke_without_command", True)
         super().__init__(name, **attrs)
         self.origin = origin
 
@@ -356,6 +406,13 @@ class DeprecatedGroup(NeuroGroupMixin, click.MultiCommand):
 
     def list_commands(self, ctx: click.Context) -> list[str]:
         return self.origin.list_commands(ctx)
+
+    def get_short_help_str(self, limit: int = 45) -> str:
+        text = super().get_short_help_str(limit)
+        deprecated_suffix = " (DEPRECATED)"
+        if text.endswith(deprecated_suffix):
+            text = f"(Deprecated) {text.removesuffix(deprecated_suffix)}"
+        return text
 
 
 def alias(

@@ -142,6 +142,9 @@ class Root:
             self.soft_reset_tty()
 
     def run(self, main: Awaitable[_T]) -> _T:
+        if self._runner._stopped:
+            self._runner = Runner(debug=self.verbosity >= 2)
+            self._runner.__enter__()
         return self._runner.run(main)
 
     @property

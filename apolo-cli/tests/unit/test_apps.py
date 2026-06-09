@@ -159,6 +159,95 @@ def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
     assert capture.code == 0
 
 
+def test_app_install_with_valid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App install succeeds when preset exists in the cluster."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "template_name: test-template\n"
+        "template_version: 1.0\n"
+        "input:\n"
+        "  preset: cpu-small\n"
+    )
+
+    with mock_apps_install():
+        capture = run_cli(["app", "install", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
+def test_app_install_with_invalid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App install fails early when preset is not available on the cluster."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "template_name: test-template\n"
+        "template_version: 1.0\n"
+        "input:\n"
+        "  preset: nonexistent-preset\n"
+    )
+
+    with mock_apps_install():
+        capture = run_cli(["app", "install", "-f", str(app_yaml)])
+
+    assert "Preset 'nonexistent-preset' is not available" in capture.err
+    assert capture.code == 1
+
+
+def test_app_install_without_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App install succeeds when no preset is specified in input."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "template_name: test-template\n"
+        "template_version: 1.0\n"
+        "input:\n"
+        "  some_param: value\n"
+    )
+
+    with mock_apps_install():
+        capture = run_cli(["app", "install", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
+def test_app_configure_with_valid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App configure succeeds when preset exists in the cluster."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text("display_name: New name\ninput:\n  preset: cpu-small\n")
+
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
+def test_app_configure_with_invalid_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App configure fails early when preset is not available on the cluster."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text(
+        "display_name: New name\ninput:\n  preset: nonexistent-preset\n"
+    )
+
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert "Preset 'nonexistent-preset' is not available" in capture.err
+    assert capture.code == 1
+
+
+def test_app_configure_without_preset(run_cli: _RunCli, tmp_path: Any) -> None:
+    """App configure succeeds when no preset is specified."""
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text("display_name: New name\ninput:\n  some_param: value\n")
+
+    with mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert capture.err == ""
+    assert capture.code == 0
+
+
 def test_app_uninstall(run_cli: _RunCli) -> None:
     """Test the app uninstall command."""
     app_id = "app-123"

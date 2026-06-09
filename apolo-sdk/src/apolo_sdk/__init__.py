@@ -51,6 +51,7 @@ from ._apps import (
     AppState,
     AppTemplate,
     AppValue,
+    validate_app_preset,
 )
 from ._bucket_base import (
     BlobCommonPrefix,
@@ -286,6 +287,7 @@ __all__ = (
     "login",
     "login_with_token",
     "logout",
+    "validate_app_preset",
 )
 
 

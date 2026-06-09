@@ -14,9 +14,34 @@ from apolo_sdk import (
     AppEventResource,
     AppState,
     Client,
+    IllegalArgumentError,
+    validate_app_preset,
 )
 
 from tests import _TestServerFactory
+
+
+def test_validate_app_preset() -> None:
+    validate_app_preset(
+        "cpu-small",
+        {"cpu-small": object(), "cpu-large": object()},
+        "default",
+    )
+
+
+def test_validate_app_preset_not_available() -> None:
+    with pytest.raises(
+        IllegalArgumentError,
+        match=(
+            "^Preset 'missing-preset' is not available on cluster 'default'\\. "
+            "Available presets: cpu-large, cpu-small$"
+        ),
+    ):
+        validate_app_preset(
+            "missing-preset",
+            {"cpu-small": object(), "cpu-large": object()},
+            "default",
+        )
 
 
 @pytest.fixture
@@ -152,6 +177,28 @@ async def test_apps_install(
         )
 
 
+async def test_apps_install_with_invalid_preset(
+    make_client: Callable[..., Client],
+) -> None:
+    app_data = {
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "input": {"preset": "missing-preset"},
+    }
+
+    async with make_client("https://example.com") as client:
+        with pytest.raises(
+            IllegalArgumentError,
+            match="Preset 'missing-preset' is not available on cluster 'default'",
+        ):
+            await client.apps.install(
+                app_data=app_data,
+                cluster_name="default",
+                org_name="superorg",
+                project_name="test3",
+            )
+
+
 async def test_apps_configure(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
@@ -234,6 +281,49 @@ async def test_apps_configure(
         )
 
         assert updated_app.display_name == "new display name"
+
+
+async def test_apps_configure_with_invalid_preset(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    response_data = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+    app_configure_data = {
+        "template_name": "stable-diffusion",
+        "template_version": "master",
+        "input": {"preset": "missing-preset"},
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        assert request.method == "GET"
+        assert request.path == "/apis/apps/v2/instances/someid"
+        return web.json_response(data=response_data, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        with pytest.raises(
+            IllegalArgumentError,
+            match="Preset 'missing-preset' is not available on cluster 'default'",
+        ):
+            await client.apps.configure(app_id="someid", app_data=app_configure_data)
 
 
 async def test_apps_uninstall(

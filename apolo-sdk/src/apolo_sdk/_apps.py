@@ -1,6 +1,6 @@
 import builtins
 import enum
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -10,6 +10,7 @@ from yarl import URL
 
 from ._config import Config
 from ._core import _Core
+from ._errors import IllegalArgumentError
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
 
@@ -97,6 +98,20 @@ class AppConfigurationRevision:
     comment: str | None
     created_at: datetime
     end_at: datetime | None
+
+
+@rewrite_module
+def validate_app_preset(
+    preset_name: str | None,
+    available_presets: Mapping[str, object],
+    cluster_name: str,
+) -> None:
+    if preset_name and preset_name not in available_presets:
+        available = ", ".join(sorted(available_presets))
+        raise IllegalArgumentError(
+            f"Preset '{preset_name}' is not available on cluster '{cluster_name}'. "
+            f"Available presets: {available}"
+        )
 
 
 @rewrite_module
@@ -209,6 +224,12 @@ class Apps(metaclass=NoPublicConstructor):
         org_name: str | None = None,
         project_name: str | None = None,
     ) -> App:
+        cluster_name = cluster_name or self._config.cluster_name
+        validate_app_preset(
+            (app_data.get("input") or {}).get("preset"),
+            dict(self._config.get_cluster(cluster_name).presets),
+            cluster_name,
+        )
         url = (
             self._build_base_url(
                 cluster_name=cluster_name,
@@ -240,6 +261,11 @@ class Apps(metaclass=NoPublicConstructor):
         existing_app = await self.get(app_id)
         if not self._can_configure_app(existing_app, app_data):
             raise ValueError("Cannot update app: template name or version mismatch")
+        validate_app_preset(
+            (app_data.get("input") or {}).get("preset"),
+            dict(self._config.get_cluster(existing_app.cluster_name).presets),
+            existing_app.cluster_name,
+        )
 
         url = (
             self._build_base_url(

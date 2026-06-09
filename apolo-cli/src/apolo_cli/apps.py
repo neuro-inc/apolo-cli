@@ -11,6 +11,7 @@ from apolo_sdk import (
     AppState,
     AppValue,
     IllegalArgumentError,
+    validate_app_preset,
 )
 
 from .click_types import CLUSTER, ORG, PROJECT
@@ -196,6 +197,17 @@ async def install(
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
+    preset_name = (app_data.get("input") or {}).get("preset")
+    cluster_name = cluster or root.client.config.cluster_name
+    try:
+        validate_app_preset(
+            preset_name,
+            root.client.config.clusters[cluster_name].presets,
+            cluster_name,
+        )
+    except IllegalArgumentError as exc:
+        raise click.ClickException(str(exc)) from exc
+
     try:
         with root.status(f"Installing app from [bold]{file_path}[/bold]"):
             resp = await root.client.apps.install(
@@ -251,6 +263,13 @@ async def configure(
 
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
+
+    preset_name = (app_data.get("input") or {}).get("preset")
+    cluster_name = root.client.config.cluster_name
+    try:
+        validate_app_preset(preset_name, root.client.config.presets, cluster_name)
+    except IllegalArgumentError as exc:
+        raise click.ClickException(str(exc)) from exc
 
     try:
         with root.status(

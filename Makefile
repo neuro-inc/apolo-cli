@@ -78,11 +78,22 @@ test-cli: .update-deps .test-cli ### Run unit tests
 
 .PHONY: test-all
 test-all: .update-deps ### Run all tests
+	coverage erase
 	pytest \
-		--cov=apolo-sdk/apolo_sdk --cov=apolo-cli/apolo_cli \
-		--cov-report term-missing:skip-covered \
-		--cov-report xml:coverage.xml \
-		--color=$(COLOR)
+		-m "not e2e" \
+		--cov=apolo_sdk --cov=apolo_cli \
+		--cov-report= \
+		--color=$(COLOR) \
+		apolo-sdk/tests
+	pytest \
+		-m "not e2e" \
+		--cov=apolo_sdk --cov=apolo_cli \
+		--cov-append \
+		--cov-report= \
+		--color=$(COLOR) \
+		apolo-cli/tests
+	coverage report --show-missing --skip-covered
+	coverage xml -o coverage.xml
 
 
 .PHONY: format fmt
