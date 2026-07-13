@@ -1,7 +1,8 @@
 from typing import Any
 
-import apolo_sdk
 from mcp.server.fastmcp import FastMCP
+
+import apolo_sdk
 
 from .._client import client
 
