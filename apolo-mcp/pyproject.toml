@@ -1,0 +1,94 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "apolo-mcp"
+dynamic = ["version"]
+description = "MCP server for the Apolo platform"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Apolo Team", email = "dev@apolo.us" }]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+    "apolo-sdk>=26.3.0",
+    "mcp[cli]>=1.0.0",
+]
+
+[project.scripts]
+apolo-mcp = "apolo_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/neuro-inc/apolo-mcp"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.10",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pre-commit>=3.0",
+    "types-PyYAML>=6.0",
+]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/apolo_mcp/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/apolo_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+log_cli = false
+log_level = "INFO"
+testpaths = ["tests"]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+follow_imports = "silent"
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+incremental = false
+
+[[tool.mypy.overrides]]
+module = "pytest"
+ignore_missing_imports = true
+
+[tool.black]
+exclude = '''
+/(
+      \.git
+    | venv
+    | __pycache__
+    | \.tox
+)/
+'''
+
+[tool.isort]
+profile = "black"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+known_firstparty = ["apolo_mcp"]
+
+[tool.flake8]
+exclude = [".git", ".env", "__pycache__", ".eggs"]
+max-line-length = 88
+ignore = ["N801", "N802", "N803", "E252", "W503", "E133", "E203", "F541", "E704"]

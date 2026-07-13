@@ -1,0 +1,13 @@
+src/apolo_mcp/_version.py
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+.venv/
+venv/
+*.egg
+.coverage
+coverage.xml
