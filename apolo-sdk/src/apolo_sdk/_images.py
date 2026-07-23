@@ -32,6 +32,18 @@ TAGS_PER_PAGE = 30
 
 DEFAULT_PUSH_TIMEOUT = 20 * 60  # 20 minutes
 
+# the registry returns 404 for manifests whose stored media type
+# is not listed in Accept, so all known types must be accepted
+# (e.g. kaniko pushes OCI manifests)
+MANIFEST_ACCEPT = ", ".join(
+    (
+        "application/vnd.docker.distribution.manifest.v2+json",
+        "application/vnd.docker.distribution.manifest.list.v2+json",
+        "application/vnd.oci.image.manifest.v1+json",
+        "application/vnd.oci.image.index.v1+json",
+    )
+)
+
 log = logging.getLogger(__package__)
 
 
@@ -135,7 +147,7 @@ class Images(metaclass=NoPublicConstructor):
             "HEAD",
             url,
             auth=auth,
-            headers={"Accept": "application/vnd.docker.distribution.manifest.v2+json"},
+            headers={"Accept": MANIFEST_ACCEPT},
         ) as resp:
             return resp.headers["Docker-Content-Digest"]
 
@@ -152,7 +164,7 @@ class Images(metaclass=NoPublicConstructor):
             "GET",
             url,
             auth=auth,
-            headers={"Accept": "application/vnd.docker.distribution.manifest.v2+json"},
+            headers={"Accept": MANIFEST_ACCEPT},
         ) as resp:
             data = await resp.json()
             size = sum(layer["size"] for layer in data["layers"])

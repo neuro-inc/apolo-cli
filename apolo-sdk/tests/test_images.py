@@ -1574,10 +1574,11 @@ class TestRegistry:
         }
 
         async def handler(request: web.Request) -> web.Response:
-            assert (
-                request.headers["Accept"]
-                == "application/vnd.docker.distribution.manifest.v2+json"
-            )
+            accept = request.headers["Accept"]
+            assert "application/vnd.docker.distribution.manifest.v2+json" in accept
+            assert "application/vnd.docker.distribution.manifest.list.v2+json" in accept
+            assert "application/vnd.oci.image.manifest.v1+json" in accept
+            assert "application/vnd.oci.image.index.v1+json" in accept
             return web.json_response(JSON)
 
         app = web.Application()
@@ -1600,6 +1601,47 @@ class TestRegistry:
             assert image.tag
 
         assert ret == Tag(name=image.tag, size=32890532)
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_digest_oci_manifest(
+        self, aiohttp_server: _TestServerFactory, make_client: _MakeClient
+    ) -> None:
+        # the registry returns 404 for manifests whose stored media type
+        # is not listed in Accept; kaniko-built images store OCI manifests
+        oci_media_type = "application/vnd.oci.image.manifest.v1+json"
+        digest = "sha256:" + "0" * 64
+
+        async def handler(request: web.Request) -> web.Response:
+            if oci_media_type not in request.headers["Accept"]:
+                return web.json_response({}, status=404)
+            return web.Response(
+                headers={
+                    "Content-Type": oci_media_type,
+                    "Docker-Content-Digest": digest,
+                }
+            )
+
+        app = web.Application()
+        app.router.add_head("/v2/project/test/manifests/test_tag", handler)
+
+        srv = await aiohttp_server(app)
+        url = "http://platform"
+        registry_url = srv.make_url("/v2/")
+
+        async with make_client(url, registry_url=registry_url) as client:
+            image = RemoteImage.new_platform_image(
+                name="test",
+                tag="test_tag",
+                cluster_name="default",
+                registry="reg",
+                org_name=None,
+                project_name="project",
+            )
+            ret = await client.images.digest(image)
+
+        assert ret == digest
 
     @pytest.mark.skipif(
         sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
