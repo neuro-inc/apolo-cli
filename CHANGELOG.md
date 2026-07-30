@@ -5,6 +5,17 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.7.0 (2026-07-30)
+
+## Bugfixes
+
+- Fixed `apolo image rm` and `apolo image size` failing with `ResourceNotFound` for images stored as OCI manifests (e.g. built by kaniko via `apolo-flow build`): all standard manifest media types are now accepted when resolving image digests. ([#3489](https://github.com/neuro-inc/apolo-cli/issues/3489))
+
+## Misc
+
+- [#3475](https://github.com/neuro-inc/apolo-cli/issues/3475)
+
+
 # Apolo SDK/CLI 26.3.0 (2026-03-31)
 
 ## Features
