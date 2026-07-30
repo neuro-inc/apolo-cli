@@ -227,6 +227,8 @@ class S3Provider(MeasureTimeDiffMixin, BucketProvider):
         )
         async with response["Body"] as stream:
             try:
+                # aiobotocore < 3.8 bridge.
+                # Drop after pinning minimal aiobotocore requirement to 3.8+
                 chunks = aiter(stream)
             except TypeError:
                 chunks = stream.content.iter_any()
