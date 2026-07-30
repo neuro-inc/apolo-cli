@@ -551,7 +551,10 @@ async def help(root: Root, command: Sequence[str]) -> None:
                 root.print(not_found)
                 break
         else:
-            print_help(ctx_stack[-1])
+            # The root context owns the asyncio runner executing this coroutine.
+            # Let Click close it after the coroutine has returned instead of
+            # closing the running event loop from Context.exit().
+            print_help(ctx_stack[-1], exit=False)
     finally:
         for ctx in reversed(ctx_stack[1:]):
             ctx.close()
