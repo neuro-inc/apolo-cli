@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.7.2 (2026-07-30)
+
+## Bugfixes
+
+- Fix "aiobocotore >=3.8" compatibility. ([#3493](https://github.com/neuro-inc/apolo-cli/issues/3493))
+
+
 # Apolo SDK/CLI 26.7.1 (2026-07-30)
 
 ## Bugfixes
