@@ -347,7 +347,7 @@ def group(name: str | None = None, **kwargs: Any) -> Group:
     return decorator  # type: ignore
 
 
-def print_help(ctx: click.Context) -> None:
+def print_help(ctx: click.Context, *, exit: bool = True) -> None:
     root = cast(Root, ctx.obj)
     if root is None:
         tty = all(f.isatty() for f in [sys.stdin, sys.stdout, sys.stderr])
@@ -357,7 +357,8 @@ def print_help(ctx: click.Context) -> None:
         terminal_size = root.terminal_size
 
     pager_maybe(ctx.get_help().splitlines(), tty, terminal_size)
-    ctx.exit()
+    if exit:
+        ctx.exit()
 
 
 class DeprecatedGroup(Group):
