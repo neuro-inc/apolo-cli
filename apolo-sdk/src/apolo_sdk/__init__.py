@@ -139,7 +139,7 @@ from ._users import Action, Permission, Quota, Share, Users
 from ._utils import _ContextManager, find_project_root
 from ._vcluster import KubeServiceAccount, VCluster
 
-__version__ = "26.7.1"
+__version__ = "26.7.2"
 
 
 __all__ = (

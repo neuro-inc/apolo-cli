@@ -226,7 +226,13 @@ class S3Provider(MeasureTimeDiffMixin, BucketProvider):
             Range=f"bytes={offset}-" if offset else "",
         )
         async with response["Body"] as stream:
-            async for chunk in stream.content.iter_any():
+            try:
+                # aiobotocore < 3.8 bridge.
+                # Drop after pinning minimal aiobotocore requirement to 3.8+
+                chunks = aiter(stream)
+            except TypeError:
+                chunks = stream.content.iter_any()
+            async for chunk in chunks:
                 yield chunk
 
     async def delete_blob(self, key: str) -> None:
