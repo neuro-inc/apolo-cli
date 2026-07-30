@@ -5,6 +5,13 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.7.1 (2026-07-30)
+
+## Bugfixes
+
+- Fix `apolo help` command exit code. ([#3492](https://github.com/neuro-inc/apolo-cli/issues/3492))
+
+
 # Apolo SDK/CLI 26.7.0 (2026-07-30)
 
 ## Bugfixes
