@@ -3,6 +3,10 @@ from collections.abc import Callable
 from typing import Protocol, overload
 
 import humanize
+from rich.console import Console, ConsoleOptions, RenderResult
+from rich.progress import BarColumn, Task
+from rich.progress_bar import ProgressBar
+from rich.segment import Segment
 from yarl import URL
 
 from apolo_sdk import SCHEMES, Preset, RemoteImage, _ResourcePoolType
@@ -14,6 +18,53 @@ GPU_MODEL_SEP = " x "
 
 URIFormatter = Callable[[URL], str]
 ImageFormatter = Callable[[RemoteImage], str]
+
+
+class _NoColorProgressBar(ProgressBar):
+    """Keep the uncompleted bar visible when Rich's NO_COLOR mode is active."""
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield from super().__rich_console__(console, options)
+
+        if (
+            not console.no_color
+            or console.color_system is None
+            or self.pulse
+            or self.total is None
+        ):
+            return
+
+        width = min(self.width or options.max_width, options.max_width)
+        completed = min(self.total, max(0, self.completed))
+        complete_halves = int(width * 2 * completed / self.total) if self.total else 0
+        bar_count, half_bar_count = divmod(complete_halves, 2)
+        remaining_width = width - bar_count - half_bar_count
+        if remaining_width:
+            ascii = options.legacy_windows or options.ascii_only
+            bar = "-" if ascii else "━"
+            if not half_bar_count and bar_count:
+                yield Segment(" " if ascii else "╺")
+                remaining_width -= 1
+            yield Segment(bar * remaining_width)
+
+
+class VisibleBarColumn(BarColumn):
+    """A BarColumn that remains readable when color output is disabled."""
+
+    def render(self, task: Task) -> ProgressBar:
+        return _NoColorProgressBar(
+            total=max(0, task.total) if task.total is not None else None,
+            completed=max(0, task.completed),
+            width=None if self.bar_width is None else max(1, self.bar_width),
+            pulse=not task.started,
+            animation_time=task.get_time(),
+            style=self.style,
+            complete_style=self.complete_style,
+            finished_style=self.finished_style,
+            pulse_style=self.pulse_style,
+        )
 
 
 def uri_formatter(

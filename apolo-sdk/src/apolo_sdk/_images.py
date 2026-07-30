@@ -47,6 +47,16 @@ MANIFEST_ACCEPT = ", ".join(
 log = logging.getLogger(__package__)
 
 
+def _make_docker_error(status: int, message: str) -> DockerError:
+    """Construct DockerError across aiodocker's supported version range."""
+    try:
+        # aiodocker >= 0.27 accepts the human-readable message directly.
+        return DockerError(status, message)
+    except TypeError:
+        # aiodocker < 0.27 expects the decoded Docker response payload.
+        return DockerError(status, {"message": message})  # type: ignore[arg-type]
+
+
 @rewrite_module
 class Images(metaclass=NoPublicConstructor):
     def __init__(self, core: _Core, config: Config, parse: Parser) -> None:
@@ -81,13 +91,11 @@ class Images(metaclass=NoPublicConstructor):
                     r".*Either DOCKER_HOST or local sockets are not available.*",
                     f"{error}",
                 ):
-                    raise DockerError(
+                    raise _make_docker_error(
                         900,
-                        {
-                            "message": "Docker engine is not available. "
-                            "Please specify DOCKER_HOST variable "
-                            "if you are using remote docker engine"
-                        },
+                        "Docker engine is not available. "
+                        "Please specify DOCKER_HOST variable "
+                        "if you are using remote docker engine",
                     )
                 raise
         return self.__docker
@@ -295,7 +303,8 @@ def _try_parse_image_progress_step(
 def _raise_on_error_chunk(obj: dict[str, Any]) -> None:
     if "error" in obj.keys():
         error_details = obj.get("errorDetail", {"message": "Unknown error"})
-        raise DockerError(900, error_details)
+        message = error_details.get("message", "Unknown error")
+        raise _make_docker_error(900, str(message))
 
 
 class _DummyProgress(AbstractDockerImageProgress):

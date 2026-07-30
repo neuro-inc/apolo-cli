@@ -16,7 +16,6 @@ from rich.ansi import AnsiDecoder
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.progress import (
-    BarColumn,
     DownloadColumn,
     GetTimeCallable,
     Progress,
@@ -47,6 +46,8 @@ from apolo_sdk import (
 
 from apolo_cli.root import Root
 from apolo_cli.utils import format_size
+
+from .utils import VisibleBarColumn
 
 RECENT_TIME_DELTA = 365 * 24 * 60 * 60 / 2
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -679,7 +680,7 @@ class TTYProgress(BaseStorageProgress):
         self._mapping: dict[URL, TaskID] = {}
         self._progress = Progress(
             TextColumn("[progress.description]{task.fields[filename]}"),
-            BarColumn(),
+            VisibleBarColumn(),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             DownloadColumn(),
             TransferSpeedColumn(),

@@ -65,7 +65,7 @@ BUCKET_NAME_REGEX = re.compile(BUCKET_NAME_PATTERN)
 _T = TypeVar("_T")
 
 
-class AsyncType(click.ParamType, Generic[_T], abc.ABC):
+class AsyncType(click.ParamType[_T], Generic[_T], abc.ABC):
     def convert(
         self, value: str, param: click.Parameter | None, ctx: click.Context | None
     ) -> _T:
@@ -96,7 +96,7 @@ class AsyncType(click.ParamType, Generic[_T], abc.ABC):
         pass
 
 
-class LocalImageType(click.ParamType):
+class LocalImageType(click.ParamType[LocalImage]):
     name = "local_image"
 
     def convert(
@@ -225,7 +225,7 @@ class RemoteTaglessImageType(RemoteImageType):
         super().__init__(tag_option=TagOption.DENY)
 
 
-class LocalRemotePortParamType(click.ParamType):
+class LocalRemotePortParamType(click.ParamType[tuple[int, int]]):
     name = "local-remote-port-pair"
 
     def convert(
@@ -244,7 +244,7 @@ class LocalRemotePortParamType(click.ParamType):
 LOCAL_REMOTE_PORT = LocalRemotePortParamType()
 
 
-class MemoryType(click.ParamType):
+class MemoryType(click.ParamType[int]):
     name = "memory_amount"
 
     def convert(
@@ -258,7 +258,7 @@ class MemoryType(click.ParamType):
 MEMORY = MemoryType()
 
 
-class JobNameType(click.ParamType):
+class JobNameType(click.ParamType[str]):
     name = "job_name"
 
     def convert(
@@ -284,7 +284,7 @@ class JobNameType(click.ParamType):
 JOB_NAME = JobNameType()
 
 
-class DiskNameType(click.ParamType):
+class DiskNameType(click.ParamType[str]):
     name = "disk_name"
 
     def convert(
@@ -310,7 +310,7 @@ class DiskNameType(click.ParamType):
 DISK_NAME = DiskNameType()
 
 
-class BucketNameType(click.ParamType):
+class BucketNameType(click.ParamType[str]):
     name = "bucket_name"
 
     def convert(
@@ -337,7 +337,7 @@ class BucketNameType(click.ParamType):
 BUCKET_NAME = BucketNameType()
 
 
-class JobColumnsType(click.ParamType):
+class JobColumnsType(click.ParamType[JobTableFormat]):
     name = "columns"
 
     def convert(
@@ -354,7 +354,7 @@ class JobColumnsType(click.ParamType):
 JOB_COLUMNS = JobColumnsType()
 
 
-class TopColumnsType(click.ParamType):
+class TopColumnsType(click.ParamType[JobTableFormat]):
     name = "columns"
 
     def convert(
@@ -1246,7 +1246,7 @@ class NvidiaMIG:
     model: str | None = None
 
 
-class NvidiaMIGType(click.ParamType):
+class NvidiaMIGType(click.ParamType[NvidiaMIG]):
     name = "nvidia_mig"
 
     def convert(

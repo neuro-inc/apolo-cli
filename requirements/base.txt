@@ -1,25 +1,25 @@
 -e apolo-sdk
 -e apolo-cli
-aiobotocore==3.1.1
-aiodocker==0.24.0
+aiobotocore==3.8.0
+aiodocker==0.27.0
 aiohttp==3.13.5
-azure-core==1.38.0
-azure-storage-blob==12.28.0
+azure-core==1.41.0
+azure-storage-blob==12.30.0
 # upgrade setup.py after pinning certtifi to new version
-certifi==2026.1.4
-click==8.1.8
+certifi==2026.7.22
+click==8.4.2
 ConfigUpdater==3.2
 contextlib2==21.6.0
 humanize==4.13.0
 importlib-metadata==8.7.1; python_version<"3.10"
 multidict<7.0
 neuro-config-client==26.3.1
-packaging==26.0
+packaging==26.2
 python-dateutil==2.9.0.post0
 python-jose==3.5.0
 pyyaml==6.0.3
-rich==14.3.1
+rich==15.0.0
 ruamel.yaml==0.19.1
 toml==0.10.2
-wcwidth==0.5.0
+wcwidth==0.8.1
 yarl==1.22.0

@@ -694,13 +694,11 @@ apolo share [OPTIONS] URI USER {read|write|manage}
 
 Shares resource with another user.
 
-`URI` shared resource.
+`URI` is the shared resource.
 
-`USER` username to
-share resource with.
-
-`PERMISSION` sharing access right: read, write, or
-manage.
+`USER` is
+the username, role, or service account backing role principal to share with.
+`PERMISSION` sharing access right: `read`, `write`, or `manage`.
 
 #### Examples
 

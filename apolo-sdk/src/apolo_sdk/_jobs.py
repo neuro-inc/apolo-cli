@@ -16,7 +16,6 @@ from typing import (
 import aiohttp
 import aiohttp.hdrs
 import attr
-from aiodocker.exceptions import DockerError
 from aiohttp import WSMsgType, WSServerHandshakeError
 from dateutil.parser import isoparse
 from multidict import MultiDict
@@ -34,6 +33,7 @@ from ._core import _Core
 from ._errors import NDJSONError, StdStreamError
 from ._images import (
     _DummyProgress,
+    _make_docker_error,
     _raise_on_error_chunk,
     _try_parse_image_progress_step,
 )
@@ -841,7 +841,7 @@ def _parse_commit_started_chunk(
     details_json = obj.get("details", {})
     image = details_json.get("image")
     if not image:
-        raise DockerError(400, {"message": "Missing required details: 'image'"})
+        raise _make_docker_error(400, "Missing required details: 'image'")
     return ImageCommitStarted(job_id, parse.remote_image(image))
 
 
@@ -855,13 +855,13 @@ def _parse_commit_finished_chunk(
 def _raise_for_invalid_commit_chunk(obj: dict[str, Any], expect_started: bool) -> None:
     _raise_on_error_chunk(obj)
     if "status" not in obj.keys():
-        raise DockerError(400, {"message": 'Missing required field: "status"'})
+        raise _make_docker_error(400, 'Missing required field: "status"')
     status = obj["status"]
     expected = "CommitStarted" if expect_started else "CommitFinished"
     if status != expected:
-        raise DockerError(
+        raise _make_docker_error(
             400,
-            {"message": f"Invalid commit status: '{status}', expecting: '{expected}'"},
+            f"Invalid commit status: '{status}', expecting: '{expected}'",
         )
 
 

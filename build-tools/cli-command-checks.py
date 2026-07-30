@@ -81,7 +81,7 @@ def check_commands_tree(
         for checker in checkers:
             checker(command=command, name=" ".join(stack))
 
-        if isinstance(command, click.MultiCommand):
+        if isinstance(command, click.Group):
             for command_name in command.list_commands(ctx):
                 sub_cmd = command.get_command(ctx, command_name)
                 if sub_cmd is None:

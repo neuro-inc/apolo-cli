@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import click
+from click.parser import _Option, _OptionParser, _ParsingState
 from rich.text import Text
 from yarl import URL
 
@@ -240,8 +241,8 @@ async def df(root: Root, path: URL | None) -> None:
     root.print(DiskUsageFormatter()(usage))
 
 
-class FileFilterParserOption(click.parser.Option):
-    def process(self, value: str, state: click.parser.ParsingState) -> None:
+class FileFilterParserOption(_Option):
+    def process(self, value: str, state: _ParsingState) -> None:
         assert self.action == "append"
         state.opts.setdefault(self.dest, []).append((self.const, value))  # type: ignore
         state.order.append(self.obj)
@@ -252,7 +253,7 @@ class FileFilterOption(Option):
         super().__init__(*args, **kwargs)
         self._is_exclude = is_exclude
 
-    def add_to_parser(self, parser: click.parser.OptionParser, ctx: Any) -> None:
+    def add_to_parser(self, parser: _OptionParser, ctx: Any) -> None:
         option = FileFilterParserOption(
             opts=self.opts,
             dest=self.name,

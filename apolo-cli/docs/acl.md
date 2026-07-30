@@ -18,7 +18,7 @@ Access Control List management.
 | [_list-roles_](acl.md#list-roles) | List roles |
 | [_ls_](acl.md#ls) | List shared resources |
 | [_remove-role_](acl.md#remove-role) | Remove existing role |
-| [_revoke_](acl.md#revoke) | Revoke user access from another user |
+| [_revoke_](acl.md#revoke) | Revoke previously shared resource access |
 
 
 ### add-role
@@ -61,13 +61,11 @@ apolo acl grant [OPTIONS] URI USER {read|write|manage}
 
 Shares resource with another user.
 
-`URI` shared resource.
+`URI` is the shared resource.
 
-`USER` username to
-share resource with.
-
-`PERMISSION` sharing access right: read, write, or
-manage.
+`USER` is
+the username, role, or service account backing role principal to share with.
+`PERMISSION` sharing access right: `read`, `write`, or `manage`.
 
 #### Examples
 
@@ -133,6 +131,9 @@ current user (default).
 To display a list of resources shared `WITH` current
 user apply --shared option.
 
+Use `-u/--username` to fetch roles of a specified
+user or role.
+
 #### Examples
 
 ```bash
@@ -182,7 +183,7 @@ $ apolo acl remove-role mycompany/subdivision
 
 ### revoke
 
-Revoke user access from another user
+Revoke previously shared resource access
 
 
 #### Usage
@@ -191,12 +192,19 @@ Revoke user access from another user
 apolo acl revoke [OPTIONS] URI USER
 ```
 
-Revoke user access from another user.
+Revoke previously shared resource access.
 
-`URI` previously shared resource to
+`URI` is the shared resource to
 revoke.
 
-`USER` to revoke `URI` resource from.
+`USER` is the user, role, or service account backing role principal
+to revoke access from.
+
+Notes: Service accounts are commonly shared through
+their backing role principal.
+Use `read` for read-only image registry access
+and reserve `manage`
+for administrative workflows.
 
 #### Examples
 

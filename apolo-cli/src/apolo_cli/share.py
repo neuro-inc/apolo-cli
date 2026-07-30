@@ -38,11 +38,11 @@ async def grant(root: Root, uri: str, user: str, permission: str) -> None:
     """
     Shares resource with another user.
 
-    URI shared resource.
+    URI is the shared resource.
 
-    USER username to share resource with.
+    USER is the username, role, or service account backing role principal to share with.
 
-    PERMISSION sharing access right: read, write, or manage.
+    PERMISSION sharing access right: `read`, `write`, or `manage`.
 
     Examples:
     apolo acl grant storage:///sample_data/ alice manage
@@ -74,11 +74,15 @@ async def grant(root: Root, uri: str, user: str, permission: str) -> None:
 @argument("user")
 async def revoke(root: Root, uri: str, user: str) -> None:
     """
-    Revoke user access from another user.
+    Revoke previously shared resource access.
 
-    URI previously shared resource to revoke.
+    URI is the shared resource to revoke.
 
-    USER to revoke URI resource from.
+    USER is the user, role, or service account backing role principal to revoke access from.
+
+    Notes: Service accounts are commonly shared through their backing role principal.
+    Use `read` for read-only image registry access and reserve `manage`
+    for administrative workflows.
 
     Examples:
     apolo acl revoke storage:///sample_data/ alice
@@ -123,6 +127,8 @@ async def ls(
     The command displays a list of resources shared BY current user (default).
 
     To display a list of resources shared WITH current user apply --shared option.
+
+    Use `-u/--username` to fetch roles of a specified user or role.
 
     Examples:
     apolo acl list

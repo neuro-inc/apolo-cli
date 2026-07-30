@@ -37,7 +37,7 @@ def parse_doc(ctx, command, stack) -> CommandInfo:
     usage = click.unstyle(formatter.getvalue())
     usage = re.split(r"usage\s*:", usage, maxsplit=2, flags=re.IGNORECASE)[1].strip()
     short = click.unstyle(command.get_short_help_str(80))
-    is_group = isinstance(command, click.MultiCommand)
+    is_group = isinstance(command, click.Group)
     info = CommandInfo(name=name, usage=usage, short=short, is_group=is_group)
 
     formatter = ctx.make_formatter()

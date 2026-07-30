@@ -4,7 +4,7 @@ from types import TracebackType
 
 from rich import box
 from rich.console import Console, RenderableType
-from rich.progress import BarColumn, DownloadColumn, Progress, TaskID, TextColumn
+from rich.progress import DownloadColumn, Progress, TaskID, TextColumn
 from rich.table import Table
 from rich.text import Text
 
@@ -21,7 +21,7 @@ from apolo_sdk import (
 )
 
 from ..utils import format_size
-from .utils import ImageFormatter
+from .utils import ImageFormatter, VisibleBarColumn
 
 
 class DockerImageProgress(AbstractDockerImageProgress):
@@ -83,7 +83,7 @@ class DetailedDockerImageProgress(DockerImageProgress):
         self._progress = Progress(
             TextColumn("[progress.description]{task.fields[layer]}"),
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
+            VisibleBarColumn(),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             DownloadColumn(),
             console=console,

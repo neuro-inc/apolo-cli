@@ -16,7 +16,7 @@ Operations with service accounts.
 | [_create_](service-account.md#create) | Create a service account |
 | [_get_](service-account.md#get) | Get service account SERVICE\_ACCOUNT |
 | [_ls_](service-account.md#ls) | List service accounts |
-| [_rm_](service-account.md#rm) | Remove service accounts SERVICE\_ACCOUNT |
+| [_rm_](service-account.md#rm) | Remove service account SERVICE\_ACCOUNT |
 
 
 ### create
@@ -31,6 +31,20 @@ apolo service-account create [OPTIONS]
 ```
 
 Create a service account.
+
+The `create` command returns the service account
+object
+and the token during creation.
+The token is only shown at creation
+time. Store it securely.
+If you need to hand the token to an external client,
+use a secure channel.
+
+The `CLI` exposes two token forms:
+- a full passed-
+config token, which can be used as ``APOLO`_`PASSED`_`CONFIG``
+- a raw auth
+token, which can be used with `apolo config login-with-token`
 
 #### Options
 
@@ -57,6 +71,9 @@ apolo service-account get [OPTIONS] SERVICE_ACCOUNT
 
 Get service account `SERVICE`_`ACCOUNT`.
 
+The output includes the backing role
+used for `ACL` grants.
+
 #### Options
 
 | Name | Description |
@@ -78,6 +95,15 @@ apolo service-account ls [OPTIONS]
 
 List service accounts.
 
+Service accounts are non-human identities for
+automation, integrations,
+`API` clients, and external collaborators.
+
+Service
+account access is managed in Apolo.
+The token is created by Apolo and must be
+stored securely.
+
 #### Options
 
 | Name | Description |
@@ -88,7 +114,7 @@ List service accounts.
 
 ### rm
 
-Remove service accounts SERVICE_ACCOUNT
+Remove service account SERVICE_ACCOUNT
 
 
 #### Usage
@@ -97,7 +123,7 @@ Remove service accounts SERVICE_ACCOUNT
 apolo service-account rm [OPTIONS] SERVICE_ACCOUNTS...
 ```
 
-Remove service accounts `SERVICE`_`ACCOUNT`.
+Remove service account `SERVICE`_`ACCOUNT`.
 
 #### Options
 
