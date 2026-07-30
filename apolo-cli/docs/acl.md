@@ -10,16 +10,15 @@ apolo acl [OPTIONS] COMMAND [ARGS]...
 
 Access Control List management.
 
-Commands:
-
+**Commands:**
 | Usage | Description |
-| --- | --- |
-| `add-role` | Add new role |
-| `grant` | Shares resource with another user |
-| `list-roles` | List roles |
-| `ls` | List shared resources |
-| `remove-role` | Remove existing role |
-| `revoke` | Revoke user access from another user |
+| :--- | :--- |
+| [_add-role_](acl.md#add-role) | Add new role |
+| [_grant_](acl.md#grant) | Shares resource with another user |
+| [_list-roles_](acl.md#list-roles) | List roles |
+| [_ls_](acl.md#ls) | List shared resources |
+| [_remove-role_](acl.md#remove-role) | Remove existing role |
+| [_revoke_](acl.md#revoke) | Revoke previously shared resource access |
 
 
 ### add-role
@@ -44,8 +43,9 @@ $ apolo acl add-role mycompany/subdivision
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+
 
 
 ### grant
@@ -63,23 +63,24 @@ Shares resource with another user.
 
 `URI` is the shared resource.
 
-`USER` is the username, role, or service account backing role principal to share with.
-
-`PERMISSION` is the sharing access right: `read`, `write`, or `manage`.
+`USER` is
+the username, role, or service account backing role principal to share with.
+`PERMISSION` sharing access right: `read`, `write`, or `manage`.
 
 #### Examples
 
 ```bash
-apolo acl grant image:resnet50 bob read
-apolo acl grant storage:///sample_data/ alice manage
-apolo acl grant job:///my_job_id alice write
+$ apolo acl grant storage:///sample_data/ alice manage
+$ apolo acl grant image:resnet50 bob read
+$ apolo acl grant job:///my_job_id alice write
 ```
 
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+
 
 
 ### list-roles
@@ -95,9 +96,7 @@ apolo acl list-roles [OPTIONS]
 
 List roles.
 
-Use `-u` to fetch roles of a specified user or role.
-
-### Examples
+#### Examples
 
 ```bash
 $ apolo acl list-roles
@@ -107,9 +106,10 @@ $ apolo acl list-roles username/projects
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
-| `-u TEXT` | Fetch roles of specified user or role. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _-u TEXT_ | Fetch roles of specified user or role. |
+
 
 
 ### ls
@@ -125,27 +125,33 @@ apolo acl ls [OPTIONS] [URI]
 
 List shared resources.
 
-The command displays resources shared by the current user by default.
+The command displays a list of resources shared BY
+current user (default).
 
-Use `--shared` to display resources shared with the current user.
+To display a list of resources shared `WITH` current
+user apply --shared option.
+
+Use `-u/--username` to fetch roles of a specified
+user or role.
 
 #### Examples
 
 ```bash
-apolo acl list
-apolo acl list storage://
-apolo acl list --shared
-apolo acl list --shared image://
+$ apolo acl list
+$ apolo acl list storage://
+$ apolo acl list --shared
+$ apolo acl list --shared image://
 ```
 
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
-| `--full-uri` | Output full URI. |
-| `--shared` | Output the resources shared by the user. |
-| `-u TEXT` | Use specified user or role. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+| _--full-uri_ | Output full URI. |
+| _--shared_ | Output the resources shared by the user. |
+| _-u TEXT_ | Use specified user or role. |
+
 
 
 ### remove-role
@@ -170,13 +176,14 @@ $ apolo acl remove-role mycompany/subdivision
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+
 
 
 ### revoke
 
-Revoke user access from another user
+Revoke previously shared resource access
 
 
 #### Usage
@@ -187,27 +194,30 @@ apolo acl revoke [OPTIONS] URI USER
 
 Revoke previously shared resource access.
 
-`URI` is the shared resource to revoke.
+`URI` is the shared resource to
+revoke.
 
-`USER` is the user, role, or service account backing role principal to revoke access from.
+`USER` is the user, role, or service account backing role principal
+to revoke access from.
+
+Notes: Service accounts are commonly shared through
+their backing role principal.
+Use `read` for read-only image registry access
+and reserve `manage`
+for administrative workflows.
 
 #### Examples
 
 ```bash
-apolo acl revoke storage:///sample_data/ alice
-apolo acl revoke image:resnet50 bob
-apolo acl revoke job:///my_job_id alice
+$ apolo acl revoke storage:///sample_data/ alice
+$ apolo acl revoke image:resnet50 bob
+$ apolo acl revoke job:///my_job_id alice
 ```
 
 #### Options
 
 | Name | Description |
-| --- | --- |
-| `--help` | Show this message and exit. |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
 
-### Notes
-
-Service accounts are commonly shared through their backing role principal.
-
-Use `read` for read-only image registry access and reserve `manage` for administrative workflows.
 

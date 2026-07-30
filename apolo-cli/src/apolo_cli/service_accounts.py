@@ -25,6 +25,12 @@ def service_account() -> None:
 async def ls(root: Root) -> None:
     """
     List service accounts.
+
+    Service accounts are non-human identities for automation, integrations,
+    API clients, and external collaborators.
+
+    Service account access is managed in Apolo.
+    The token is created by Apolo and must be stored securely.
     """
 
     if root.quiet:
@@ -82,6 +88,15 @@ async def create(
 ) -> None:
     """
     Create a service account.
+
+    The `create` command returns the service account object
+    and the token during creation.
+    The token is only shown at creation time. Store it securely.
+    If you need to hand the token to an external client, use a secure channel.
+
+    The CLI exposes two token forms:
+    - a full passed-config token, which can be used as `APOLO_PASSED_CONFIG`
+    - a raw auth token, which can be used with `apolo config login-with-token`
     """
 
     account, token = await root.client.service_accounts.create(
@@ -107,6 +122,8 @@ async def create(
 async def get(root: Root, service_account: str) -> None:
     """
     Get service account SERVICE_ACCOUNT.
+
+    The output includes the backing role used for ACL grants.
     """
     account = await root.client.service_accounts.get(service_account)
 
@@ -121,7 +138,7 @@ async def get(root: Root, service_account: str) -> None:
 @argument("service_accounts", type=SERVICE_ACCOUNT, nargs=-1, required=True)
 async def rm(root: Root, service_accounts: Sequence[str]) -> None:
     """
-    Remove service accounts SERVICE_ACCOUNT.
+    Remove service account SERVICE_ACCOUNT.
     """
     for account in service_accounts:
         await root.client.service_accounts.rm(account)

@@ -279,7 +279,7 @@ Name | Description|
 | _[apolo acl list-roles](#apolo-acl-list-roles)_| List roles |
 | _[apolo acl ls](#apolo-acl-ls)_| List shared resources |
 | _[apolo acl remove-role](#apolo-acl-remove-role)_| Remove existing role |
-| _[apolo acl revoke](#apolo-acl-revoke)_| Revoke user access from another user |
+| _[apolo acl revoke](#apolo-acl-revoke)_| Revoke previously shared resource access |
 
 
 
@@ -313,7 +313,7 @@ Name | Description|
 
 ### apolo acl grant
 
-Shares resource with another user.<br/><br/>URI shared resource.<br/><br/>USER username to share resource with.<br/><br/>PERMISSION sharing access right: read, write, or manage.<br/>
+Shares resource with another user.<br/><br/>URI is the shared resource.<br/><br/>USER is the username, role, or service account backing role principal to share<br/>with.<br/><br/>PERMISSION sharing access right: `read`, `write`, or `manage`.<br/>
 
 **Usage:**
 
@@ -371,7 +371,7 @@ Name | Description|
 
 ### apolo acl ls
 
-List shared resources.<br/><br/>The command displays a list of resources shared BY current user \(default).<br/><br/>To display a list of resources shared WITH current user apply --shared option.<br/>
+List shared resources.<br/><br/>The command displays a list of resources shared BY current user \(default).<br/><br/>To display a list of resources shared WITH current user apply --shared option.<br/><br/>Use `\-u/--username` to fetch roles of a specified user or role.<br/>
 
 **Usage:**
 
@@ -431,7 +431,7 @@ Name | Description|
 
 ### apolo acl revoke
 
-Revoke user access from another user.<br/><br/>URI previously shared resource to revoke.<br/><br/>USER to revoke URI resource from.<br/>
+Revoke previously shared resource access.<br/><br/>URI is the shared resource to revoke.<br/><br/>USER is the user, role, or service account backing role principal to revoke<br/>access from.<br/><br/>Notes: Service accounts are commonly shared through their backing role<br/>principal. Use `read` for read-only image registry access and reserve `manage`<br/>for administrative workflows.<br/>
 
 **Usage:**
 
@@ -3498,14 +3498,14 @@ Name | Description|
 | _[apolo service-account create](#apolo-service-account-create)_| Create a service account |
 | _[apolo service-account get](#apolo-service-account-get)_| Get service account SERVICE_ACCOUNT |
 | _[apolo service-account ls](#apolo-service-account-ls)_| List service accounts |
-| _[apolo service-account rm](#apolo-service-account-rm)_| Remove service accounts SERVICE_ACCOUNT |
+| _[apolo service-account rm](#apolo-service-account-rm)_| Remove service account SERVICE_ACCOUNT |
 
 
 
 
 ### apolo service-account create
 
-Create a service account.
+Create a service account.<br/><br/>The `create` command returns the service account object and the token during<br/>creation. The token is only shown at creation time. Store it securely. If you<br/>need to hand the token to an external client, use a secure channel.<br/><br/>The CLI exposes two token forms: - a full passed-config token, which can be<br/>used as `APOLO\_PASSED_CONFIG` - a raw auth token, which can be used with<br/>`apolo config login\-with-token`
 
 **Usage:**
 
@@ -3528,7 +3528,7 @@ Name | Description|
 
 ### apolo service-account get
 
-Get service account SERVICE_ACCOUNT.
+Get service account SERVICE_ACCOUNT.<br/><br/>The output includes the backing role used for ACL grants.
 
 **Usage:**
 
@@ -3547,7 +3547,7 @@ Name | Description|
 
 ### apolo service-account ls
 
-List service accounts.
+List service accounts.<br/><br/>Service accounts are non-human identities for automation, integrations, API<br/>clients, and external collaborators.<br/><br/>Service account access is managed in Apolo. The token is created by Apolo and<br/>must be stored securely.
 
 **Usage:**
 
@@ -3566,7 +3566,7 @@ Name | Description|
 
 ### apolo service-account rm
 
-Remove service accounts SERVICE_ACCOUNT.
+Remove service account SERVICE_ACCOUNT.
 
 **Usage:**
 
@@ -4605,7 +4605,7 @@ Name | Description|
 
 ## apolo share
 
-Shares resource with another user.<br/><br/>URI shared resource.<br/><br/>USER username to share resource with.<br/><br/>PERMISSION sharing access right: read, write, or manage.<br/>
+Shares resource with another user.<br/><br/>URI is the shared resource.<br/><br/>USER is the username, role, or service account backing role principal to share<br/>with.<br/><br/>PERMISSION sharing access right: `read`, `write`, or `manage`.<br/>
 
 **Usage:**
 
