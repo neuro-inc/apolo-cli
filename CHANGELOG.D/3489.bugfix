@@ -1,1 +1,0 @@
-Fixed `apolo image rm` and `apolo image size` failing with `ResourceNotFound` for images stored as OCI manifests (e.g. built by kaniko via `apolo-flow build`): all standard manifest media types are now accepted when resolving image digests.
