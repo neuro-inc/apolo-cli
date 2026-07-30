@@ -261,7 +261,7 @@ def main(target_dir):
             if cmd.name == "help":
                 continue
 
-            if isinstance(cmd, click.MultiCommand):
+            if isinstance(cmd, click.Group):
                 groups.append(cmd)
             else:
                 shortcuts.append(cmd)

@@ -144,7 +144,7 @@ def format_example(example: str, formatter: click.HelpFormatter) -> None:
                 formatter.write_text("\b\n" + " ".join(shlex.split(line)))
 
 
-class NeuroClickMixin:
+class ApoloClickMixin:
     def get_params(self, ctx: click.Context) -> list[click.Parameter]:
         # super() is available after using as a mixin
         ret = super().get_params(ctx)  # type: ignore
@@ -179,6 +179,9 @@ class NeuroClickMixin:
 
     def get_short_help_str(self, limit: int = 45) -> str:
         text = super().get_short_help_str(limit=limit)  # type: ignore
+        deprecated_suffix = " (DEPRECATED)"
+        if text.endswith(deprecated_suffix):
+            text = f"(Deprecated) {text[: -len(deprecated_suffix)]}"
         if text.endswith(".") and not text.endswith("..."):
             text = text[:-1]
         return text
@@ -224,7 +227,7 @@ class NeuroClickMixin:
         return ctx
 
 
-class NeuroGroupMixin(NeuroClickMixin):
+class ApoloGroupMixin(ApoloClickMixin):
     def format_options(
         self, ctx: click.Context, formatter: click.HelpFormatter
     ) -> None:
@@ -251,7 +254,7 @@ def _collect_params(cmd: click.Command, ctx: click.Context) -> dict[str, str | N
     return params
 
 
-class Command(NeuroClickMixin, click.Command):
+class Command(ApoloClickMixin, click.Command):
     def __init__(
         self,
         callback: Any,
@@ -292,10 +295,17 @@ class Command(NeuroClickMixin, click.Command):
 def command(
     name: str | None = None, cls: type[Command] = Command, **kwargs: Any
 ) -> Command:
-    return click.command(name=name, cls=cls, **kwargs)  # type: ignore
+    def decorator(f: Callable[..., Any]) -> Command:
+        # Click 8.2 started stripping common decorator suffixes (``_command``,
+        # ``_cmd``, and others). Keep the established CLI names unless a name
+        # was provided explicitly.
+        command_name = name or f.__name__.lower().replace("_", "-")
+        return click.command(name=command_name, cls=cls, **kwargs)(f)
+
+    return decorator  # type: ignore
 
 
-class Group(NeuroGroupMixin, click.Group):
+class Group(ApoloGroupMixin, click.Group):
     def command(  # type: ignore
         self, *args: Any, **kwargs: Any
     ) -> Callable[[Callable[..., Any]], Command]:
@@ -317,16 +327,24 @@ class Group(NeuroGroupMixin, click.Group):
         return decorator
 
     def invoke(self, ctx: click.Context) -> None:
-        if not ctx.args and not ctx.protected_args:
+        # Click 8.4 still stores the subcommand in this private list, but the
+        # public ``protected_args`` property emits a deprecation warning.
+        if not ctx.args and not getattr(ctx, "_protected_args", ()):
             print_help(ctx)
         else:
             super().invoke(ctx)
 
 
 def group(name: str | None = None, **kwargs: Any) -> Group:
-    kwargs.setdefault("cls", Group)
-    kwargs.setdefault("invoke_without_command", True)
-    return click.group(name=name, **kwargs)  # type: ignore
+    def decorator(f: Callable[..., Any]) -> Group:
+        group_name = name or f.__name__.lower().replace("_", "-")
+        attrs = dict(kwargs)
+        attrs.setdefault("cls", Group)
+        attrs.setdefault("invoke_without_command", True)
+        attrs.setdefault("subcommand_metavar", "COMMAND [ARGS]...")
+        return click.group(name=group_name, **attrs)(f)
+
+    return decorator  # type: ignore
 
 
 def print_help(ctx: click.Context) -> None:
@@ -342,12 +360,15 @@ def print_help(ctx: click.Context) -> None:
     ctx.exit()
 
 
-class DeprecatedGroup(NeuroGroupMixin, click.MultiCommand):
+class DeprecatedGroup(Group):
     def __init__(
-        self, origin: click.MultiCommand, name: str | None = None, **attrs: Any
+        self, origin: click.Group, name: str | None = None, **attrs: Any
     ) -> None:
         attrs.setdefault("help", f"Alias for {origin.name}")
         attrs.setdefault("deprecated", True)
+        attrs.setdefault("invoke_without_command", True)
+        attrs.setdefault("no_args_is_help", False)
+        attrs.setdefault("subcommand_metavar", "COMMAND [ARGS]...")
         super().__init__(name, **attrs)
         self.origin = origin
 

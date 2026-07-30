@@ -10,10 +10,10 @@ from click.utils import make_default_short_help
 from apolo_sdk import ConfigError
 
 from .root import Root
-from .utils import NeuroClickMixin, Option
+from .utils import ApoloClickMixin, Option
 
 
-class InternalAlias(NeuroClickMixin, click.Command):
+class InternalAlias(ApoloClickMixin, click.Command):
     ignore_unknown_options = True
     allow_interspersed_args = False
     allow_extra_args = True
@@ -28,7 +28,7 @@ class InternalAlias(NeuroClickMixin, click.Command):
         assert parent is not None
         sub_cmd, *sub_args = shlex.split(self.alias["cmd"])
         parent_cmd = parent.command
-        assert isinstance(parent_cmd, click.MultiCommand)
+        assert isinstance(parent_cmd, click.Group)
         cmd = parent_cmd.get_command(parent, sub_cmd)
         if cmd is None:
             ctx.fail(f'Alias {self.name} refers to unknown command "{sub_cmd}"')
@@ -61,7 +61,7 @@ class InternalAlias(NeuroClickMixin, click.Command):
         self.format_options(ctx, formatter)
 
 
-class ExternalAlias(NeuroClickMixin, click.Command):
+class ExternalAlias(ApoloClickMixin, click.Command):
     ignore_unknown_options = True
     allow_interspersed_args = False
     allow_extra_args = True

@@ -13,7 +13,7 @@ jobs:
     if: ${{ github.actor == 'dependabot[bot]'}}
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - id: generate_token
       uses: tibdex/github-app-token@v2
       with:
@@ -21,7 +21,7 @@ jobs:
         private_key: ${{ secrets.BOT_PRIVATE_KEY }}
     - name: metadata
       id: metadata
-      uses: dependabot/fetch-metadata@v2.5.0
+      uses: dependabot/fetch-metadata@v3
       with:
         github-token: ${{ steps.generate_token.outputs.token }}
     - name: Enable auto-merge for bot PRs
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - id: generate_token
       uses: tibdex/github-app-token@v2
       with:

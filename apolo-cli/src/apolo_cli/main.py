@@ -132,12 +132,18 @@ class MainGroup(Group):
                 raise click.UsageError(f"{option} requires --trace")
             hide_token_bool = kwargs["hide_token"]
 
-        config_path = kwargs["config_path"]
-        if config_path == apolo_sdk.DEFAULT_CONFIG_PATH:
-            # TODO: remove this fallback eventually
+        # The legacy spelling must win when it is explicitly provided. Both
+        # options intentionally retain the same environment fallback, so
+        # comparing values alone cannot distinguish a CLI value from the env.
+        if (
+            ctx.get_parameter_source("neuromation_config")
+            is click.core.ParameterSource.COMMANDLINE
+        ):
             config_path = kwargs["neuromation_config"]
-            if config_path == apolo_sdk.DEFAULT_CONFIG_PATH:
-                config_path = None
+        else:
+            config_path = kwargs["config_path"]
+        if config_path == apolo_sdk.DEFAULT_CONFIG_PATH:
+            config_path = None
 
         root = Root(
             verbosity=verbosity,
@@ -158,7 +164,12 @@ class MainGroup(Group):
         )
         handler.setConsole(root.err_console)
         ctx.obj = root
-        ctx.call_on_close(root.close)
+        # Click 8.4 resolves shell completion inside temporary contexts, then
+        # closes them before asking the selected parameter for completions.
+        # Keep Root alive for that final completion call; the process exits
+        # immediately afterwards in normal use.
+        if not ctx.resilient_parsing:
+            ctx.call_on_close(root.close)
 
         logging.debug(f"Executing command {sys.argv}")
         return ctx
@@ -220,7 +231,7 @@ class MainGroup(Group):
         after the options.
         """
         commands: list[tuple[str, click.Command]] = []
-        groups: list[tuple[str, click.MultiCommand]] = []
+        groups: list[tuple[str, click.Group]] = []
         topics: list[tuple[str, click.Command]] = []
         from .topics import topics as topic_defs
 
@@ -237,7 +248,7 @@ class MainGroup(Group):
             if cmd.hidden:
                 continue
 
-            if isinstance(cmd, click.MultiCommand):
+            if isinstance(cmd, click.Group):
                 groups.append((subcommand, cmd))
             else:
                 commands.append((subcommand, cmd))
@@ -527,7 +538,7 @@ async def help(root: Root, command: Sequence[str]) -> None:
     try:
         for cmd_name in command:
             current_cmd = ctx_stack[-1].command
-            if isinstance(current_cmd, click.MultiCommand):
+            if isinstance(current_cmd, click.Group):
                 sub_name, sub_cmd, args = current_cmd.resolve_command(
                     root.ctx, [cmd_name]
                 )

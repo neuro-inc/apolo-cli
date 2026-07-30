@@ -18,6 +18,7 @@ from apolo_sdk import (
     Tag,
     TagOption,
 )
+from apolo_sdk._images import _make_docker_error
 from apolo_sdk._parsing_utils import _get_url_authority, _ImageNameParser
 
 from tests import _TestServerFactory
@@ -1137,7 +1138,7 @@ class TestImages:
     async def test_push_non_existent_image(
         self, patched_tag: Any, make_client: _MakeClient
     ) -> None:
-        patched_tag.side_effect = DockerError(404, {"message": "Mocked error"})
+        patched_tag.side_effect = _make_docker_error(404, "Mocked error")
         image = self.parser.parse_as_platform_image(
             "image://default/project/image:bananas-no-more"
         )
@@ -1152,7 +1153,7 @@ class TestImages:
         self, patched_push: Any, patched_tag: Any, make_client: _MakeClient
     ) -> None:
         patched_tag.return_value = True
-        patched_push.side_effect = DockerError(403, {"message": "Mocked error"})
+        patched_push.side_effect = _make_docker_error(403, "Mocked error")
         image = self.parser.parse_as_platform_image(
             "image://default/project/image:bananas-no-more"
         )
@@ -1221,7 +1222,7 @@ class TestImages:
     async def test_pull_non_existent_image(
         self, patched_pull: Any, make_client: _MakeClient
     ) -> None:
-        patched_pull.side_effect = DockerError(404, {"message": "Mocked error"})
+        patched_pull.side_effect = _make_docker_error(404, "Mocked error")
         async with make_client("https://api.localhost.localdomain") as client:
             image = self.parser.parse_as_platform_image(
                 "image://default/project/image:no-bananas-here"
@@ -1234,7 +1235,7 @@ class TestImages:
     async def test_pull_image_from_foreign_repo(
         self, patched_pull: Any, make_client: _MakeClient
     ) -> None:
-        patched_pull.side_effect = DockerError(403, {"message": "Mocked error"})
+        patched_pull.side_effect = _make_docker_error(403, "Mocked error")
         image = self.parser.parse_as_platform_image(
             "image://default/project/image:not-your-bananas"
         )
