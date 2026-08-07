@@ -62,7 +62,7 @@ apolo app get-input [OPTIONS] APP_ID
 
 Get input for an app.
 
-`APP`_ID: ID of the app to get input for.
+`APP_ID`: ID of the app to get input for.
 
 #### Options
 
@@ -90,7 +90,7 @@ apolo app get-revisions [OPTIONS] APP_ID
 
 Get configuration revisions for an app.
 
-`APP`_ID: ID of the app to get
+`APP_ID`: ID of the app to get
 configuration revisions for.
 
 #### Options
@@ -115,7 +115,7 @@ apolo app get-status [OPTIONS] APP_ID
 
 Get status events for an app.
 
-`APP`_ID: ID of the app to get status for
+`APP_ID`: ID of the app to get status for
 status events.
 
 #### Options
@@ -143,7 +143,7 @@ apolo app get-values [OPTIONS] [APP_ID]
 
 Get application values.
 
-`APP`_ID: Optional ID of the app to get values for.
+`APP_ID`: Optional ID of the app to get values for.
 
 #### Options
 
@@ -274,8 +274,8 @@ apolo app rollback [OPTIONS] APP_ID REVISION_NUMBER
 
 Rollback application configuration.
 
-`APP`_ID: ID of the app to rollback.
-`REVISION`_`NUMBER`: Target revision number.
+`APP_ID`: ID of the app to rollback.
+`REVISION_NUMBER`: Target revision number.
 
 #### Options
 
@@ -302,7 +302,7 @@ apolo app uninstall [OPTIONS] APP_ID
 
 Uninstall an app.
 
-`APP`_ID: ID of the app to uninstall
+`APP_ID`: ID of the app to uninstall
 
 #### Options
 

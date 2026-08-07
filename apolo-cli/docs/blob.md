@@ -356,7 +356,7 @@ Remove bucket credential BUCKET_CREDENTIAL
 apolo blob rmcredentials [OPTIONS] CREDENTIALS...
 ```
 
-Remove bucket credential `BUCKET`_`CREDENTIAL`.
+Remove bucket credential `BUCKET_CREDENTIAL`.
 
 #### Options
 
@@ -457,7 +457,7 @@ Get bucket credential BUCKET_CREDENTIAL
 apolo blob statcredentials [OPTIONS] BUCKET_CREDENTIAL
 ```
 
-Get bucket credential `BUCKET`_`CREDENTIAL`.
+Get bucket credential `BUCKET_CREDENTIAL`.
 
 #### Options
 

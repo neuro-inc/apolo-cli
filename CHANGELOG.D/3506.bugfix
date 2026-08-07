@@ -1,0 +1,1 @@
+Fixed `apolo acl ls` help text, which described the default output and the `--shared` output the wrong way round.

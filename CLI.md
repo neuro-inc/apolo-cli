@@ -371,7 +371,7 @@ Name | Description|
 
 ### apolo acl ls
 
-List shared resources.<br/><br/>The command displays a list of resources shared BY current user \(default).<br/><br/>To display a list of resources shared WITH current user apply --shared option.<br/><br/>Use `\-u/--username` to fetch roles of a specified user or role.<br/>
+List shared resources.<br/><br/>The command displays a list of resources available TO current user \(default).<br/><br/>To display a list of resources shared BY current user, along with the users<br/>and roles they are shared with, apply --shared option.<br/><br/>Use `\-u/--username` to fetch roles of a specified user or role.<br/>
 
 **Usage:**
 

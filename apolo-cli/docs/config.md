@@ -257,8 +257,8 @@ apolo config switch-cluster [OPTIONS] [CLUSTER_NAME]
 
 Switch the active cluster.
 
-`CLUSTER`_`NAME` is the cluster name to select.
-The interactive prompt is used if the
+`CLUSTER_NAME` is the cluster name to select.  The
+interactive prompt is used if the
 name is omitted (default).
 
 #### Options
@@ -282,7 +282,7 @@ apolo config switch-org [OPTIONS] ORG_NAME
 
 Switch the active organization.
 
-`ORG`_`NAME` is the organization name to
+`ORG_NAME` is the organization name to
 select.
 
 #### Options
@@ -306,8 +306,8 @@ apolo config switch-project [OPTIONS] [PROJECT_NAME]
 
 Switch the active project.
 
-`PROJECT`_`NAME` is the project name to select.
-The interactive prompt is used if the
+`PROJECT_NAME` is the project name to select. The
+interactive prompt is used if the
 name is omitted (default).
 
 #### Options
