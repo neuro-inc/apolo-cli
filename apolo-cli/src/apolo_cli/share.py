@@ -124,9 +124,10 @@ async def ls(
     """
     List shared resources.
 
-    The command displays a list of resources shared BY current user (default).
+    The command displays a list of resources available TO current user (default).
 
-    To display a list of resources shared WITH current user apply --shared option.
+    To display a list of resources shared BY current user, along with the users and
+    roles they are shared with, apply --shared option.
 
     Use `-u/--username` to fetch roles of a specified user or role.
 

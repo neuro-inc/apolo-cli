@@ -1,0 +1,1 @@
+Stopped the docs generator from splitting `SCREAMING_SNAKE_CASE` identifiers across several code spans, so metavars such as `APOLO_PASSED_CONFIG`, `SERVICE_ACCOUNT` and `APP_ID` now render as one.

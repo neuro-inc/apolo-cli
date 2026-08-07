@@ -21,6 +21,25 @@ def _process_help(help: str | None) -> str:
     return inspect.cleandoc(help or "").partition("\f")[0]
 
 
+# an already-quoted span is consumed by the first branch and passed through, so a
+# docstring that quotes an identifier itself does not end up double-quoted
+IDENTIFIER_RE = re.compile(r"`[^`]*`|([A-Z0-9\-]{3,60}(?:_[A-Z0-9\-]+)*)")
+
+
+def quote_identifiers(text: str) -> str:
+    """Wrap bare SCREAMING_SNAKE_CASE identifiers and metavars in backticks.
+
+    Underscores are part of the identifier: matching each run separately would
+    render APOLO_PASSED_CONFIG as `APOLO`_`PASSED`_`CONFIG`.
+    """
+
+    def repl(match: re.Match[str]) -> str:
+        ident = match.group(1)
+        return f"`{ident}`" if ident else match.group(0)
+
+    return IDENTIFIER_RE.sub(repl, text)
+
+
 def gen_command(out, cmd, parent_ctx):
     with click.Context(cmd, parent=parent_ctx, info_name=cmd.name) as ctx:
         out.append(f"### {cmd.name}\n")
@@ -41,7 +60,7 @@ def gen_command(out, cmd, parent_ctx):
 
         help, *examples = split_examples(_process_help(cmd.help))
         help2 = click.unstyle(help)
-        help3 = re.sub(r"([A-Z0-9\-]{3,60})", r"`\1`", help2)
+        help3 = quote_identifiers(help2)
         out.append(wrap_text(help3))
         out.append("")
 

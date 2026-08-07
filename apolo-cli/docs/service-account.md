@@ -42,9 +42,9 @@ use a secure channel.
 
 The `CLI` exposes two token forms:
 - a full passed-
-config token, which can be used as ``APOLO`_`PASSED`_`CONFIG``
-- a raw auth
-token, which can be used with `apolo config login-with-token`
+config token, which can be used as `APOLO_PASSED_CONFIG`
+- a raw auth token,
+which can be used with `apolo config login-with-token`
 
 #### Options
 
@@ -69,7 +69,7 @@ Get service account SERVICE_ACCOUNT
 apolo service-account get [OPTIONS] SERVICE_ACCOUNT
 ```
 
-Get service account `SERVICE`_`ACCOUNT`.
+Get service account `SERVICE_ACCOUNT`.
 
 The output includes the backing role
 used for `ACL` grants.
@@ -123,7 +123,7 @@ Remove service account SERVICE_ACCOUNT
 apolo service-account rm [OPTIONS] SERVICE_ACCOUNTS...
 ```
 
-Remove service account `SERVICE`_`ACCOUNT`.
+Remove service account `SERVICE_ACCOUNT`.
 
 #### Options
 

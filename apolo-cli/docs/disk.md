@@ -80,7 +80,7 @@ Get disk DISK_ID
 apolo disk get [OPTIONS] DISK
 ```
 
-Get disk `DISK`_ID.
+Get disk `DISK_ID`.
 
 #### Options
 
@@ -133,7 +133,7 @@ Remove disk DISK_ID
 apolo disk rm [OPTIONS] DISKS...
 ```
 
-Remove disk `DISK`_ID.
+Remove disk `DISK_ID`.
 
 #### Options
 
