@@ -160,7 +160,7 @@ class _Core:
             json=json,
             data=data,
             timeout=timeout,
-            trace_request_ctx=trace_request_ctx,  # type: ignore[arg-type]
+            trace_request_ctx=trace_request_ctx,
             # Use 4mb buffer as sometimes single job response can be huge.
             read_bufsize=2**22,
         ) as resp:
