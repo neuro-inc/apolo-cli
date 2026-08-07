@@ -22,4 +22,4 @@ rich==15.0.0
 ruamel.yaml==0.19.1
 toml==0.10.2
 wcwidth==0.8.2
-yarl==1.22.0
+yarl==1.24.5
