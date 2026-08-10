@@ -3,4 +3,4 @@ ID                                         STATUS    WHEN             CREATED   
   job-1                                      pending   Sep 25 2018      Sep 25 2018                                    
   job-2                                      running   Sep 25 2018      Sep 25 2018   Sep 25 2018                      
   job-3                                      failed    Sep 26 2018      Sep 25 2018   Sep 25 2018      Sep 26 2018     
-  job-4                                      failed    12 seconds ago   3 hours ago   20 minutes ago   12 seconds ago
+  job-4                                      failed    12 seconds ago   3 hours ago   21 minutes ago   12 seconds ago
