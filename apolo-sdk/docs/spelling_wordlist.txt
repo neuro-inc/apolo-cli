@@ -15,6 +15,7 @@ neu
 neuro
 preemptible
 ro
+seaweedfs
 startup
 stderr
 stdin

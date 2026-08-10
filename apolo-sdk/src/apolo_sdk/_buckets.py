@@ -415,6 +415,7 @@ class Buckets(metaclass=NoPublicConstructor):
             if bucket.provider in (
                 Bucket.Provider.AWS,
                 Bucket.Provider.MINIO,
+                Bucket.Provider.SEAWEEDFS,
                 Bucket.Provider.OPEN_STACK,
             ):
                 from ._s3_bucket_provider import S3Provider

@@ -1,9 +1,15 @@
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
+from typing import cast
 
+import pytest
 from aiohttp import web
 
-from apolo_sdk import Bucket, Client, Cluster
+from apolo_sdk import Bucket, BucketCredentials, Client, Cluster
+from apolo_sdk._bucket_base import BucketProvider
+from apolo_sdk._buckets import Buckets
+from apolo_sdk._s3_bucket_provider import S3Provider
 
 from tests import _TestServerFactory
 
@@ -24,7 +30,7 @@ async def test_list(
                     "id": "bucket-1",
                     "owner": "user",
                     "name": None,
-                    "provider": "aws",
+                    "provider": "seaweedfs",
                     "created_at": created_at.isoformat(),
                     "imported": False,
                     # support None for backward compatibility
@@ -64,7 +70,7 @@ async def test_list(
             cluster_name=cluster_config.name,
             name=None,
             created_at=created_at,
-            provider=Bucket.Provider.AWS,
+            provider=Bucket.Provider.SEAWEEDFS,
             imported=False,
             org_name="test-org",
             project_name="test-project",
@@ -81,6 +87,36 @@ async def test_list(
             project_name="test-project",
         ),
     ]
+
+
+async def test_seaweedfs_uses_s3_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    provider = cast(BucketProvider, object())
+
+    @asynccontextmanager
+    async def create(
+        bucket: Bucket,
+        get_credentials: Callable[[], Awaitable[BucketCredentials]],
+    ) -> AsyncIterator[BucketProvider]:
+        yield provider
+
+    monkeypatch.setattr(S3Provider, "create", staticmethod(create))
+    buckets = object.__new__(Buckets)
+    buckets._providers = {}
+    bucket = Bucket(
+        id="bucket-1",
+        owner="user",
+        cluster_name="default",
+        org_name="test-org",
+        project_name="test-project",
+        provider=Bucket.Provider.SEAWEEDFS,
+        created_at=datetime.now(),
+        imported=False,
+    )
+
+    async with buckets._get_provider_for_bucket(bucket) as actual_provider:
+        assert actual_provider is provider
+
+    assert buckets._providers[Bucket.Provider.SEAWEEDFS] is S3Provider
 
 
 async def test_add(
