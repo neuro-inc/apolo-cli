@@ -5,6 +5,21 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.8.0 (2026-08-10)
+
+## Features
+
+- Add SeaweedFS bucket provider support. ([#3510](https://github.com/neuro-inc/apolo-cli/issues/3510))
+
+## Bugfixes
+
+- Fixed `apolo acl ls` help text, which described the default output and the `--shared` output the wrong way round. ([#3506](https://github.com/neuro-inc/apolo-cli/issues/3506))
+
+## Improved Documentation
+
+- Stopped the docs generator from splitting `SCREAMING_SNAKE_CASE` identifiers across several code spans, so metavars such as `APOLO_PASSED_CONFIG`, `SERVICE_ACCOUNT` and `APP_ID` now render as one. ([#3506](https://github.com/neuro-inc/apolo-cli/issues/3506))
+
+
 # Apolo SDK/CLI 26.7.2 (2026-07-30)
 
 ## Bugfixes
