@@ -10,7 +10,7 @@ certifi==2026.7.22
 click==8.4.2
 ConfigUpdater==3.2
 contextlib2==21.6.0
-humanize==4.13.0
+humanize==4.16.0
 importlib-metadata==8.7.1; python_version<"3.10"
 multidict<7.0
 neuro-config-client==26.3.1
@@ -22,4 +22,4 @@ rich==15.0.0
 ruamel.yaml==0.19.1
 toml==0.10.2
 wcwidth==0.8.2
-yarl==1.22.0
+yarl==1.24.5
