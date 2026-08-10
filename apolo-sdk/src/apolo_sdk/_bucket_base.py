@@ -157,6 +157,7 @@ class Bucket:
     class Provider(str, enum.Enum):
         AWS = "aws"
         MINIO = "minio"
+        SEAWEEDFS = "seaweedfs"
         AZURE = "azure"
         GCP = "gcp"
         OPEN_STACK = "open_stack"

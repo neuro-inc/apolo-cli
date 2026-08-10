@@ -559,6 +559,10 @@ Bucket.Provider
 
       Minio S3 bucket
 
+   .. attribute:: SEAWEEDFS
+
+      SeaweedFS S3-compatible bucket
+
    .. attribute:: AZURE
 
       Azure blob storage container
