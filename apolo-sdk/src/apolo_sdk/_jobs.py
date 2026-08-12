@@ -50,6 +50,8 @@ from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
 log = logging.getLogger(__package__)
 
 INVALID_IMAGE_NAME = "INVALID-IMAGE-NAME"
+# platform-monitoring defaults to 30 seconds timeout for WS connection
+MONITORING_WS_HEARTBEAT_INTERVAL = 10
 
 
 @rewrite_module
@@ -575,7 +577,7 @@ class Jobs(metaclass=NoPublicConstructor):
             url,
             auth=auth,
             timeout=None,
-            heartbeat=30,
+            heartbeat=MONITORING_WS_HEARTBEAT_INTERVAL,
         ) as ws:
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.BINARY:
@@ -701,7 +703,7 @@ class Jobs(metaclass=NoPublicConstructor):
                 auth=await self._config._api_auth(),
                 timeout=None,
                 receive_timeout=None,
-                heartbeat=30,
+                heartbeat=MONITORING_WS_HEARTBEAT_INTERVAL,
             ) as ws:
                 tasks = []
                 tasks.append(loop.create_task(self._port_reader(ws, writer)))
@@ -774,7 +776,7 @@ class Jobs(metaclass=NoPublicConstructor):
             },
             timeout=None,
             receive_timeout=None,
-            heartbeat=30,
+            heartbeat=MONITORING_WS_HEARTBEAT_INTERVAL,
         ) as ws:
             yield StdStream(ws)
 
@@ -805,7 +807,7 @@ class Jobs(metaclass=NoPublicConstructor):
             auth=auth,
             timeout=None,
             receive_timeout=None,
-            heartbeat=30,
+            heartbeat=MONITORING_WS_HEARTBEAT_INTERVAL,
         ) as ws:
             try:
                 yield StdStream(ws)
