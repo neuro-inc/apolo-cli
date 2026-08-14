@@ -2,7 +2,7 @@
 cmarkgfm==2025.10.22
 markdown-toc==1.2.6
 mypy==2.3.0
-pre-commit==4.6.1
+pre-commit==4.6.2
 types-certifi==2021.10.8.3
 types-python-dateutil==2.9.0.20260807
 types-PyYAML==6.0.12.20260724
