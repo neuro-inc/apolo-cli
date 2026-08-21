@@ -1,5 +1,6 @@
 import builtins
 import enum
+import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -12,6 +13,8 @@ from ._config import Config
 from ._core import _Core
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
+
+log = logging.getLogger(__package__)
 
 
 @rewrite_module
@@ -99,53 +102,80 @@ class AppConfigurationRevision:
     end_at: datetime | None
 
 
-def _resolve(schema: Any, root: dict[str, Any]) -> list[dict[str, Any]]:
+APP_INSTANCE_REF = "app-instance-ref"
+_MAX_DEPTH = 16
+
+
+def _resolve(
+    schema: Any, root: dict[str, Any], seen: frozenset[str] = frozenset()
+) -> list[dict[str, Any]]:
+    """Every shape a value at this position is allowed to take."""
     if not isinstance(schema, dict):
         return []
 
     ref = schema.get("$ref")
-    if isinstance(ref, str) and ref.startswith("#/$defs/"):
-        return _resolve(root.get("$defs", {}).get(ref.split("/")[-1]), root)
+    if isinstance(ref, str):
+        if not ref.startswith("#/") or ref in seen:
+            return []
+        target: Any = root
+        for part in ref[2:].split("/"):
+            target = target.get(part, {}) if isinstance(target, dict) else {}
+        return _resolve(target, root, seen | {ref})
 
-    variants = schema.get("anyOf") or schema.get("oneOf")
-    if isinstance(variants, list):
-        return [
-            resolved for variant in variants for resolved in _resolve(variant, root)
-        ]
+    for keyword in ("anyOf", "oneOf", "allOf"):
+        variants = schema.get(keyword)
+        if isinstance(variants, list):
+            return [
+                resolved
+                for variant in variants
+                for resolved in _resolve(variant, root, seen)
+            ]
 
     return [schema]
 
 
-def undefined_input_fields(
+def _sortable(path: str) -> tuple[Any, ...]:
+    return tuple(
+        (1, int(part)) if part.isdigit() else (0, part) for part in path.split(".")
+    )
+
+
+def _undefined_input_fields(
     schema: Any,
     value: Any,
     root: dict[str, Any] | None = None,
     prefix: str = "",
     depth: int = 0,
 ) -> list[str]:
-    """Paths in ``value`` that ``schema`` does not define.
-
-    The app API answers 500 rather than a validation error when it is given a
-    field the template does not have, which is what a config written for
-    another version of the same app usually carries.
-    """
-    if depth > 16:
+    if depth > _MAX_DEPTH:
         return []
 
     root = root if root is not None else (schema if isinstance(schema, dict) else {})
     variants = _resolve(schema, root)
 
     if isinstance(value, list):
-        return [
-            path
-            for index, item in enumerate(value)
-            for variant in variants[:1]
-            for path in undefined_input_fields(
-                variant.get("items"), item, root, f"{prefix}.{index}", depth + 1
-            )
+        per_variant = [
+            [
+                path
+                for index, item in enumerate(value)
+                for path in _undefined_input_fields(
+                    variant.get("items"),
+                    item,
+                    root,
+                    f"{prefix}.{index}" if prefix else str(index),
+                    depth + 1,
+                )
+            ]
+            for variant in variants
+            if isinstance(variant.get("items"), dict)
         ]
+        return _common(per_variant)
 
     if not isinstance(value, dict):
+        return []
+
+    # a value taken from another app stands in for whatever the field holds
+    if value.get("type") == APP_INSTANCE_REF:
         return []
 
     known: dict[str, list[Any]] = {}
@@ -171,14 +201,24 @@ def undefined_input_fields(
                 undefined.append(path)
             continue
 
-        # a key is only undefined when every variant that could hold it says so
-        per_variant = [
-            undefined_input_fields(definition, nested, root, path, depth + 1)
-            for definition in definitions
-        ]
-        undefined.extend(set.intersection(*(set(paths) for paths in per_variant)))
+        undefined.extend(
+            _common(
+                [
+                    _undefined_input_fields(definition, nested, root, path, depth + 1)
+                    for definition in definitions
+                ]
+            )
+        )
 
-    return sorted(undefined)
+    return sorted(undefined, key=_sortable)
+
+
+def _common(per_variant: list[list[str]]) -> list[str]:
+    """What every shape the value is allowed to take agrees is undefined."""
+    if not per_variant:
+        return []
+
+    return list(set.intersection(*(set(paths) for paths in per_variant)))
 
 
 @rewrite_module
@@ -309,6 +349,10 @@ class Apps(metaclass=NoPublicConstructor):
     async def _undefined_for_app(
         self, existing_app: App, app_data: dict[str, Any]
     ) -> builtins.list[str]:
+        if existing_app.template_version == app_data.get("template_version"):
+            # the config was written for the version the app runs
+            return []
+
         try:
             template = await self.get_template(
                 name=existing_app.template_name,
@@ -317,15 +361,15 @@ class Apps(metaclass=NoPublicConstructor):
                 org_name=existing_app.org_name,
                 project_name=existing_app.project_name,
             )
-        except Exception:
+            if template is None:
+                return []
+
+            return _undefined_input_fields(template.input, app_data.get("input"))
+        except Exception as error:
             # the check is a courtesy, and must never stand between the user
             # and a call the server would have accepted
+            log.debug("Could not check the config against the schema: %s", error)
             return []
-
-        if template is None:
-            return []
-
-        return undefined_input_fields(template.input, app_data.get("input"))
 
     async def configure(
         self,
@@ -335,23 +379,29 @@ class Apps(metaclass=NoPublicConstructor):
     ) -> App:
         existing_app = await self.get(app_id)
 
-        if existing_app.template_name != app_data.get("template_name"):
+        config_template = app_data.get("template_name")
+        if (
+            config_template is not None
+            and config_template != existing_app.template_name
+        ):
             raise ValueError(
                 f"Cannot update app: it was installed from "
                 f"{existing_app.template_name!r} and the config is for "
-                f"{app_data.get('template_name')!r}"
+                f"{config_template!r}"
             )
 
         undefined = await self._undefined_for_app(existing_app, app_data)
 
         if undefined:
+            shown = ", ".join(undefined[:10])
+            if len(undefined) > 10:
+                shown += f" and {len(undefined) - 10} more"
+            them = "them" if len(undefined) > 1 else "it"
             raise ValueError(
-                f"Cannot update app: "
-                f"{existing_app.template_version} has no "
-                f"{', '.join(undefined)}. Remove "
-                f"{'them' if len(undefined) > 1 else 'it'} from the config or "
-                f"install a version that still has "
-                f"{'them' if len(undefined) > 1 else 'it'}."
+                f"Cannot update app: {existing_app.template_name} "
+                f"{existing_app.template_version} has no {shown}. "
+                f"Remove {them} from the config, or reinstall the app on a "
+                f"version that has {them}."
             )
 
         url = (

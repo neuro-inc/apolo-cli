@@ -15,7 +15,7 @@ from apolo_sdk import (
     AppState,
     Client,
 )
-from apolo_sdk._apps import undefined_input_fields
+from apolo_sdk._apps import _undefined_input_fields as undefined_input_fields
 
 from tests import _TestServerFactory
 
@@ -1688,6 +1688,40 @@ def test_undefined_input_fields() -> None:
     assert undefined_input_fields(None, {"anything": 1}) == []
 
 
+def test_undefined_input_fields_leaves_a_value_from_another_app_alone() -> None:
+    """`apolo app-template get-config` tells users to write exactly this."""
+    schema = {
+        "properties": {"s3": {"$ref": "#/$defs/S3"}},
+        "$defs": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    reference = {"type": "app-instance-ref", "instance_id": "i", "path": "p"}
+
+    assert undefined_input_fields(schema, {"s3": reference}) == []
+
+
+def test_undefined_input_fields_reads_through_allof_and_plain_pointers() -> None:
+    wrapped = {
+        "properties": {"s3": {"allOf": [{"$ref": "#/$defs/S3"}], "description": "d"}},
+        "$defs": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    assert undefined_input_fields(wrapped, {"s3": {"port": 1, "old": 2}}) == ["s3.old"]
+
+    draft07 = {
+        "properties": {"s3": {"$ref": "#/definitions/S3"}},
+        "definitions": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    assert undefined_input_fields(draft07, {"s3": {"port": 1, "old": 2}}) == ["s3.old"]
+
+
+def test_undefined_input_fields_survives_a_schema_that_points_at_itself() -> None:
+    cyclic = {
+        "properties": {"node": {"$ref": "#/$defs/Node"}},
+        "$defs": {"Node": {"anyOf": [{"$ref": "#/$defs/Node"}]}},
+    }
+
+    assert undefined_input_fields(cyclic, {"node": {"anything": 1}}) == []
+
+
 def test_undefined_input_fields_descends_into_arrays() -> None:
     schema = {
         "properties": {
@@ -1720,6 +1754,39 @@ def test_undefined_input_fields_accepts_a_key_from_any_variant() -> None:
     assert undefined_input_fields(schema, {"auth": {"username": "u"}}) == []
     assert undefined_input_fields(schema, {"auth": {"token": "t"}}) == []
     assert undefined_input_fields(schema, {"auth": {"neither": 1}}) == ["auth.neither"]
+
+
+def test_undefined_input_fields_reads_an_array_against_every_variant() -> None:
+    schema = {
+        "properties": {
+            "ports": {
+                "anyOf": [
+                    {"type": "null"},
+                    {"type": "array", "items": {"$ref": "#/$defs/P"}},
+                ]
+            }
+        },
+        "$defs": {"P": {"properties": {"port": {"type": "integer"}}}},
+    }
+
+    # the null variant comes first, and must not stop the items being read
+    assert undefined_input_fields(schema, {"ports": [{"port": 1}]}) == []
+    assert undefined_input_fields(schema, {"ports": [{"old": 1}]}) == ["ports.0.old"]
+
+
+def test_undefined_input_fields_orders_array_paths_by_index() -> None:
+    schema = {
+        "properties": {
+            "ports": {"type": "array", "items": {"properties": {"port": {}}}}
+        },
+    }
+    value = {"ports": [{"old": 1} for _ in range(12)]}
+
+    assert undefined_input_fields(schema, value)[:3] == [
+        "ports.0.old",
+        "ports.1.old",
+        "ports.2.old",
+    ]
 
 
 def test_undefined_input_fields_leaves_open_schemas_alone() -> None:
