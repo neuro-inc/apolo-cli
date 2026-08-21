@@ -10,6 +10,7 @@ from yarl import URL
 
 from ._config import Config
 from ._core import _Core
+from ._errors import ResourceNotFound
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
 
@@ -97,6 +98,68 @@ class AppConfigurationRevision:
     comment: str | None
     created_at: datetime
     end_at: datetime | None
+
+
+def _resolve(schema: dict[str, Any], root: dict[str, Any]) -> list[dict[str, Any]]:
+    ref = schema.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/$defs/"):
+        target = root.get("$defs", {}).get(ref.split("/")[-1])
+        return _resolve(target, root) if isinstance(target, dict) else []
+
+    variants = schema.get("anyOf") or schema.get("oneOf")
+    if isinstance(variants, list):
+        return [
+            resolved
+            for variant in variants
+            if isinstance(variant, dict)
+            for resolved in _resolve(variant, root)
+        ]
+
+    return [schema]
+
+
+def undefined_input_fields(
+    schema: dict[str, Any] | None,
+    value: Any,
+    root: dict[str, Any] | None = None,
+    prefix: str = "",
+    depth: int = 0,
+) -> list[str]:
+    """Paths in ``value`` that ``schema`` does not define.
+
+    The app API answers 500 rather than a validation error when it is given a
+    field the template does not have, which is what a config written for
+    another version of the same app usually carries.
+    """
+    if not isinstance(schema, dict) or not isinstance(value, dict) or depth > 10:
+        return []
+
+    root = root if root is not None else schema
+    variants = _resolve(schema, root)
+
+    known: dict[str, dict[str, Any]] = {}
+    for variant in variants:
+        properties = variant.get("properties")
+        if isinstance(properties, dict):
+            for name, definition in properties.items():
+                if isinstance(definition, dict):
+                    known.setdefault(name, definition)
+
+    if not known:
+        return []
+
+    undefined = []
+    for name, nested in value.items():
+        path = f"{prefix}.{name}" if prefix else name
+        definition = known.get(name)
+        if definition is None:
+            undefined.append(path)
+        else:
+            undefined.extend(
+                undefined_input_fields(definition, nested, root, path, depth + 1)
+            )
+
+    return undefined
 
 
 @rewrite_module
@@ -224,12 +287,24 @@ class Apps(metaclass=NoPublicConstructor):
             item = await resp.json()
             return self._parse_app_read_instance(item)
 
-    def _can_configure_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
-        if existing_app.template_name != app_data["template_name"]:
-            return False
-        elif existing_app.template_version != app_data["template_version"]:
-            return False
-        return True
+    async def _undefined_for_app(
+        self, existing_app: App, app_data: dict[str, Any]
+    ) -> builtins.list[str]:
+        try:
+            template = await self.get_template(
+                name=existing_app.template_name,
+                version=existing_app.template_version,
+                cluster_name=existing_app.cluster_name,
+                org_name=existing_app.org_name,
+                project_name=existing_app.project_name,
+            )
+        except ResourceNotFound:
+            return []
+
+        if template is None:
+            return []
+
+        return undefined_input_fields(template.input, app_data.get("input"))
 
     async def configure(
         self,
@@ -238,8 +313,25 @@ class Apps(metaclass=NoPublicConstructor):
         comment: str | None = None,
     ) -> App:
         existing_app = await self.get(app_id)
-        if not self._can_configure_app(existing_app, app_data):
-            raise ValueError("Cannot update app: template name or version mismatch")
+
+        if existing_app.template_name != app_data.get("template_name"):
+            raise ValueError(
+                f"Cannot update app: it was installed from "
+                f"{existing_app.template_name!r} and the config is for "
+                f"{app_data.get('template_name')!r}"
+            )
+
+        undefined = await self._undefined_for_app(existing_app, app_data)
+
+        if undefined:
+            raise ValueError(
+                f"Cannot update app: "
+                f"{existing_app.template_version} has no "
+                f"{', '.join(undefined)}. Remove "
+                f"{'them' if len(undefined) > 1 else 'it'} from the config or "
+                f"install a version that still has "
+                f"{'them' if len(undefined) > 1 else 'it'}."
+            )
 
         url = (
             self._build_base_url(
