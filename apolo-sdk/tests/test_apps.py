@@ -15,6 +15,7 @@ from apolo_sdk import (
     AppState,
     Client,
 )
+from apolo_sdk._apps import _undefined_input_fields as undefined_input_fields
 
 from tests import _TestServerFactory
 
@@ -1449,3 +1450,342 @@ async def test_apps_list_with_states_filter(
                 apps.append(app)
 
         assert len(apps) == 2
+
+
+async def test_apps_configure_across_versions(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    instance = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.1",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+    template = {
+        "name": "aws-s3",
+        "version": "26.0.1",
+        "input": {
+            "properties": {"s3": {"$ref": "#/$defs/S3Params"}},
+            "$defs": {
+                "S3Params": {"properties": {"port": {"type": "integer"}}},
+            },
+        },
+    }
+    sent = {}
+
+    async def handler(request: web.Request) -> web.Response:
+        if request.method == "GET":
+            if "templates" in request.path:
+                return web.json_response(data=template, status=200)
+            return web.json_response(data=instance, status=200)
+        sent.update(await request.json())
+        return web.json_response(data=instance, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    web_app.router.add_get(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        "/templates/aws-s3/26.0.1",
+        handler,
+    )
+    web_app.router.add_put(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/someid",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.configure(
+            app_id="someid",
+            app_data={
+                "template_name": "aws-s3",
+                "template_version": "26.0.0",
+                "input": {"s3": {"port": 8080}},
+            },
+        )
+
+    assert sent == {"input": {"s3": {"port": 8080}}}
+
+
+async def test_apps_configure_rejects_another_app(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    instance = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.1",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        return web.json_response(data=instance, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        with pytest.raises(ValueError, match="installed from 'aws-s3'"):
+            await client.apps.configure(
+                app_id="someid",
+                app_data={"template_name": "shell", "input": {}},
+            )
+
+
+async def test_apps_configure_names_fields_the_version_does_not_have(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    instance = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.1",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+    template = {
+        "name": "aws-s3",
+        "version": "26.0.1",
+        "input": {
+            "properties": {"s3": {"$ref": "#/$defs/S3Params"}},
+            "$defs": {
+                "S3Params": {"properties": {"port": {"type": "integer"}}},
+            },
+        },
+    }
+
+    async def handler(request: web.Request) -> web.Response:
+        if "templates" in request.path:
+            return web.json_response(data=template, status=200)
+        return web.json_response(data=instance, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    web_app.router.add_get(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        "/templates/aws-s3/26.0.1",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        with pytest.raises(ValueError, match="s3.dockerconfigjson"):
+            await client.apps.configure(
+                app_id="someid",
+                app_data={
+                    "template_name": "aws-s3",
+                    "template_version": "26.0.0",
+                    "input": {"s3": {"port": 8080, "dockerconfigjson": {"f": "x"}}},
+                },
+            )
+
+
+async def test_apps_configure_when_the_template_cannot_be_read(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    instance = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.1",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+    sent = {}
+
+    async def handler(request: web.Request) -> web.Response:
+        if "templates" in request.path:
+            return web.json_response(data={"error": "nope"}, status=500)
+        if request.method == "PUT":
+            sent.update(await request.json())
+        return web.json_response(data=instance, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    web_app.router.add_get(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        "/templates/aws-s3/26.0.1",
+        handler,
+    )
+    web_app.router.add_put(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/someid",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.configure(
+            app_id="someid",
+            app_data={"template_name": "aws-s3", "input": {"s3": {"port": 1}}},
+        )
+
+    assert sent == {"input": {"s3": {"port": 1}}}
+
+
+def test_undefined_input_fields() -> None:
+    schema = {
+        "properties": {
+            "image": {"$ref": "#/$defs/Image"},
+            "auth": {"anyOf": [{"$ref": "#/$defs/Basic"}, {"type": "null"}]},
+        },
+        "$defs": {
+            "Image": {"properties": {"repository": {"type": "string"}}},
+            "Basic": {"properties": {"username": {"type": "string"}}},
+        },
+    }
+
+    assert undefined_input_fields(schema, {"image": {"repository": "r"}}) == []
+    assert undefined_input_fields(schema, {"image": {"old": 1}}) == ["image.old"]
+    assert undefined_input_fields(schema, {"gone": 1}) == ["gone"]
+    assert undefined_input_fields(schema, {"auth": {"username": "u"}}) == []
+    assert undefined_input_fields(schema, {"auth": {"token": "t"}}) == ["auth.token"]
+    assert undefined_input_fields({}, {"anything": 1}) == []
+    assert undefined_input_fields(None, {"anything": 1}) == []
+
+
+def test_undefined_input_fields_leaves_a_value_from_another_app_alone() -> None:
+    schema = {
+        "properties": {"s3": {"$ref": "#/$defs/S3"}},
+        "$defs": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    reference = {"type": "app-instance-ref", "instance_id": "i", "path": "p"}
+
+    assert undefined_input_fields(schema, {"s3": reference}) == []
+
+
+def test_undefined_input_fields_reads_through_allof_and_plain_pointers() -> None:
+    wrapped = {
+        "properties": {"s3": {"allOf": [{"$ref": "#/$defs/S3"}], "description": "d"}},
+        "$defs": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    assert undefined_input_fields(wrapped, {"s3": {"port": 1, "old": 2}}) == ["s3.old"]
+
+    draft07 = {
+        "properties": {"s3": {"$ref": "#/definitions/S3"}},
+        "definitions": {"S3": {"properties": {"port": {"type": "integer"}}}},
+    }
+    assert undefined_input_fields(draft07, {"s3": {"port": 1, "old": 2}}) == ["s3.old"]
+
+
+def test_undefined_input_fields_survives_a_schema_that_points_at_itself() -> None:
+    cyclic = {
+        "properties": {"node": {"$ref": "#/$defs/Node"}},
+        "$defs": {"Node": {"anyOf": [{"$ref": "#/$defs/Node"}]}},
+    }
+
+    assert undefined_input_fields(cyclic, {"node": {"anything": 1}}) == []
+
+
+def test_undefined_input_fields_descends_into_arrays() -> None:
+    schema = {
+        "properties": {
+            "ports": {
+                "type": "array",
+                "items": {"$ref": "#/$defs/Port"},
+            }
+        },
+        "$defs": {"Port": {"properties": {"port": {"type": "integer"}}}},
+    }
+
+    assert undefined_input_fields(schema, {"ports": [{"port": 80}]}) == []
+    assert undefined_input_fields(schema, {"ports": [{"port": 80}, {"old": 1}]}) == [
+        "ports.1.old"
+    ]
+
+
+def test_undefined_input_fields_accepts_a_key_from_any_variant() -> None:
+    schema = {
+        "properties": {
+            "auth": {"anyOf": [{"$ref": "#/$defs/A"}, {"$ref": "#/$defs/B"}]}
+        },
+        "$defs": {
+            "A": {"properties": {"username": {"type": "string"}}},
+            "B": {"properties": {"token": {"type": "string"}}},
+        },
+    }
+
+    assert undefined_input_fields(schema, {"auth": {"username": "u"}}) == []
+    assert undefined_input_fields(schema, {"auth": {"token": "t"}}) == []
+    assert undefined_input_fields(schema, {"auth": {"neither": 1}}) == ["auth.neither"]
+
+
+def test_undefined_input_fields_reads_an_array_against_every_variant() -> None:
+    schema = {
+        "properties": {
+            "ports": {
+                "anyOf": [
+                    {"type": "null"},
+                    {"type": "array", "items": {"$ref": "#/$defs/P"}},
+                ]
+            }
+        },
+        "$defs": {"P": {"properties": {"port": {"type": "integer"}}}},
+    }
+
+    assert undefined_input_fields(schema, {"ports": [{"port": 1}]}) == []
+    assert undefined_input_fields(schema, {"ports": [{"old": 1}]}) == ["ports.0.old"]
+
+
+def test_undefined_input_fields_orders_array_paths_by_index() -> None:
+    schema = {
+        "properties": {
+            "ports": {"type": "array", "items": {"properties": {"port": {}}}}
+        },
+    }
+    value = {"ports": [{"old": 1} for _ in range(12)]}
+
+    assert undefined_input_fields(schema, value)[:3] == [
+        "ports.0.old",
+        "ports.1.old",
+        "ports.2.old",
+    ]
+
+
+def test_undefined_input_fields_leaves_open_schemas_alone() -> None:
+    schema = {
+        "properties": {
+            "labels": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+    }
+
+    assert undefined_input_fields(schema, {"labels": {"anything": "x"}}) == []

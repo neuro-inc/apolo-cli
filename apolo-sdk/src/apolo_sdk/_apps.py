@@ -1,5 +1,6 @@
 import builtins
 import enum
+import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -12,6 +13,8 @@ from ._config import Config
 from ._core import _Core
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
+
+log = logging.getLogger(__package__)
 
 
 @rewrite_module
@@ -97,6 +100,122 @@ class AppConfigurationRevision:
     comment: str | None
     created_at: datetime
     end_at: datetime | None
+
+
+APP_INSTANCE_REF = "app-instance-ref"
+_MAX_DEPTH = 16
+
+
+def _resolve(
+    schema: Any, root: dict[str, Any], seen: frozenset[str] = frozenset()
+) -> list[dict[str, Any]]:
+    if not isinstance(schema, dict):
+        return []
+
+    ref = schema.get("$ref")
+    if isinstance(ref, str):
+        if not ref.startswith("#/") or ref in seen:
+            return []
+        target: Any = root
+        for part in ref[2:].split("/"):
+            target = target.get(part, {}) if isinstance(target, dict) else {}
+        return _resolve(target, root, seen | {ref})
+
+    for keyword in ("anyOf", "oneOf", "allOf"):
+        variants = schema.get(keyword)
+        if isinstance(variants, list):
+            return [
+                resolved
+                for variant in variants
+                for resolved in _resolve(variant, root, seen)
+            ]
+
+    return [schema]
+
+
+def _sortable(path: str) -> tuple[Any, ...]:
+    return tuple(
+        (1, int(part)) if part.isdigit() else (0, part) for part in path.split(".")
+    )
+
+
+def _undefined_input_fields(
+    schema: Any,
+    value: Any,
+    root: dict[str, Any] | None = None,
+    prefix: str = "",
+    depth: int = 0,
+) -> list[str]:
+    if depth > _MAX_DEPTH:
+        return []
+
+    root = root if root is not None else (schema if isinstance(schema, dict) else {})
+    variants = _resolve(schema, root)
+
+    if isinstance(value, list):
+        per_variant = [
+            [
+                path
+                for index, item in enumerate(value)
+                for path in _undefined_input_fields(
+                    variant.get("items"),
+                    item,
+                    root,
+                    f"{prefix}.{index}" if prefix else str(index),
+                    depth + 1,
+                )
+            ]
+            for variant in variants
+            if isinstance(variant.get("items"), dict)
+        ]
+        return _common(per_variant)
+
+    if not isinstance(value, dict):
+        return []
+
+    if value.get("type") == APP_INSTANCE_REF:
+        return []
+
+    known: dict[str, list[Any]] = {}
+    accepts_anything = False
+    for variant in variants:
+        if variant.get("additionalProperties") not in (None, False):
+            accepts_anything = True
+        properties = variant.get("properties")
+        if isinstance(properties, dict):
+            for name, definition in properties.items():
+                known.setdefault(name, []).append(definition)
+
+    if not known:
+        return []
+
+    undefined = []
+    for name, nested in value.items():
+        path = f"{prefix}.{name}" if prefix else name
+        definitions = known.get(name)
+
+        if not definitions:
+            if not accepts_anything:
+                undefined.append(path)
+            continue
+
+        undefined.extend(
+            _common(
+                [
+                    _undefined_input_fields(definition, nested, root, path, depth + 1)
+                    for definition in definitions
+                ]
+            )
+        )
+
+    return sorted(undefined, key=_sortable)
+
+
+def _common(per_variant: list[list[str]]) -> list[str]:
+    if not per_variant:
+        return []
+
+    return list(set.intersection(*(set(paths) for paths in per_variant)))
 
 
 @rewrite_module
@@ -224,12 +343,27 @@ class Apps(metaclass=NoPublicConstructor):
             item = await resp.json()
             return self._parse_app_read_instance(item)
 
-    def _can_configure_app(self, existing_app: App, app_data: dict[str, Any]) -> bool:
-        if existing_app.template_name != app_data["template_name"]:
-            return False
-        elif existing_app.template_version != app_data["template_version"]:
-            return False
-        return True
+    async def _undefined_for_app(
+        self, existing_app: App, app_data: dict[str, Any]
+    ) -> builtins.list[str]:
+        if existing_app.template_version == app_data.get("template_version"):
+            return []
+
+        try:
+            template = await self.get_template(
+                name=existing_app.template_name,
+                version=existing_app.template_version,
+                cluster_name=existing_app.cluster_name,
+                org_name=existing_app.org_name,
+                project_name=existing_app.project_name,
+            )
+            if template is None:
+                return []
+
+            return _undefined_input_fields(template.input, app_data.get("input"))
+        except Exception as error:
+            log.debug("Could not check the config against the schema: %s", error)
+            return []
 
     async def configure(
         self,
@@ -238,8 +372,31 @@ class Apps(metaclass=NoPublicConstructor):
         comment: str | None = None,
     ) -> App:
         existing_app = await self.get(app_id)
-        if not self._can_configure_app(existing_app, app_data):
-            raise ValueError("Cannot update app: template name or version mismatch")
+
+        config_template = app_data.get("template_name")
+        if (
+            config_template is not None
+            and config_template != existing_app.template_name
+        ):
+            raise ValueError(
+                f"Cannot update app: it was installed from "
+                f"{existing_app.template_name!r} and the config is for "
+                f"{config_template!r}"
+            )
+
+        undefined = await self._undefined_for_app(existing_app, app_data)
+
+        if undefined:
+            shown = ", ".join(undefined[:10])
+            if len(undefined) > 10:
+                shown += f" and {len(undefined) - 10} more"
+            them = "them" if len(undefined) > 1 else "it"
+            raise ValueError(
+                f"Cannot update app: {existing_app.template_name} "
+                f"{existing_app.template_version} has no {shown}. "
+                f"Remove {them} from the config, or reinstall the app on a "
+                f"version that has {them}."
+            )
 
         url = (
             self._build_base_url(
