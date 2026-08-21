@@ -1456,7 +1456,6 @@ async def test_apps_configure_across_versions(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
 ) -> None:
-    """A config written for another version of the same app still applies."""
     instance = {
         "id": "someid",
         "name": "name",
@@ -1559,7 +1558,6 @@ async def test_apps_configure_names_fields_the_version_does_not_have(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
 ) -> None:
-    """The API answers 500 for those, so they are caught before it is called."""
     instance = {
         "id": "someid",
         "name": "name",
@@ -1617,7 +1615,6 @@ async def test_apps_configure_when_the_template_cannot_be_read(
     aiohttp_server: _TestServerFactory,
     make_client: Callable[..., Client],
 ) -> None:
-    """The check is a courtesy: losing it must not cost the user the call."""
     instance = {
         "id": "someid",
         "name": "name",
@@ -1680,16 +1677,13 @@ def test_undefined_input_fields() -> None:
     assert undefined_input_fields(schema, {"image": {"repository": "r"}}) == []
     assert undefined_input_fields(schema, {"image": {"old": 1}}) == ["image.old"]
     assert undefined_input_fields(schema, {"gone": 1}) == ["gone"]
-    # a variant of a union counts as defined
     assert undefined_input_fields(schema, {"auth": {"username": "u"}}) == []
     assert undefined_input_fields(schema, {"auth": {"token": "t"}}) == ["auth.token"]
-    # nothing to say about a schema that declares no properties
     assert undefined_input_fields({}, {"anything": 1}) == []
     assert undefined_input_fields(None, {"anything": 1}) == []
 
 
 def test_undefined_input_fields_leaves_a_value_from_another_app_alone() -> None:
-    """`apolo app-template get-config` tells users to write exactly this."""
     schema = {
         "properties": {"s3": {"$ref": "#/$defs/S3"}},
         "$defs": {"S3": {"properties": {"port": {"type": "integer"}}}},
@@ -1740,7 +1734,6 @@ def test_undefined_input_fields_descends_into_arrays() -> None:
 
 
 def test_undefined_input_fields_accepts_a_key_from_any_variant() -> None:
-    """A property several variants define must be read against all of them."""
     schema = {
         "properties": {
             "auth": {"anyOf": [{"$ref": "#/$defs/A"}, {"$ref": "#/$defs/B"}]}
@@ -1769,7 +1762,6 @@ def test_undefined_input_fields_reads_an_array_against_every_variant() -> None:
         "$defs": {"P": {"properties": {"port": {"type": "integer"}}}},
     }
 
-    # the null variant comes first, and must not stop the items being read
     assert undefined_input_fields(schema, {"ports": [{"port": 1}]}) == []
     assert undefined_input_fields(schema, {"ports": [{"old": 1}]}) == ["ports.0.old"]
 

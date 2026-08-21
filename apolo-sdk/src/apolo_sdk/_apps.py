@@ -109,7 +109,6 @@ _MAX_DEPTH = 16
 def _resolve(
     schema: Any, root: dict[str, Any], seen: frozenset[str] = frozenset()
 ) -> list[dict[str, Any]]:
-    """Every shape a value at this position is allowed to take."""
     if not isinstance(schema, dict):
         return []
 
@@ -174,7 +173,6 @@ def _undefined_input_fields(
     if not isinstance(value, dict):
         return []
 
-    # a value taken from another app stands in for whatever the field holds
     if value.get("type") == APP_INSTANCE_REF:
         return []
 
@@ -214,7 +212,6 @@ def _undefined_input_fields(
 
 
 def _common(per_variant: list[list[str]]) -> list[str]:
-    """What every shape the value is allowed to take agrees is undefined."""
     if not per_variant:
         return []
 
@@ -350,7 +347,6 @@ class Apps(metaclass=NoPublicConstructor):
         self, existing_app: App, app_data: dict[str, Any]
     ) -> builtins.list[str]:
         if existing_app.template_version == app_data.get("template_version"):
-            # the config was written for the version the app runs
             return []
 
         try:
@@ -366,8 +362,6 @@ class Apps(metaclass=NoPublicConstructor):
 
             return _undefined_input_fields(template.input, app_data.get("input"))
         except Exception as error:
-            # the check is a courtesy, and must never stand between the user
-            # and a call the server would have accepted
             log.debug("Could not check the config against the schema: %s", error)
             return []
 
