@@ -10,7 +10,6 @@ from yarl import URL
 
 from ._config import Config
 from ._core import _Core
-from ._errors import ResourceNotFound
 from ._rewrite import rewrite_module
 from ._utils import NoPublicConstructor, asyncgeneratorcontextmanager
 
@@ -100,26 +99,25 @@ class AppConfigurationRevision:
     end_at: datetime | None
 
 
-def _resolve(schema: dict[str, Any], root: dict[str, Any]) -> list[dict[str, Any]]:
+def _resolve(schema: Any, root: dict[str, Any]) -> list[dict[str, Any]]:
+    if not isinstance(schema, dict):
+        return []
+
     ref = schema.get("$ref")
     if isinstance(ref, str) and ref.startswith("#/$defs/"):
-        target = root.get("$defs", {}).get(ref.split("/")[-1])
-        return _resolve(target, root) if isinstance(target, dict) else []
+        return _resolve(root.get("$defs", {}).get(ref.split("/")[-1]), root)
 
     variants = schema.get("anyOf") or schema.get("oneOf")
     if isinstance(variants, list):
         return [
-            resolved
-            for variant in variants
-            if isinstance(variant, dict)
-            for resolved in _resolve(variant, root)
+            resolved for variant in variants for resolved in _resolve(variant, root)
         ]
 
     return [schema]
 
 
 def undefined_input_fields(
-    schema: dict[str, Any] | None,
+    schema: Any,
     value: Any,
     root: dict[str, Any] | None = None,
     prefix: str = "",
@@ -131,19 +129,34 @@ def undefined_input_fields(
     field the template does not have, which is what a config written for
     another version of the same app usually carries.
     """
-    if not isinstance(schema, dict) or not isinstance(value, dict) or depth > 10:
+    if depth > 16:
         return []
 
-    root = root if root is not None else schema
+    root = root if root is not None else (schema if isinstance(schema, dict) else {})
     variants = _resolve(schema, root)
 
-    known: dict[str, dict[str, Any]] = {}
+    if isinstance(value, list):
+        return [
+            path
+            for index, item in enumerate(value)
+            for variant in variants[:1]
+            for path in undefined_input_fields(
+                variant.get("items"), item, root, f"{prefix}.{index}", depth + 1
+            )
+        ]
+
+    if not isinstance(value, dict):
+        return []
+
+    known: dict[str, list[Any]] = {}
+    accepts_anything = False
     for variant in variants:
+        if variant.get("additionalProperties") not in (None, False):
+            accepts_anything = True
         properties = variant.get("properties")
         if isinstance(properties, dict):
             for name, definition in properties.items():
-                if isinstance(definition, dict):
-                    known.setdefault(name, definition)
+                known.setdefault(name, []).append(definition)
 
     if not known:
         return []
@@ -151,15 +164,21 @@ def undefined_input_fields(
     undefined = []
     for name, nested in value.items():
         path = f"{prefix}.{name}" if prefix else name
-        definition = known.get(name)
-        if definition is None:
-            undefined.append(path)
-        else:
-            undefined.extend(
-                undefined_input_fields(definition, nested, root, path, depth + 1)
-            )
+        definitions = known.get(name)
 
-    return undefined
+        if not definitions:
+            if not accepts_anything:
+                undefined.append(path)
+            continue
+
+        # a key is only undefined when every variant that could hold it says so
+        per_variant = [
+            undefined_input_fields(definition, nested, root, path, depth + 1)
+            for definition in definitions
+        ]
+        undefined.extend(set.intersection(*(set(paths) for paths in per_variant)))
+
+    return sorted(undefined)
 
 
 @rewrite_module
@@ -298,7 +317,9 @@ class Apps(metaclass=NoPublicConstructor):
                 org_name=existing_app.org_name,
                 project_name=existing_app.project_name,
             )
-        except ResourceNotFound:
+        except Exception:
+            # the check is a courtesy, and must never stand between the user
+            # and a call the server would have accepted
             return []
 
         if template is None:

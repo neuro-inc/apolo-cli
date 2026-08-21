@@ -1613,6 +1613,58 @@ async def test_apps_configure_names_fields_the_version_does_not_have(
             )
 
 
+async def test_apps_configure_when_the_template_cannot_be_read(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    """The check is a courtesy: losing it must not cost the user the call."""
+    instance = {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.1",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+    sent = {}
+
+    async def handler(request: web.Request) -> web.Response:
+        if "templates" in request.path:
+            return web.json_response(data={"error": "nope"}, status=500)
+        if request.method == "PUT":
+            sent.update(await request.json())
+        return web.json_response(data=instance, status=200)
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", handler)
+    web_app.router.add_get(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+        "/templates/aws-s3/26.0.1",
+        handler,
+    )
+    web_app.router.add_put(
+        "/apis/apps/v1/cluster/default/org/superorg/project/test3/instances/someid",
+        handler,
+    )
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.configure(
+            app_id="someid",
+            app_data={"template_name": "aws-s3", "input": {"s3": {"port": 1}}},
+        )
+
+    assert sent == {"input": {"s3": {"port": 1}}}
+
+
 def test_undefined_input_fields() -> None:
     schema = {
         "properties": {
@@ -1634,3 +1686,47 @@ def test_undefined_input_fields() -> None:
     # nothing to say about a schema that declares no properties
     assert undefined_input_fields({}, {"anything": 1}) == []
     assert undefined_input_fields(None, {"anything": 1}) == []
+
+
+def test_undefined_input_fields_descends_into_arrays() -> None:
+    schema = {
+        "properties": {
+            "ports": {
+                "type": "array",
+                "items": {"$ref": "#/$defs/Port"},
+            }
+        },
+        "$defs": {"Port": {"properties": {"port": {"type": "integer"}}}},
+    }
+
+    assert undefined_input_fields(schema, {"ports": [{"port": 80}]}) == []
+    assert undefined_input_fields(schema, {"ports": [{"port": 80}, {"old": 1}]}) == [
+        "ports.1.old"
+    ]
+
+
+def test_undefined_input_fields_accepts_a_key_from_any_variant() -> None:
+    """A property several variants define must be read against all of them."""
+    schema = {
+        "properties": {
+            "auth": {"anyOf": [{"$ref": "#/$defs/A"}, {"$ref": "#/$defs/B"}]}
+        },
+        "$defs": {
+            "A": {"properties": {"username": {"type": "string"}}},
+            "B": {"properties": {"token": {"type": "string"}}},
+        },
+    }
+
+    assert undefined_input_fields(schema, {"auth": {"username": "u"}}) == []
+    assert undefined_input_fields(schema, {"auth": {"token": "t"}}) == []
+    assert undefined_input_fields(schema, {"auth": {"neither": 1}}) == ["auth.neither"]
+
+
+def test_undefined_input_fields_leaves_open_schemas_alone() -> None:
+    schema = {
+        "properties": {
+            "labels": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+    }
+
+    assert undefined_input_fields(schema, {"labels": {"anything": "x"}}) == []
