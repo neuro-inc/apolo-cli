@@ -235,14 +235,25 @@ async def install(
     type=str,
     help="Comment for the configuration.",
 )
+@option(
+    "--upgrade",
+    is_flag=True,
+    help="Move the app to the template_version in the file (a newer version, "
+    "or 'latest'). Without it the app stays on its installed version.",
+)
 async def configure(
     root: Root,
     app_id: str,
     file_path: str,
     comment: str | None,
+    upgrade: bool,
 ) -> None:
     """
     Reconfigure an app instance using YAML file.
+
+    The app keeps the template version it was installed with, whatever version
+    the file was written for. Pass --upgrade to move it to the file's
+    template_version.
     """
     if root.quiet:
         apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
@@ -252,6 +263,23 @@ async def configure(
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
+    file_version = app_data.get("template_version")
+    if file_version and not root.quiet:
+        existing = await root.client.apps.get(app_id)
+        if upgrade:
+            root.print(
+                f"Upgrading [bold]{existing.template_name}[/bold] "
+                f"{existing.template_version} -> {file_version}",
+                markup=True,
+            )
+        elif file_version != existing.template_version:
+            root.print(
+                f"The app stays on [bold]{existing.template_version}[/bold]; "
+                f"the file is for {file_version}. "
+                "Pass --upgrade to move the app to that version.",
+                markup=True,
+            )
+
     try:
         with root.status(
             f"Configuring the app [bold]{app_id}[/bold] with [bold]{file_path}[/bold]"
@@ -260,6 +288,7 @@ async def configure(
                 app_id=app_id,
                 app_data=app_data,
                 comment=comment,
+                upgrade=upgrade,
             )
             root.print(apps_fmtr([resp]))
     except IllegalArgumentError as e:

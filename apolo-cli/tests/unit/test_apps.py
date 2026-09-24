@@ -1,3 +1,4 @@
+import dataclasses
 import json
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
@@ -157,6 +158,54 @@ def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
     assert not capture.err
     assert "configured using" in capture.out
     assert capture.code == 0
+
+
+@contextmanager
+def mock_apps_get(template_version: str) -> Iterator[None]:
+    with mock.patch.object(Apps, "get") as mocked:
+
+        async def get(*args: Any, **kwargs: Any) -> App:
+            app = _app_factory()
+            return dataclasses.replace(app, template_version=template_version)
+
+        mocked.side_effect = get
+        yield
+
+
+def test_app_configure_upgrade(run_cli: _RunCli, tmp_path: Any) -> None:
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text("""
+    template_version: v2.0.0
+    input: {}
+    """)
+
+    with mock_apps_get("v1.0.0"), mock_apps_configure():
+        capture = run_cli(
+            ["app", "configure", "app-id-123", "-f", str(app_yaml), "--upgrade"]
+        )
+        call = Apps.configure.call_args  # type: ignore[attr-defined]
+
+    assert capture.code == 0, capture.err
+    assert "v1.0.0 -> v2.0.0" in capture.out
+    assert call.kwargs["upgrade"] is True
+
+
+def test_app_configure_other_version_hints_at_upgrade(
+    run_cli: _RunCli, tmp_path: Any
+) -> None:
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text("""
+    template_version: v2.0.0
+    input: {}
+    """)
+
+    with mock_apps_get("v1.0.0"), mock_apps_configure():
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+        call = Apps.configure.call_args  # type: ignore[attr-defined]
+
+    assert capture.code == 0, capture.err
+    assert "stays on" in capture.out and "--upgrade" in capture.out
+    assert call.kwargs["upgrade"] is False
 
 
 def test_app_uninstall(run_cli: _RunCli) -> None:

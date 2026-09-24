@@ -1789,3 +1789,148 @@ def test_undefined_input_fields_leaves_open_schemas_alone() -> None:
     }
 
     assert undefined_input_fields(schema, {"labels": {"anything": "x"}}) == []
+
+
+def _upgrade_instance() -> dict[str, Any]:
+    return {
+        "id": "someid",
+        "name": "name",
+        "display_name": "display_name",
+        "template_name": "aws-s3",
+        "template_version": "26.0.0",
+        "project_name": "test3",
+        "org_name": "superorg",
+        "cluster_name": "default",
+        "namespace": "namespace",
+        "state": "state",
+        "creator": "creator",
+        "created_at": "2025-05-07 11:00:00+00:00",
+        "updated_at": "2025-05-07 11:00:00+00:00",
+        "endpoints": [],
+    }
+
+
+def _s3_template(version: str, *fields: str) -> dict[str, Any]:
+    return {
+        "name": "aws-s3",
+        "version": version,
+        "input": {
+            "properties": {"s3": {"$ref": "#/$defs/S3Params"}},
+            "$defs": {
+                "S3Params": {"properties": {f: {"type": "integer"} for f in fields}},
+            },
+        },
+    }
+
+
+async def _upgrade_server(
+    aiohttp_server: _TestServerFactory, sent: dict[str, Any]
+) -> Any:
+    templates = {
+        "26.0.0": _s3_template("26.0.0", "port"),
+        "26.1.0": _s3_template("26.1.0", "port", "timeout"),
+    }
+    instance = _upgrade_instance()
+
+    async def get_instance(request: web.Request) -> web.Response:
+        return web.json_response(data=instance, status=200)
+
+    async def get_template(request: web.Request) -> web.Response:
+        sent.setdefault("templates_read", []).append(request.match_info["version"])
+        return web.json_response(data=templates[request.match_info["version"]])
+
+    async def put_instance(request: web.Request) -> web.Response:
+        sent.update(await request.json())
+        return web.json_response(data=instance, status=200)
+
+    base = "/apis/apps/v1/cluster/default/org/superorg/project/test3"
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/someid", get_instance)
+    web_app.router.add_get(base + "/templates/aws-s3/{version}", get_template)
+    web_app.router.add_put(base + "/instances/someid", put_instance)
+    return await aiohttp_server(web_app)
+
+
+async def test_apps_configure_upgrade_sends_the_file_version(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    sent: dict[str, Any] = {}
+    srv = await _upgrade_server(aiohttp_server, sent)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.configure(
+            app_id="someid",
+            app_data={
+                "template_name": "aws-s3",
+                "template_version": "26.1.0",
+                "input": {"s3": {"port": 8080, "timeout": 5}},
+            },
+            upgrade=True,
+        )
+
+    # fields new in 26.1.0 are checked against 26.1.0, not the installed 26.0.0
+    assert sent["templates_read"] == ["26.1.0"]
+    assert sent["template_version"] == "26.1.0"
+    assert sent["input"] == {"s3": {"port": 8080, "timeout": 5}}
+
+
+async def test_apps_configure_upgrade_names_fields_the_target_lacks(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    sent: dict[str, Any] = {}
+    srv = await _upgrade_server(aiohttp_server, sent)
+
+    async with make_client(srv.make_url("/")) as client:
+        with pytest.raises(ValueError, match="Cannot upgrade app: .*s3.retries"):
+            await client.apps.configure(
+                app_id="someid",
+                app_data={
+                    "template_name": "aws-s3",
+                    "template_version": "26.1.0",
+                    "input": {"s3": {"port": 1, "retries": 3}},
+                },
+                upgrade=True,
+            )
+
+    assert "template_version" not in sent
+
+
+async def test_apps_configure_upgrade_needs_a_version(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    sent: dict[str, Any] = {}
+    srv = await _upgrade_server(aiohttp_server, sent)
+
+    async with make_client(srv.make_url("/")) as client:
+        with pytest.raises(ValueError, match="no template_version to upgrade to"):
+            await client.apps.configure(
+                app_id="someid",
+                app_data={"template_name": "aws-s3", "input": {}},
+                upgrade=True,
+            )
+
+    assert sent == {}
+
+
+async def test_apps_configure_without_upgrade_keeps_the_installed_version(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    sent: dict[str, Any] = {}
+    srv = await _upgrade_server(aiohttp_server, sent)
+
+    async with make_client(srv.make_url("/")) as client:
+        await client.apps.configure(
+            app_id="someid",
+            app_data={
+                "template_name": "aws-s3",
+                "template_version": "26.1.0",
+                "input": {"s3": {"port": 8080}},
+            },
+        )
+
+    assert sent["templates_read"] == ["26.0.0"]
+    assert "template_version" not in sent
