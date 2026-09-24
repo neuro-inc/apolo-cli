@@ -52,12 +52,15 @@ def mock_apps_install() -> Iterator[None]:
 
 
 @contextmanager
-def mock_apps_configure() -> Iterator[None]:
-    """Context manager to mock the Apps.install method."""
+def mock_apps_configure(template_version: str | None = None) -> Iterator[None]:
+    """Context manager to mock the Apps.configure method."""
     with mock.patch.object(Apps, "configure") as mocked:
 
         async def configure(**kwargs: Any) -> App:
-            return _app_factory(state="queued")
+            app = _app_factory(state="queued")
+            if template_version is not None:
+                app = dataclasses.replace(app, template_version=template_version)
+            return app
 
         mocked.side_effect = configure
         yield
@@ -160,18 +163,6 @@ def test_app_update(run_cli: _RunCli, tmp_path: Any) -> None:
     assert capture.code == 0
 
 
-@contextmanager
-def mock_apps_get(template_version: str) -> Iterator[None]:
-    with mock.patch.object(Apps, "get") as mocked:
-
-        async def get(*args: Any, **kwargs: Any) -> App:
-            app = _app_factory()
-            return dataclasses.replace(app, template_version=template_version)
-
-        mocked.side_effect = get
-        yield
-
-
 def test_app_configure_upgrade(run_cli: _RunCli, tmp_path: Any) -> None:
     app_yaml = tmp_path / "app.yaml"
     app_yaml.write_text("""
@@ -179,14 +170,15 @@ def test_app_configure_upgrade(run_cli: _RunCli, tmp_path: Any) -> None:
     input: {}
     """)
 
-    with mock_apps_get("v1.0.0"), mock_apps_configure():
+    with mock.patch.object(Apps, "get") as get, mock_apps_configure("v2.0.0"):
         capture = run_cli(
             ["app", "configure", "app-id-123", "-f", str(app_yaml), "--upgrade"]
         )
         call = Apps.configure.call_args  # type: ignore[attr-defined]
 
     assert capture.code == 0, capture.err
-    assert "v1.0.0 -> v2.0.0" in capture.out
+    assert "now on v2.0.0" in capture.out
+    get.assert_not_called()
     assert call.kwargs["upgrade"] is True
 
 
@@ -199,13 +191,29 @@ def test_app_configure_other_version_hints_at_upgrade(
     input: {}
     """)
 
-    with mock_apps_get("v1.0.0"), mock_apps_configure():
+    with mock_apps_configure("v1.0.0"):
         capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
         call = Apps.configure.call_args  # type: ignore[attr-defined]
 
     assert capture.code == 0, capture.err
-    assert "stays on" in capture.out and "--upgrade" in capture.out
+    assert "stays on v1.0.0" in capture.out and "--upgrade" in capture.out
     assert call.kwargs["upgrade"] is False
+
+
+def test_app_configure_same_version_prints_no_hint(
+    run_cli: _RunCli, tmp_path: Any
+) -> None:
+    app_yaml = tmp_path / "app.yaml"
+    app_yaml.write_text("""
+    template_version: v1.0.0
+    input: {}
+    """)
+
+    with mock_apps_configure("v1.0.0"):
+        capture = run_cli(["app", "configure", "app-id-123", "-f", str(app_yaml)])
+
+    assert capture.code == 0, capture.err
+    assert "stays on" not in capture.out
 
 
 def test_app_uninstall(run_cli: _RunCli) -> None:

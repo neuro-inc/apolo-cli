@@ -263,23 +263,6 @@ async def configure(
     with open(file_path) as file:
         app_data = yaml.safe_load(file)
 
-    file_version = app_data.get("template_version")
-    if file_version and not root.quiet:
-        existing = await root.client.apps.get(app_id)
-        if upgrade:
-            root.print(
-                f"Upgrading [bold]{existing.template_name}[/bold] "
-                f"{existing.template_version} -> {file_version}",
-                markup=True,
-            )
-        elif file_version != existing.template_version:
-            root.print(
-                f"The app stays on [bold]{existing.template_version}[/bold]; "
-                f"the file is for {file_version}. "
-                "Pass --upgrade to move the app to that version.",
-                markup=True,
-            )
-
     try:
         with root.status(
             f"Configuring the app [bold]{app_id}[/bold] with [bold]{file_path}[/bold]"
@@ -306,6 +289,19 @@ async def configure(
             f"App [bold]{app_id}[/bold] configured using [bold]{file_path}[/bold].",
             markup=True,
         )
+        file_version = app_data.get("template_version")
+        if upgrade:
+            root.print(
+                f"The app is now on [bold]{resp.template_version}[/bold].",
+                markup=True,
+            )
+        elif file_version and file_version != resp.template_version:
+            root.print(
+                f"The app stays on [bold]{resp.template_version}[/bold]; "
+                f"the file is for {file_version}. "
+                "Pass --upgrade to move the app to that version.",
+                markup=True,
+            )
 
 
 @command()

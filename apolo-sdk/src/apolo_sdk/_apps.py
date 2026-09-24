@@ -430,8 +430,8 @@ class Apps(metaclass=NoPublicConstructor):
             raise ValueError(
                 f"Cannot update app: {existing_app.template_name} "
                 f"{existing_app.template_version} has no {shown}. "
-                f"Remove {them} from the config, upgrade the app to a "
-                f"version that has {them} (--upgrade), or reinstall it."
+                f"Remove {them} from the config, or reinstall the app on a "
+                f"version that has {them}."
             )
 
         url = (
