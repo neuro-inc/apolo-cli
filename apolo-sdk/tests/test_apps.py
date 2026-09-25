@@ -13,6 +13,7 @@ from apolo_sdk import (
     AppEvent,
     AppEventResource,
     AppState,
+    AppUpgrades,
     Client,
 )
 from apolo_sdk._apps import _undefined_input_fields as undefined_input_fields
@@ -103,6 +104,47 @@ async def test_apps_list(
         assert apps[0].org_name == "superorg"
         assert apps[0].cluster_name == "default"
         assert apps[0].state == "errored"
+
+
+async def test_apps_get_upgrades_in_batches_and_order(
+    aiohttp_server: _TestServerFactory,
+    make_client: Callable[..., Client],
+) -> None:
+    app_ids = [f"app-{i:03d}" for i in range(150)]
+    requested: list[list[str]] = []
+
+    async def handler(request: web.Request) -> web.Response:
+        ids = request.query.getall("id")
+        requested.append(ids)
+        return web.json_response(
+            [
+                {
+                    "id": app_id,
+                    "template_name": "postgres",
+                    "template_version": "v1.0.0",
+                    "available_versions": (
+                        ["v2.0.0", "v1.1.0"] if app_id == "app-120" else []
+                    ),
+                }
+                for app_id in ids
+            ]
+        )
+
+    web_app = web.Application()
+    web_app.router.add_get("/apis/apps/v2/instances/upgrades", handler)
+    srv = await aiohttp_server(web_app)
+
+    async with make_client(srv.make_url("/")) as client:
+        upgrades = await client.apps.get_upgrades(app_ids)
+
+    assert [len(batch) for batch in requested] == [100, 50]
+    assert [upgrade.id for upgrade in upgrades] == app_ids
+    assert upgrades[120] == AppUpgrades(
+        id="app-120",
+        template_name="postgres",
+        template_version="v1.0.0",
+        available_versions=["v2.0.0", "v1.1.0"],
+    )
 
 
 async def test_apps_install(

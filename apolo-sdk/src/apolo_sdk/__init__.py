@@ -50,6 +50,7 @@ from ._apps import (
     Apps,
     AppState,
     AppTemplate,
+    AppUpgrades,
     AppValue,
 )
 from ._bucket_base import (
@@ -154,6 +155,7 @@ __all__ = (
     "AppEventResource",
     "AppState",
     "AppTemplate",
+    "AppUpgrades",
     "AppValue",
     "Apps",
     "AppsConfig",

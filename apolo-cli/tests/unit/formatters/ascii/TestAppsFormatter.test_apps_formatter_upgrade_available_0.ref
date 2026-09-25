@@ -1,0 +1,4 @@
+ID        Name         Display Name   Template        Creator     Version                     State    
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+  app-123   test-app-1   Test App 1     test-template   test-user   v1.0.0 (v2.0.0 available)   running  
+  app-456   test-app-1   Test App 1     test-template   test-user   v1.0.0                      running
