@@ -344,15 +344,26 @@ class Apps(metaclass=NoPublicConstructor):
             return self._parse_app_read_instance(item)
 
     async def _undefined_for_app(
-        self, existing_app: App, app_data: dict[str, Any]
+        self,
+        existing_app: App,
+        app_data: dict[str, Any],
+        version: str | None = None,
     ) -> builtins.list[str]:
-        if existing_app.template_version == app_data.get("template_version"):
-            return []
+        """Input fields in ``app_data`` that ``version`` of the template lacks.
+
+        Without ``version`` the app stays on its installed version, so the
+        config is checked against that one (and not at all when it was written
+        for the same version).
+        """
+        if version is None:
+            if existing_app.template_version == app_data.get("template_version"):
+                return []
+            version = existing_app.template_version
 
         try:
             template = await self.get_template(
                 name=existing_app.template_name,
-                version=existing_app.template_version,
+                version=version,
                 cluster_name=existing_app.cluster_name,
                 org_name=existing_app.org_name,
                 project_name=existing_app.project_name,
@@ -370,7 +381,15 @@ class Apps(metaclass=NoPublicConstructor):
         app_id: str,
         app_data: dict[str, Any],
         comment: str | None = None,
+        *,
+        upgrade: bool = False,
     ) -> App:
+        """Reconfigure an app with ``app_data``.
+
+        The app stays on the template version it was installed with, whatever
+        version the config was written for, unless ``upgrade`` is set: then it
+        moves to the config's ``template_version`` (or ``latest``).
+        """
         existing_app = await self.get(app_id)
 
         config_template = app_data.get("template_name")
@@ -384,13 +403,30 @@ class Apps(metaclass=NoPublicConstructor):
                 f"{config_template!r}"
             )
 
-        undefined = await self._undefined_for_app(existing_app, app_data)
+        target_version = None
+        if upgrade:
+            target_version = app_data.get("template_version")
+            if not target_version:
+                raise ValueError(
+                    "Cannot upgrade app: the config has no template_version "
+                    "to upgrade to"
+                )
+
+        undefined = await self._undefined_for_app(
+            existing_app, app_data, target_version
+        )
 
         if undefined:
             shown = ", ".join(undefined[:10])
             if len(undefined) > 10:
                 shown += f" and {len(undefined) - 10} more"
             them = "them" if len(undefined) > 1 else "it"
+            if target_version is not None:
+                raise ValueError(
+                    f"Cannot upgrade app: {existing_app.template_name} "
+                    f"{target_version} has no {shown}. "
+                    f"Remove {them} from the config."
+                )
             raise ValueError(
                 f"Cannot update app: {existing_app.template_name} "
                 f"{existing_app.template_version} has no {shown}. "
@@ -415,6 +451,8 @@ class Apps(metaclass=NoPublicConstructor):
             configure_payload["input"] = app_data["input"]
         if comment is not None:
             configure_payload["comment"] = comment
+        if target_version is not None:
+            configure_payload["template_version"] = target_version
 
         auth = await self._config._api_auth()
         async with self._core.request(

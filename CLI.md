@@ -1384,7 +1384,7 @@ Name | Description|
 
 ### apolo app configure
 
-Reconfigure an app instance using YAML file.
+Reconfigure an app instance using YAML file.<br/><br/>The app keeps the template version it was installed with, whatever version the<br/>file was written for. Pass --upgrade to move it to the file's<br/>template_version.
 
 **Usage:**
 
@@ -1399,6 +1399,7 @@ Name | Description|
 |_--help_|Show this message and exit.|
 |_\-c, --comment TEXT_|Comment for the configuration.|
 |_\-f, --file TEXT_|Path to the app configuration YAML file.  \[required]|
+|_--upgrade_|Move the app to the template_version in the file \(a newer version, or 'latest'). Without it the app stays on its installed version.|
 
 
 

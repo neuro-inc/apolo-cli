@@ -39,6 +39,12 @@ apolo app configure [OPTIONS] APP_ID
 
 Reconfigure an app instance using `YAML` file.
 
+The app keeps the template
+version it was installed with, whatever version
+the file was written for. Pass
+--upgrade to move it to the file's
+template_version.
+
 #### Options
 
 | Name | Description |
@@ -46,6 +52,7 @@ Reconfigure an app instance using `YAML` file.
 | _--help_ | Show this message and exit. |
 | _-c, --comment TEXT_ | Comment for the configuration. |
 | _-f, --file TEXT_ | Path to the app configuration YAML file.  _\[required\]_ |
+| _--upgrade_ | Move the app to the template\_version in the file \(a newer version, or 'latest'\). Without it the app stays on its installed version. |
 
 
 
