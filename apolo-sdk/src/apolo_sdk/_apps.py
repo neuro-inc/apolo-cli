@@ -1,7 +1,7 @@
 import builtins
 import enum
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -70,6 +70,15 @@ class App:
     created_at: datetime
     updated_at: datetime
     endpoints: list[str]
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class AppUpgrades:
+    id: str
+    template_name: str
+    template_version: str
+    available_versions: list[str]
 
 
 @rewrite_module
@@ -220,6 +229,8 @@ def _common(per_variant: list[list[str]]) -> list[str]:
 
 @rewrite_module
 class Apps(metaclass=NoPublicConstructor):
+    _UPGRADES_BATCH = 100
+
     def __init__(self, core: _Core, config: Config) -> None:
         self._core = core
         self._config = config
@@ -311,6 +322,27 @@ class Apps(metaclass=NoPublicConstructor):
                 break
             current_page += 1
             url = url.update_query(page=current_page)
+
+    async def get_upgrades(self, app_ids: Sequence[str]) -> builtins.list[AppUpgrades]:
+        """Template versions each app can be upgraded to, in ``app_ids`` order."""
+        url = self._build_v2_base_url() / "instances" / "upgrades"
+        auth = await self._config._api_auth()
+        upgrades: builtins.list[AppUpgrades] = []
+        for start in range(0, len(app_ids), self._UPGRADES_BATCH):
+            batch = app_ids[start : start + self._UPGRADES_BATCH]
+            batch_url = url.with_query([("id", app_id) for app_id in batch])
+            async with self._core.request("GET", batch_url, auth=auth) as resp:
+                items = await resp.json()
+            upgrades.extend(
+                AppUpgrades(
+                    id=item["id"],
+                    template_name=item["template_name"],
+                    template_version=item["template_version"],
+                    available_versions=item["available_versions"],
+                )
+                for item in items
+            )
+        return upgrades
 
     async def get(self, app_id: str) -> App:
         url = self._build_v2_base_url() / "instances" / app_id

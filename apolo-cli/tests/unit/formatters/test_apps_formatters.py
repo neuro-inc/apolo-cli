@@ -1,7 +1,9 @@
+import io
 from datetime import datetime
 from typing import Any
 
 import pytest
+from rich.console import Console
 
 from apolo_sdk import App, AppConfigurationRevision, AppEvent, AppEventResource
 
@@ -46,6 +48,22 @@ class TestAppsFormatter:
     def test_apps_formatter(self, apps: list[App], rich_cmp: Any) -> None:
         formatter = AppsFormatter()
         rich_cmp(formatter(apps))
+
+    def test_apps_formatter_upgrade_available(self, rich_cmp: Any) -> None:
+        behind = _app_factory(template_version="v1.0.0")
+        current = _app_factory(id="app-456", template_version="v1.0.0")
+        formatter = AppsFormatter(
+            upgrades={"app-123": ["v2.0.0", "v1.1.0"], "app-456": []}
+        )
+        rich_cmp(formatter([behind, current]))
+
+    def test_apps_formatter_upgrade_available_without_markup(self) -> None:
+        formatter = AppsFormatter(upgrades={"app-123": ["v2.0.0"]})
+        console = Console(file=io.StringIO(), markup=False, width=200)
+        console.print(formatter([_app_factory(template_version="v1.0.0")]))
+        out = console.file.getvalue()  # type: ignore[attr-defined]
+        assert "v1.0.0 (v2.0.0 available)" in out
+        assert "[yellow]" not in out
 
     def test_simple_apps_formatter(self, apps: list[App], rich_cmp: Any) -> None:
         formatter = SimpleAppsFormatter()

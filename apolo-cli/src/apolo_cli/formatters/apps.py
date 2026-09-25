@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from rich.console import Group, RenderableType
@@ -23,6 +24,9 @@ class SimpleAppsFormatter(BaseAppsFormatter):
 
 
 class AppsFormatter(BaseAppsFormatter):
+    def __init__(self, upgrades: Mapping[str, Sequence[str]] | None = None) -> None:
+        self._upgrades = upgrades or {}
+
     def __call__(self, apps: list[App]) -> Table:
         table = Table(box=box.SIMPLE_HEAVY)
         table.add_column("ID", no_wrap=True)
@@ -34,13 +38,19 @@ class AppsFormatter(BaseAppsFormatter):
         table.add_column("State")
 
         for app in apps:
+            version = Text(app.template_version)
+            available = self._upgrades.get(app.id)
+            if available:
+                version.append(" (")
+                version.append(f"{available[0]} available", style="yellow")
+                version.append(")")
             table.add_row(
                 app.id,
                 app.name,
                 app.display_name,
                 app.template_name,
                 app.creator,
-                app.template_version,
+                version,
                 app.state,
             )
         return table

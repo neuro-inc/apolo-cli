@@ -12,7 +12,9 @@ from apolo_sdk import (
     AppConfigurationRevision,
     AppEvent,
     AppEventResource,
+    AppUpgrades,
     AppValue,
+    IllegalArgumentError,
 )
 from apolo_sdk._apps import Apps
 
@@ -22,9 +24,23 @@ _RunCli = Any
 
 
 @contextmanager
-def mock_apps_list(apps: list[App]) -> Iterator[None]:
-    """Context manager to mock the Apps.list method."""
-    with mock.patch.object(Apps, "list") as mocked:
+def mock_apps_list(
+    apps: list[App],
+    upgrades: list[AppUpgrades] | None = None,
+    upgrades_error: Exception | None = None,
+) -> Iterator[None]:
+    """Context manager to mock the Apps.list and Apps.get_upgrades methods."""
+    with (
+        mock.patch.object(Apps, "list") as mocked,
+        mock.patch.object(Apps, "get_upgrades") as get_upgrades,
+    ):
+
+        async def get_upgrades_side_effect(app_ids: list[str]) -> list[AppUpgrades]:
+            if upgrades_error is not None:
+                raise upgrades_error
+            return upgrades or []
+
+        get_upgrades.side_effect = get_upgrades_side_effect
 
         @asynccontextmanager
         async def async_cm(**kwargs: Any) -> AsyncIterator[AsyncIterator[App]]:
@@ -94,6 +110,41 @@ def test_app_ls_with_apps(run_cli: _RunCli) -> None:
     assert "1.0" in capture.out
     assert "running" in capture.out
     assert capture.code == 0
+
+
+def test_app_ls_shows_available_upgrade(run_cli: _RunCli) -> None:
+    apps = [_app_factory(), _app_factory(id="app-456", name="test-app-2")]
+    upgrades = [
+        AppUpgrades(
+            id="app-123",
+            template_name="test-template",
+            template_version="1.0",
+            available_versions=["2.0", "1.5"],
+        ),
+        AppUpgrades(
+            id="app-456",
+            template_name="test-template",
+            template_version="1.0",
+            available_versions=[],
+        ),
+    ]
+
+    with mock_apps_list(apps, upgrades=upgrades):
+        capture = run_cli(["app", "ls"])
+
+    assert capture.code == 0, capture.err
+    assert capture.out.count("2.0 available") == 1
+
+
+def test_app_ls_without_upgrades_endpoint(run_cli: _RunCli) -> None:
+    with mock_apps_list(
+        [_app_factory()], upgrades_error=IllegalArgumentError("invalid uuid")
+    ):
+        capture = run_cli(["app", "ls"])
+
+    assert capture.code == 0, capture.err
+    assert "app-123" in capture.out
+    assert "available" not in capture.out
 
 
 def test_app_ls_no_apps(run_cli: _RunCli) -> None:

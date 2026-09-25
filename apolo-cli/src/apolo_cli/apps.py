@@ -7,10 +7,12 @@ import click
 import yaml
 
 from apolo_sdk import (
+    App,
     AppEvent,
     AppState,
     AppValue,
     IllegalArgumentError,
+    ResourceNotFound,
 )
 
 from .click_types import CLUSTER, ORG, PROJECT
@@ -81,11 +83,6 @@ async def list_cmd(
     """
     List apps.
     """
-    if root.quiet:
-        apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
-    else:
-        apps_fmtr = AppsFormatter()
-
     apps = []
     if not state:
         state = AppState.get_active_states()
@@ -99,11 +96,26 @@ async def list_cmd(
                 apps.append(app)
                 status.update(f"Fetching apps ({len(apps)} loaded)")
 
+    if root.quiet:
+        apps_fmtr: BaseAppsFormatter = SimpleAppsFormatter()
+    else:
+        apps_fmtr = AppsFormatter(upgrades=await _get_upgrades(root, apps))
+
     with root.pager():
         if apps:
             root.print(apps_fmtr(apps))
         else:
             root.print("No apps found.")
+
+
+async def _get_upgrades(root: Root, apps: list[App]) -> dict[str, list[str]]:
+    if not apps:
+        return {}
+    try:
+        upgrades = await root.client.apps.get_upgrades([app.id for app in apps])
+    except (IllegalArgumentError, ResourceNotFound):
+        return {}
+    return {upgrade.id: upgrade.available_versions for upgrade in upgrades}
 
 
 @command()
