@@ -5,6 +5,14 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.9.0 (2026-09-28)
+
+## Features
+
+- Added `apolo app configure --upgrade` to move an app to the `template_version` in its config file; without the flag the app keeps its installed version. ([#3537](https://github.com/neuro-inc/apolo-cli/issues/3537))
+- Show in `apolo app ls` when an app can be upgraded to a newer template version, and add `Apps.get_upgrades()` to the SDK. ([#3538](https://github.com/neuro-inc/apolo-cli/issues/3538))
+
+
 # Apolo SDK/CLI 26.8.1 (2026-08-21)
 
 ## Features
