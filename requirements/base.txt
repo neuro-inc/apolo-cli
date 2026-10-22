@@ -2,7 +2,7 @@
 -e apolo-cli
 aiobotocore==3.9.1
 aiodocker==0.27.0
-aiohttp==3.14.3
+aiohttp==3.14.5
 azure-core==1.41.0
 azure-storage-blob==12.30.3
 # upgrade setup.py after pinning certtifi to new version
@@ -22,4 +22,4 @@ rich==15.0.0
 ruamel.yaml==0.19.1
 toml==0.10.2
 wcwidth==0.9.1
-yarl==1.24.5
+yarl==1.25.1
