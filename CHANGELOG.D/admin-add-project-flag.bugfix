@@ -1,1 +1,0 @@
-Fix `apolo admin add-project` crashing with `TypeError: add_project() got an unexpected keyword argument 'no_virtual_kube'`.
