@@ -3,6 +3,8 @@ from contextlib import ExitStack, contextmanager
 from decimal import Decimal
 from unittest import mock
 
+import pytest
+
 from apolo_sdk import (
     Preset,
     _Admin,
@@ -16,6 +18,8 @@ from apolo_sdk import (
     _NvidiaGPUPreset,
     _OrgUserRoleType,
     _OrgUserWithInfo,
+    _Project,
+    _ProjectUserRoleType,
     _Quota,
     _ResourcePreset,
     _TPUPreset,
@@ -712,3 +716,42 @@ def test_add_org_user_with_credits(run_cli: _RunCli) -> None:
             )
         assert f"{value} is not valid decimal number" in capture.err, capture
         assert capture.code == 2
+
+
+@pytest.mark.parametrize(
+    "flags,expected",
+    [
+        ([], False),
+        (["--has-virtual-kube"], True),
+        (["--no-virtual-kube"], False),
+    ],
+)
+def test_add_project_virtual_kube(
+    run_cli: _RunCli, flags: list[str], expected: bool
+) -> None:
+    with ExitStack() as exit_stack:
+        mocked = exit_stack.enter_context(mock.patch.object(_Admin, "create_project"))
+        exit_stack.enter_context(mock.patch.object(Config, "fetch"))
+
+        async def create_project(
+            name: str,
+            cluster_name: str,
+            org_name: str | None,
+            is_default: bool = False,
+            default_role: _ProjectUserRoleType = _ProjectUserRoleType.WRITER,
+            has_virtual_kube: bool | None = None,
+        ) -> _Project:
+            return _Project(
+                name=name,
+                cluster_name=cluster_name,
+                org_name=org_name,
+                is_default=is_default,
+                default_role=default_role,
+                has_virtual_kube=bool(has_virtual_kube),
+            )
+
+        mocked.side_effect = create_project
+        capture = run_cli(["admin", "add-project", "default", "proj", *flags])
+
+    assert capture.code == 0, capture
+    assert mocked.call_args.kwargs["has_virtual_kube"] is expected
