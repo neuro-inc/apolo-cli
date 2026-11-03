@@ -5,6 +5,11 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.11.1 (2026-11-03)
+
+No significant changes.
+
+
 # Apolo SDK/CLI 26.11.0 (2026-11-02)
 
 ## Bugfixes
