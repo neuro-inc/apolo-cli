@@ -1,0 +1,8 @@
+Image       image://default/org/project/test:v1                  
+ Digest      sha256:manifest                                      
+ Media type  application/vnd.docker.distribution.manifest.v2+json 
+ Size        32.9 MB                                              
+                                        
+  Platform   Digest               Size  
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+             sha256:manifest   32.9 MB

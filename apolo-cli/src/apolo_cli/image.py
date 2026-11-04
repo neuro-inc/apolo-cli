@@ -4,6 +4,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import replace
 
+import click
 from rich.markup import escape as rich_escape
 from rich.progress import Progress
 
@@ -14,6 +15,7 @@ from .formatters.images import (
     BaseImagesFormatter,
     BaseTagsFormatter,
     DockerImageProgress,
+    ImageInfoFormatter,
     LongImagesFormatter,
     LongTagsFormatter,
     QuietImagesFormatter,
@@ -67,9 +69,31 @@ async def push(root: Root, local_image: str, remote_image: str | None) -> None:
 
 
 @command()
+@option(
+    "--platform",
+    "platforms",
+    metavar="PLATFORM",
+    multiple=True,
+    help="Pull the image for a specific platform, e.g. linux/amd64 "
+    "(multiple option, the docker engine platform by default). "
+    "Pulling several platforms requires the containerd image store.",
+)
+@option(
+    "--all-platforms",
+    is_flag=True,
+    default=False,
+    help="Pull all platforms of a multi-platform image. "
+    "Requires the containerd image store.",
+)
 @argument("remote_image")
 @argument("local_image", required=False)
-async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
+async def pull(
+    root: Root,
+    platforms: Sequence[str],
+    all_platforms: bool,
+    remote_image: str,
+    local_image: str | None,
+) -> None:
     """
     Pull an image from platform registry.
 
@@ -81,9 +105,14 @@ async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
     apolo pull image:myimage
     apolo pull image:/other-project/alpine:shared
     apolo pull image:/project/my-alpine:production alpine:from-registry
+    apolo pull --platform linux/amd64 image:myimage
+    apolo pull --platform linux/amd64 --platform linux/arm64 image:myimage
+    apolo pull --all-platforms image:myimage
 
     """
 
+    if platforms and all_platforms:
+        raise click.UsageError("--platform and --all-platforms are mutually exclusive")
     progress = DockerImageProgress.create(console=root.console, quiet=root.quiet)
     remote_obj = root.client.parse.remote_image(remote_image)
     if local_image is not None:
@@ -92,7 +121,11 @@ async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
         local_obj = None
     with contextlib.closing(progress):
         result_local_image = await root.client.images.pull(
-            remote_obj, local_obj, progress=progress
+            remote_obj,
+            local_obj,
+            progress=progress,
+            platform=platforms or None,
+            all_platforms=all_platforms,
         )
     root.print(result_local_image)
 
@@ -281,6 +314,28 @@ async def size(root: Root, image: RemoteImage) -> None:
 
 @command()
 @argument("image", type=RemoteImageType())
+async def inspect(root: Root, image: RemoteImage) -> None:
+    """
+    Show platforms and attestations of an image
+
+    Image name must be URL with image:// scheme.
+    Image name must contain tag.
+
+    Lists the platform images of a multi-platform image and its build
+    attestations (SBOM, provenance) with the platform each one describes.
+
+    Examples:
+
+    apolo image inspect image:/other-project/alpine:shared
+    apolo image inspect image:myimage:latest
+    """
+    with root.status(f"Fetching manifests for image [b]{image}[/b]"):
+        info = await root.client.images.inspect(image)
+    root.print(ImageInfoFormatter()(image, info))
+
+
+@command()
+@argument("image", type=RemoteImageType())
 async def digest(root: Root, image: RemoteImage) -> None:
     """
     Get digest of an image from remote registry
@@ -303,6 +358,7 @@ image.add_command(pull)
 image.add_command(rm)
 image.add_command(size)
 image.add_command(digest)
+image.add_command(inspect)
 image.add_command(tags)
 
 

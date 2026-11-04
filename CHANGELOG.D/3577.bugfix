@@ -1,0 +1,2 @@
+Fixed `apolo image size` and `apolo image tags -l` failing with `KeyError: 'layers'` for multi-platform images and images with build attestations.
+Fixed `apolo image pull` reporting an image that has no build for the local platform as not found; Docker's error is shown instead.

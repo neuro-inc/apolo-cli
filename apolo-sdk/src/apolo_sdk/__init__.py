@@ -105,7 +105,7 @@ from ._errors import (
     StdStreamError,
 )
 from ._file_filter import AsyncFilterFunc, FileFilter
-from ._images import Images
+from ._images import ImageAttestation, ImageInfo, ImagePlatform, Images
 from ._jobs import (
     Container,
     HTTPPort,
@@ -193,8 +193,11 @@ __all__ = (
     "FileStatusType",
     "HTTPPort",
     "IllegalArgumentError",
+    "ImageAttestation",
     "ImageCommitFinished",
     "ImageCommitStarted",
+    "ImageInfo",
+    "ImagePlatform",
     "ImageProgressPull",
     "ImageProgressPush",
     "ImageProgressSave",

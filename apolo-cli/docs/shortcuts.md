@@ -500,6 +500,9 @@ Image names can contain tag.
 $ apolo pull image:myimage
 $ apolo pull image:/other-project/alpine:shared
 $ apolo pull image:/project/my-alpine:production alpine:from-registry
+$ apolo pull --platform linux/amd64 image:myimage
+$ apolo pull --platform linux/amd64 --platform linux/arm64 image:myimage
+$ apolo pull --all-platforms image:myimage
 ```
 
 #### Options
@@ -507,6 +510,8 @@ $ apolo pull image:/project/my-alpine:production alpine:from-registry
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _--all-platforms_ | Pull all platforms of a multi-platform image. Requires the containerd image store. |
+| _--platform PLATFORM_ | Pull the image for a specific platform, e.g. linux/amd64 \(multiple option, the docker engine platform by default\). Pulling several platforms requires the containerd image store. |
 
 
 

@@ -107,6 +107,7 @@
 		* [apolo disk rm](#apolo-disk-rm)
 	* [apolo image](#apolo-image)
 		* [apolo image digest](#apolo-image-digest)
+		* [apolo image inspect](#apolo-image-inspect)
 		* [apolo image ls](#apolo-image-ls)
 		* [apolo image pull](#apolo-image-pull)
 		* [apolo image push](#apolo-image-push)
@@ -2686,6 +2687,7 @@ Name | Description|
 |Usage|Description|
 |---|---|
 | _[apolo image digest](#apolo-image-digest)_| Get digest of an image from remote registry |
+| _[apolo image inspect](#apolo-image-inspect)_| Show platforms and attestations of an image |
 | _[apolo image ls](#apolo-image-ls)_| List images |
 | _[apolo image pull](#apolo-image-pull)_| Pull an image from platform registry |
 | _[apolo image push](#apolo-image-push)_| Push an image to platform registry |
@@ -2712,6 +2714,34 @@ apolo image digest [OPTIONS] IMAGE
 
 apolo image digest image:/other-project/alpine:shared
 apolo image digest image:myimage:latest
+
+```
+
+**Options:**
+
+Name | Description|
+|----|------------|
+|_--help_|Show this message and exit.|
+
+
+
+
+### apolo image inspect
+
+Show platforms and attestations of an image<br/><br/>Image name must be URL with image:// scheme. Image name must contain tag.<br/><br/>Lists the platform images of a multi-platform image and its build attestations<br/>\(SBOM, provenance) with the platform each one describes.<br/>
+
+**Usage:**
+
+```bash
+apolo image inspect [OPTIONS] IMAGE
+```
+
+**Examples:**
+
+```bash
+
+apolo image inspect image:/other-project/alpine:shared
+apolo image inspect image:myimage:latest
 
 ```
 
@@ -2768,6 +2798,9 @@ apolo image pull [OPTIONS] REMOTE_IMAGE [LOCAL_IMAGE]
 apolo pull image:myimage
 apolo pull image:/other-project/alpine:shared
 apolo pull image:/project/my-alpine:production alpine:from-registry
+apolo pull --platform linux/amd64 image:myimage
+apolo pull --platform linux/amd64 --platform linux/arm64 image:myimage
+apolo pull --all-platforms image:myimage
 
 ```
 
@@ -2776,6 +2809,8 @@ apolo pull image:/project/my-alpine:production alpine:from-registry
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_\--all-platforms_|Pull all platforms of a multi-platform image. Requires the containerd image store.|
+|_--platform PLATFORM_|Pull the image for a specific platform, e.g. linux/amd64 \(multiple option, the docker engine platform by default). Pulling several platforms requires the containerd image store.|
 
 
 
@@ -4435,6 +4470,9 @@ apolo pull [OPTIONS] REMOTE_IMAGE [LOCAL_IMAGE]
 apolo pull image:myimage
 apolo pull image:/other-project/alpine:shared
 apolo pull image:/project/my-alpine:production alpine:from-registry
+apolo pull --platform linux/amd64 image:myimage
+apolo pull --platform linux/amd64 --platform linux/arm64 image:myimage
+apolo pull --all-platforms image:myimage
 
 ```
 
@@ -4443,6 +4481,8 @@ apolo pull image:/project/my-alpine:production alpine:from-registry
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_\--all-platforms_|Pull all platforms of a multi-platform image. Requires the containerd image store.|
+|_--platform PLATFORM_|Pull the image for a specific platform, e.g. linux/amd64 \(multiple option, the docker engine platform by default). Pulling several platforms requires the containerd image store.|
 
 
 

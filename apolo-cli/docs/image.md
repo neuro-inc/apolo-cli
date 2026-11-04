@@ -14,6 +14,7 @@ Container image operations.
 | Usage | Description |
 | :--- | :--- |
 | [_digest_](image.md#digest) | Get digest of an image from remote registry |
+| [_inspect_](image.md#inspect) | Show platforms and attestations of an image |
 | [_ls_](image.md#ls) | List images |
 | [_pull_](image.md#pull) | Pull an image from platform registry |
 | [_push_](image.md#push) | Push an image to platform registry |
@@ -45,6 +46,44 @@ Image name must contain tag.
 
 $ apolo image digest image:/other-project/alpine:shared
 $ apolo image digest image:myimage:latest
+```
+
+#### Options
+
+| Name | Description |
+| :--- | :--- |
+| _--help_ | Show this message and exit. |
+
+
+
+### inspect
+
+Show platforms and attestations of an image
+
+
+#### Usage
+
+```bash
+apolo image inspect [OPTIONS] IMAGE
+```
+
+Show platforms and attestations of an image
+
+Image name must be `URL` with
+image:// scheme.
+Image name must contain tag.
+
+Lists the platform images of a
+multi-platform image and its build
+attestations (`SBOM`, provenance) with the
+platform each one describes.
+
+#### Examples
+
+```bash
+
+$ apolo image inspect image:/other-project/alpine:shared
+$ apolo image inspect image:myimage:latest
 ```
 
 #### Options
@@ -108,6 +147,9 @@ Image names can contain tag.
 $ apolo pull image:myimage
 $ apolo pull image:/other-project/alpine:shared
 $ apolo pull image:/project/my-alpine:production alpine:from-registry
+$ apolo pull --platform linux/amd64 image:myimage
+$ apolo pull --platform linux/amd64 --platform linux/arm64 image:myimage
+$ apolo pull --all-platforms image:myimage
 ```
 
 #### Options
@@ -115,6 +157,8 @@ $ apolo pull image:/project/my-alpine:production alpine:from-registry
 | Name | Description |
 | :--- | :--- |
 | _--help_ | Show this message and exit. |
+| _--all-platforms_ | Pull all platforms of a multi-platform image. Requires the containerd image store. |
+| _--platform PLATFORM_ | Pull the image for a specific platform, e.g. linux/amd64 \(multiple option, the docker engine platform by default\). Pulling several platforms requires the containerd image store. |
 
 
 

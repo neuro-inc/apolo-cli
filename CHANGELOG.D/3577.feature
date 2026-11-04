@@ -1,0 +1,2 @@
+Added `--platform` option to `apolo image pull` to pull an image built for another platform, e.g. `--platform linux/amd64` on an arm64 machine. The option can be repeated, and `--all-platforms` pulls every platform of a multi-platform image; pulling several platforms requires the containerd image store in Docker.
+Added `apolo image inspect` command and `Images.inspect()` SDK method that list the platform images of an image tag and its build attestations (SBOM, provenance) with the platform each attestation describes.
