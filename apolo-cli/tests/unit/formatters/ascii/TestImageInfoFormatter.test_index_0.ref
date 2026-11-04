@@ -1,0 +1,17 @@
+Image       image://default/org/project/test:v1     
+ Digest      sha256:index                            
+ Media type  application/vnd.oci.image.index.v1+json 
+ Size        7.7 MB                                  
+                                       
+  Platform      Digest           Size  
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+  linux/amd64   sha256:amd64   3.6 MB  
+  linux/arm64   sha256:arm64   4.1 MB  
+                                       
+                                                                                                                                   
+  Attestation                                Platform       Predicate types                  Digest                          Size  
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+  attestation-manifest                       linux/amd64    https://spdx.dev/Document        sha256:attestation-amd64     84.8 kB  
+                                                            https://slsa.dev/provenance/v1                                         
+  application/vnd.dev.sigstore.bundle+json   sha256:index                                    sha256:signature           300 Bytes  
+                                                                                             sha256:unknown               0 Bytes

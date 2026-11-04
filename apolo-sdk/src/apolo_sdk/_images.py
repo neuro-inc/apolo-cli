@@ -2,7 +2,8 @@ import builtins
 import contextlib
 import logging
 import re
-from dataclasses import replace
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass, replace
 from typing import Any
 
 import aiodocker
@@ -44,7 +45,38 @@ MANIFEST_ACCEPT = ", ".join(
     )
 )
 
+CONTAINERD_SNAPSHOTTER = ["driver-type", "io.containerd.snapshotter.v1"]
+
 log = logging.getLogger(__package__)
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class ImagePlatform:
+    digest: str
+    platform: str | None
+    size: int
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class ImageAttestation:
+    digest: str
+    type: str | None
+    reference_digest: str | None
+    predicate_types: Sequence[str]
+    size: int
+
+
+@rewrite_module
+@dataclass(frozen=True)
+class ImageInfo:
+    name: str
+    digest: str
+    media_type: str
+    size: int
+    platforms: Sequence[ImagePlatform]
+    attestations: Sequence[ImageAttestation]
 
 
 def _make_docker_error(status: int, message: str) -> DockerError:
@@ -170,11 +202,72 @@ class Images(metaclass=NoPublicConstructor):
         url = self._get_image_url(remote) / "manifests"
         data = await self._get_manifest(url / remote.tag, auth)
         if "manifests" in data:
-            layers = await self._index_layers(url, data, auth)
-            size = sum(layers.values())
+            children = await self._index_manifests(url, data, auth, attestations=False)
+            size = _unique_layers_size(manifest for _, manifest in children)
         else:
             size = sum(layer["size"] for layer in data["layers"])
         return Tag(name=remote.tag, size=size)
+
+    async def inspect(self, remote: RemoteImage) -> ImageInfo:
+        auth = await self._config._registry_auth()
+        assert remote.tag
+        url = self._get_image_url(remote) / "manifests"
+        async with self._core.request(
+            "GET",
+            url / remote.tag,
+            auth=auth,
+            headers={"Accept": MANIFEST_ACCEPT},
+        ) as resp:
+            digest = resp.headers["Docker-Content-Digest"]
+            media_type = resp.content_type
+            data = await resp.json()
+        if "manifests" in data:
+            children = await self._index_manifests(url, data, auth, attestations=True)
+            size = _unique_layers_size(
+                manifest for entry, manifest in children if not _is_attestation(entry)
+            )
+        else:
+            children = [({"digest": digest}, data)]
+            size = sum(layer["size"] for layer in data.get("layers", []))
+        platforms = []
+        attestations = []
+        for entry, manifest in children:
+            layers = manifest.get("layers", [])
+            layers_size = sum(layer["size"] for layer in layers)
+            if _is_attestation(entry):
+                annotations = entry.get("annotations", {})
+                attestations.append(
+                    ImageAttestation(
+                        digest=entry["digest"],
+                        type=annotations.get("vnd.docker.reference.type")
+                        or entry.get("artifactType"),
+                        reference_digest=annotations.get("vnd.docker.reference.digest")
+                        or manifest.get("subject", {}).get("digest"),
+                        predicate_types=[
+                            layer["annotations"]["in-toto.io/predicate-type"]
+                            for layer in layers
+                            if "in-toto.io/predicate-type"
+                            in layer.get("annotations", {})
+                        ],
+                        size=layers_size,
+                    )
+                )
+            else:
+                platforms.append(
+                    ImagePlatform(
+                        digest=entry["digest"],
+                        platform=_format_platform(entry.get("platform")),
+                        size=layers_size,
+                    )
+                )
+        return ImageInfo(
+            name=remote.tag,
+            digest=digest,
+            media_type=media_type,
+            size=size,
+            platforms=platforms,
+            attestations=attestations,
+        )
 
     async def _get_manifest(self, url: URL, auth: str) -> dict[str, Any]:
         async with self._core.request(
@@ -185,20 +278,23 @@ class Images(metaclass=NoPublicConstructor):
         ) as resp:
             return await resp.json()
 
-    async def _index_layers(
-        self, url: URL, index: dict[str, Any], auth: str
-    ) -> dict[str, int]:
-        layers: dict[str, int] = {}
+    async def _index_manifests(
+        self, url: URL, index: dict[str, Any], auth: str, *, attestations: bool
+    ) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+        result = []
         for entry in index["manifests"]:
-            if _is_attestation(entry):
+            if not attestations and _is_attestation(entry):
                 continue
             data = await self._get_manifest(url / entry["digest"], auth)
             if "manifests" in data:
-                layers.update(await self._index_layers(url, data, auth))
+                result.extend(
+                    await self._index_manifests(
+                        url, data, auth, attestations=attestations
+                    )
+                )
             else:
-                for layer in data.get("layers", []):
-                    layers[layer["digest"]] = layer["size"]
-        return layers
+                result.append((entry, data))
+        return result
 
     async def rm(self, remote: RemoteImage, digest: str) -> None:
         auth = await self._config._registry_auth()
@@ -212,10 +308,24 @@ class Images(metaclass=NoPublicConstructor):
         local: LocalImage | None = None,
         *,
         progress: AbstractDockerImageProgress | None = None,
-        platform: str | None = None,
+        platform: str | Sequence[str] | None = None,
     ) -> LocalImage:
         if local is None:
             local = self._parse._remote_to_local_image(remote)
+
+        platforms: list[str | None]
+        if platform is None or isinstance(platform, str):
+            platforms = [platform]
+        else:
+            platforms = list(dict.fromkeys(platform)) or [None]
+        if len(platforms) > 1:
+            info = await self._docker.system.info()
+            if CONTAINERD_SNAPSHOTTER not in (info.get("DriverStatus") or []):
+                raise ValueError(
+                    "Pulling several platforms of an image requires "
+                    "the containerd image store in the docker engine, "
+                    "see https://docs.docker.com/engine/storage/containerd/"
+                )
 
         if progress is None:
             progress = _DummyProgress()
@@ -224,16 +334,21 @@ class Images(metaclass=NoPublicConstructor):
         repo = remote.as_docker_url()
         auth = await self._config._docker_auth()
         try:
-            async with aclosing(  # type: ignore
-                self._docker.pull(
-                    repo, auth=auth, repo=repo, platform=platform, stream=True
-                )
-            ) as it:
-                async for obj in it:
-                    self._temporary_images.add(repo)
-                    step = _try_parse_image_progress_step(obj, remote.tag)
-                    if step:
-                        progress.step(step)
+            for item in platforms:
+                if len(platforms) > 1:
+                    progress.step(
+                        ImageProgressStep(f"Platform {item}", "", "", None, None)
+                    )
+                async with aclosing(  # type: ignore
+                    self._docker.pull(
+                        repo, auth=auth, repo=repo, platform=item, stream=True
+                    )
+                ) as it:
+                    async for obj in it:
+                        self._temporary_images.add(repo)
+                        step = _try_parse_image_progress_step(obj, remote.tag)
+                        if step:
+                            progress.step(step)
         except DockerError as error:
             if error.status == 404:
                 if (
@@ -313,8 +428,26 @@ def _is_attestation(entry: dict[str, Any]) -> bool:
     annotations = entry.get("annotations", {})
     if annotations.get("vnd.docker.reference.type") == "attestation-manifest":
         return True
+    if "artifactType" in entry:
+        return True
     platform = entry.get("platform", {})
     return platform.get("os") == platform.get("architecture") == "unknown"
+
+
+def _unique_layers_size(manifests: Iterable[dict[str, Any]]) -> int:
+    layers = {
+        layer["digest"]: layer["size"]
+        for manifest in manifests
+        for layer in manifest.get("layers", [])
+    }
+    return sum(layers.values())
+
+
+def _format_platform(platform: dict[str, Any] | None) -> str | None:
+    if not platform:
+        return None
+    parts = (platform.get("os"), platform.get("architecture"), platform.get("variant"))
+    return "/".join(part for part in parts if part)
 
 
 def _try_parse_image_progress_step(

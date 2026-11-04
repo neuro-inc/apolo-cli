@@ -2,8 +2,11 @@ import time
 from typing import Any
 
 from apolo_sdk import (
+    ImageAttestation,
     ImageCommitFinished,
     ImageCommitStarted,
+    ImageInfo,
+    ImagePlatform,
     ImageProgressPull,
     ImageProgressPush,
     ImageProgressSave,
@@ -12,7 +15,7 @@ from apolo_sdk import (
     RemoteImage,
 )
 
-from apolo_cli.formatters.images import DockerImageProgress
+from apolo_cli.formatters.images import DockerImageProgress, ImageInfoFormatter
 
 from tests.unit.conftest import NewConsole
 
@@ -242,3 +245,70 @@ class TestDockerImageProgress:
         with DockerImageProgress.create(console, quiet=False) as formatter:
             formatter.commit_finished(ImageCommitFinished(job_id="job-id"))
             rich_cmp(console)
+
+
+class TestImageInfoFormatter:
+    image = RemoteImage.new_platform_image(
+        name="test",
+        tag="v1",
+        cluster_name="default",
+        registry="reg",
+        org_name="org",
+        project_name="project",
+    )
+
+    def test_index(self, rich_cmp: Any) -> None:
+        info = ImageInfo(
+            name="v1",
+            digest="sha256:index",
+            media_type="application/vnd.oci.image.index.v1+json",
+            size=7722744,
+            platforms=[
+                ImagePlatform(
+                    digest="sha256:amd64", platform="linux/amd64", size=3630425
+                ),
+                ImagePlatform(
+                    digest="sha256:arm64", platform="linux/arm64", size=4092423
+                ),
+            ],
+            attestations=[
+                ImageAttestation(
+                    digest="sha256:attestation-amd64",
+                    type="attestation-manifest",
+                    reference_digest="sha256:amd64",
+                    predicate_types=[
+                        "https://spdx.dev/Document",
+                        "https://slsa.dev/provenance/v1",
+                    ],
+                    size=84783,
+                ),
+                ImageAttestation(
+                    digest="sha256:signature",
+                    type="application/vnd.dev.sigstore.bundle+json",
+                    reference_digest="sha256:index",
+                    predicate_types=[],
+                    size=300,
+                ),
+                ImageAttestation(
+                    digest="sha256:unknown",
+                    type=None,
+                    reference_digest=None,
+                    predicate_types=[],
+                    size=0,
+                ),
+            ],
+        )
+        rich_cmp(ImageInfoFormatter()(self.image, info))
+
+    def test_manifest(self, rich_cmp: Any) -> None:
+        info = ImageInfo(
+            name="v1",
+            digest="sha256:manifest",
+            media_type="application/vnd.docker.distribution.manifest.v2+json",
+            size=32890532,
+            platforms=[
+                ImagePlatform(digest="sha256:manifest", platform=None, size=32890532)
+            ],
+            attestations=[],
+        )
+        rich_cmp(ImageInfoFormatter()(self.image, info))

@@ -13,6 +13,10 @@ from yarl import URL
 from apolo_sdk import (
     AuthorizationError,
     Client,
+    ImageAttestation,
+    ImageInfo,
+    ImagePlatform,
+    ImageProgressStep,
     LocalImage,
     RemoteImage,
     Tag,
@@ -1322,6 +1326,89 @@ class TestImages:
         assert result == local_image
         assert patched_pull.call_args.kwargs["platform"] == "linux/amd64"
 
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_success_pull_image_several_platforms(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        patched_info.return_value = {
+            "DriverStatus": [["driver-type", "io.containerd.snapshotter.v1"]]
+        }
+        patched_tag.return_value = True
+        patched_pull.side_effect = lambda *args, **kwargs: message_generator()
+        progress = mock.Mock()
+        image = self.parser.parse_as_platform_image(
+            "image://default/project/image:bananas"
+        )
+        local_image = self.parser.parse_as_local_image("bananas:latest")
+        async with make_client("https://api.localhost.localdomain") as client:
+            result = await client.images.pull(
+                image,
+                local_image,
+                progress=progress,
+                platform=["linux/amd64", "linux/arm64", "linux/amd64"],
+            )
+        assert result == local_image
+        assert [call.kwargs["platform"] for call in patched_pull.call_args_list] == [
+            "linux/amd64",
+            "linux/arm64",
+        ]
+        assert [call.args[0] for call in progress.step.call_args_list] == [
+            ImageProgressStep("Platform linux/amd64", "", "", None, None),
+            ImageProgressStep("Platform linux/arm64", "", "", None, None),
+        ]
+        patched_tag.assert_called_once()
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_image_several_platforms_classic_store(
+        self, patched_pull: Any, patched_info: Any, make_client: _MakeClient
+    ) -> None:
+        patched_info.return_value = {
+            "DriverStatus": [
+                ["Backing Filesystem", "extfs"],
+                ["Supports d_type", "true"],
+            ]
+        }
+        image = self.parser.parse_as_platform_image(
+            "image://default/project/image:bananas"
+        )
+        async with make_client("https://api.localhost.localdomain") as client:
+            with pytest.raises(ValueError, match="containerd image store"):
+                await client.images.pull(image, platform=["linux/amd64", "linux/arm64"])
+        patched_pull.assert_not_called()
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_success_pull_image_one_platform_in_list(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        patched_tag.return_value = True
+        patched_pull.return_value = message_generator()
+        image = self.parser.parse_as_platform_image(
+            "image://default/project/image:bananas"
+        )
+        async with make_client("https://api.localhost.localdomain") as client:
+            await client.images.pull(image, platform=["linux/arm64"])
+        assert patched_pull.call_args.kwargs["platform"] == "linux/arm64"
+        patched_info.assert_not_called()
+
     @mock.patch("aiodocker.images.DockerImages.tag")
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_success_pull_image_no_target(
@@ -1937,6 +2024,220 @@ class TestRegistry:
             ret = await client.images.tag_info(image)
 
         assert ret == Tag(name="test_tag", size=32890532)
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_inspect_oci_index(
+        self, aiohttp_server: _TestServerFactory, make_client: _MakeClient
+    ) -> None:
+        index_type = "application/vnd.oci.image.index.v1+json"
+        manifest_type = "application/vnd.oci.image.manifest.v1+json"
+        index_digest = "sha256:" + "1" * 64
+        documents: dict[str, dict[str, Any]] = {
+            "test_tag": {
+                "schemaVersion": 2,
+                "mediaType": index_type,
+                "manifests": [
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:amd64",
+                        "size": 668,
+                        "platform": {"architecture": "amd64", "os": "linux"},
+                    },
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:arm64",
+                        "size": 668,
+                        "platform": {
+                            "architecture": "arm64",
+                            "os": "linux",
+                            "variant": "v8",
+                        },
+                    },
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:attestation",
+                        "size": 836,
+                        "annotations": {
+                            "vnd.docker.reference.digest": "sha256:amd64",
+                            "vnd.docker.reference.type": "attestation-manifest",
+                        },
+                        "platform": {"architecture": "unknown", "os": "unknown"},
+                    },
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:signature",
+                        "size": 500,
+                        "artifactType": "application/vnd.dev.sigstore.bundle+json",
+                    },
+                ],
+            },
+            "sha256:amd64": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "layers": [
+                    {"digest": "sha256:layer-amd64", "size": 3630321},
+                    {"digest": "sha256:layer-shared", "size": 104},
+                ],
+            },
+            "sha256:arm64": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "layers": [
+                    {"digest": "sha256:layer-arm64", "size": 4092319},
+                    {"digest": "sha256:layer-shared", "size": 104},
+                ],
+            },
+            "sha256:attestation": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "layers": [
+                    {
+                        "mediaType": "application/vnd.in-toto+json",
+                        "digest": "sha256:sbom",
+                        "size": 81259,
+                        "annotations": {
+                            "in-toto.io/predicate-type": "https://spdx.dev/Document"
+                        },
+                    },
+                    {
+                        "mediaType": "application/vnd.in-toto+json",
+                        "digest": "sha256:provenance",
+                        "size": 3524,
+                        "annotations": {
+                            "in-toto.io/predicate-type": (
+                                "https://slsa.dev/provenance/v1"
+                            )
+                        },
+                    },
+                ],
+            },
+            "sha256:signature": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "artifactType": "application/vnd.dev.sigstore.bundle+json",
+                "layers": [{"digest": "sha256:bundle", "size": 300}],
+                "subject": {
+                    "mediaType": index_type,
+                    "digest": index_digest,
+                    "size": 1000,
+                },
+            },
+        }
+
+        async def handler(request: web.Request) -> web.Response:
+            assert index_type in request.headers["Accept"]
+            reference = request.match_info["reference"]
+            document = documents[reference]
+            return web.json_response(
+                document,
+                content_type=document["mediaType"],
+                headers={"Docker-Content-Digest": index_digest},
+            )
+
+        app = web.Application()
+        app.router.add_get("/v2/project/test/manifests/{reference}", handler)
+
+        srv = await aiohttp_server(app)
+        url = "http://platform"
+        registry_url = srv.make_url("/v2/")
+
+        async with make_client(url, registry_url=registry_url) as client:
+            image = RemoteImage.new_platform_image(
+                name="test",
+                tag="test_tag",
+                cluster_name="default",
+                registry="reg",
+                org_name=None,
+                project_name="project",
+            )
+            ret = await client.images.inspect(image)
+
+        assert ret == ImageInfo(
+            name="test_tag",
+            digest=index_digest,
+            media_type=index_type,
+            size=3630321 + 4092319 + 104,
+            platforms=[
+                ImagePlatform(
+                    digest="sha256:amd64", platform="linux/amd64", size=3630425
+                ),
+                ImagePlatform(
+                    digest="sha256:arm64", platform="linux/arm64/v8", size=4092423
+                ),
+            ],
+            attestations=[
+                ImageAttestation(
+                    digest="sha256:attestation",
+                    type="attestation-manifest",
+                    reference_digest="sha256:amd64",
+                    predicate_types=[
+                        "https://spdx.dev/Document",
+                        "https://slsa.dev/provenance/v1",
+                    ],
+                    size=81259 + 3524,
+                ),
+                ImageAttestation(
+                    digest="sha256:signature",
+                    type="application/vnd.dev.sigstore.bundle+json",
+                    reference_digest=index_digest,
+                    predicate_types=[],
+                    size=300,
+                ),
+            ],
+        )
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_inspect_manifest(
+        self, aiohttp_server: _TestServerFactory, make_client: _MakeClient
+    ) -> None:
+        manifest_type = "application/vnd.docker.distribution.manifest.v2+json"
+        digest = "sha256:" + "2" * 64
+
+        async def handler(request: web.Request) -> web.Response:
+            return web.json_response(
+                {
+                    "schemaVersion": 2,
+                    "mediaType": manifest_type,
+                    "config": {"digest": "sha256:config", "size": 349},
+                    "layers": [
+                        {"digest": "sha256:layer-1", "size": 32036078},
+                        {"digest": "sha256:layer-2", "size": 854454},
+                    ],
+                },
+                content_type=manifest_type,
+                headers={"Docker-Content-Digest": digest},
+            )
+
+        app = web.Application()
+        app.router.add_get("/v2/project/test/manifests/test_tag", handler)
+
+        srv = await aiohttp_server(app)
+        url = "http://platform"
+        registry_url = srv.make_url("/v2/")
+
+        async with make_client(url, registry_url=registry_url) as client:
+            image = RemoteImage.new_platform_image(
+                name="test",
+                tag="test_tag",
+                cluster_name="default",
+                registry="reg",
+                org_name=None,
+                project_name="project",
+            )
+            ret = await client.images.inspect(image)
+
+        assert ret == ImageInfo(
+            name="test_tag",
+            digest=digest,
+            media_type=manifest_type,
+            size=32890532,
+            platforms=[ImagePlatform(digest=digest, platform=None, size=32890532)],
+            attestations=[],
+        )
 
     @pytest.mark.skipif(
         sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"

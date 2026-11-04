@@ -46,7 +46,7 @@ Images
                       local: LocalImage, \
                       *, \
                       progress: Optional[AbstractDockerImageProgress] = None, \
-                      platform: Optional[str] = None, \
+                      platform: Union[str, Sequence[str], None] = None, \
                  ) -> RemoteImage
       :async:
 
@@ -64,9 +64,14 @@ Images
          a callback interface for reporting pulling progress, ``None`` for no progress
          report (default).
 
-      :param str platform: platform to pull in the ``os[/arch[/variant]]`` format,
-                           e.g. ``"linux/amd64"``. ``None`` means the platform of
-                           the docker engine (default).
+      :param platform: platform to pull in the ``os[/arch[/variant]]`` format,
+                       e.g. ``"linux/amd64"``, or a sequence of platforms to pull
+                       one after another into the same *local* image. ``None``
+                       means the platform of the docker engine (default).
+
+                       Pulling several platforms requires the containerd image
+                       store in the docker engine, :class:`ValueError` is raised
+                       otherwise.
 
       :return: *local* image if explicitly specified, calculated remote image if
                *local* is ``None`` (:class:`LocalImage`)
@@ -125,7 +130,7 @@ Images
 
       For a multi-platform image (an image index or a manifest list) the size is
       the total size of unique layers across all platform images, attestation
-      manifests are not counted.
+      manifests and other attached artifacts are not counted.
 
       :param RemoteImage image: a spec for remote image with tag on Apolo
                                 registry.
@@ -142,6 +147,18 @@ Images
                                 registry.
 
       :return: tag information (name and size) (:class:`Tag`)
+
+
+   .. method:: inspect(image: RemoteImage) -> ImageInfo
+      :async:
+
+      Return the platform images and the attestations (e.g. SBOM and provenance
+      produced by ``docker buildx build --sbom --provenance``) of specified tag.
+
+      :param RemoteImage image: a spec for remote image with tag on Apolo
+                                registry.
+
+      :return: image information (:class:`ImageInfo`)
 
 
 AbstractDockerImageProgress
@@ -321,6 +338,93 @@ RemoteImage
    .. attribute:: size
 
       Tag size in bytes, :class:`int`.
+
+
+ImageInfo
+=========
+
+.. class:: ImageInfo
+
+   *Read-only* :class:`~dataclasses.dataclass` for image information returned by
+   :meth:`Images.inspect`.
+
+   .. attribute:: name
+
+      Tag name, :class:`str`.
+
+   .. attribute:: digest
+
+      Digest of the tag manifest, :class:`str`.
+
+   .. attribute:: media_type
+
+      Media type of the tag manifest, e.g. an image index or an image manifest,
+      :class:`str`.
+
+   .. attribute:: size
+
+      Image size in bytes, the same as :meth:`Images.size`, :class:`int`.
+
+   .. attribute:: platforms
+
+      Platform images, a sequence of :class:`ImagePlatform`.
+
+   .. attribute:: attestations
+
+      Attestations and other artifacts attached to the image, a sequence of
+      :class:`ImageAttestation`.
+
+
+ImagePlatform
+=============
+
+.. class:: ImagePlatform
+
+   *Read-only* :class:`~dataclasses.dataclass` for a platform image.
+
+   .. attribute:: digest
+
+      Manifest digest, :class:`str`.
+
+   .. attribute:: platform
+
+      Platform in the ``os/arch[/variant]`` format, e.g. ``"linux/amd64"``,
+      ``None`` for a single-platform image that is not an image index.
+
+   .. attribute:: size
+
+      Total size of the image layers in bytes, :class:`int`.
+
+
+ImageAttestation
+================
+
+.. class:: ImageAttestation
+
+   *Read-only* :class:`~dataclasses.dataclass` for an attestation manifest.
+
+   .. attribute:: digest
+
+      Manifest digest, :class:`str`.
+
+   .. attribute:: type
+
+      ``vnd.docker.reference.type`` annotation (``"attestation-manifest"``) or
+      the OCI artifact type, ``None`` if unknown.
+
+   .. attribute:: reference_digest
+
+      Digest of the manifest the attestation describes, ``None`` if unknown.
+
+   .. attribute:: predicate_types
+
+      In-toto predicate types of the attestation layers, e.g.
+      ``"https://spdx.dev/Document"`` or ``"https://slsa.dev/provenance/v1"``,
+      a sequence of :class:`str`.
+
+   .. attribute:: size
+
+      Total size of the attestation layers in bytes, :class:`int`.
 
 
 .. _DockerHub: https://hub.docker.com

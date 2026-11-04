@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from types import TracebackType
 
 from rich import box
-from rich.console import Console, RenderableType
+from rich.console import Console, Group, RenderableType
 from rich.progress import DownloadColumn, Progress, TaskID, TextColumn
 from rich.table import Table
 from rich.text import Text
@@ -12,6 +12,7 @@ from apolo_sdk import (
     AbstractDockerImageProgress,
     ImageCommitFinished,
     ImageCommitStarted,
+    ImageInfo,
     ImageProgressPull,
     ImageProgressPush,
     ImageProgressSave,
@@ -269,3 +270,44 @@ class LongTagsFormatter(BaseTagsFormatter):
             assert tag.size
             table.add_row(tag.name, format_size(tag.size))
         return table
+
+
+class ImageInfoFormatter:
+    def __call__(self, image: RemoteImage, info: ImageInfo) -> RenderableType:
+        header = Table(box=None, show_header=False, show_edge=False)
+        header.add_column()
+        header.add_column(style="bold")
+        header.add_row("Image", str(image))
+        header.add_row("Digest", info.digest)
+        header.add_row("Media type", info.media_type)
+        header.add_row("Size", format_size(info.size))
+
+        platforms = Table(box=box.SIMPLE_HEAVY)
+        platforms.add_column("Platform", style="bold")
+        platforms.add_column("Digest")
+        platforms.add_column("Size", justify="right")
+        names: dict[str, str] = {}
+        for item in info.platforms:
+            name = item.platform or ""
+            names[item.digest] = name
+            platforms.add_row(name, item.digest, format_size(item.size))
+        renderables: list[RenderableType] = [header, platforms]
+
+        if info.attestations:
+            attestations = Table(box=box.SIMPLE_HEAVY)
+            attestations.add_column("Attestation", style="bold")
+            attestations.add_column("Platform")
+            attestations.add_column("Predicate types")
+            attestations.add_column("Digest")
+            attestations.add_column("Size", justify="right")
+            for attestation in info.attestations:
+                reference = attestation.reference_digest or ""
+                attestations.add_row(
+                    attestation.type or "",
+                    names.get(reference, reference),
+                    "\n".join(attestation.predicate_types),
+                    attestation.digest,
+                    format_size(attestation.size),
+                )
+            renderables.append(attestations)
+        return Group(*renderables)
