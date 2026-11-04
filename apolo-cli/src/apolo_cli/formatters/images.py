@@ -172,6 +172,12 @@ class DetailedDockerImageProgress(DockerImageProgress):
 class StreamDockerImageProgress(DockerImageProgress):
     def __init__(self, console: Console) -> None:
         self._console = console
+        self._dots = False
+
+    def _end_dots(self) -> None:
+        if self._dots:
+            self._console.print()
+            self._dots = False
 
     def push(self, data: ImageProgressPush) -> None:
         self._console.print(f"Using local image '{data.src}'")
@@ -186,7 +192,9 @@ class StreamDockerImageProgress(DockerImageProgress):
     def step(self, data: ImageProgressStep) -> None:
         if data.layer_id:
             self._console.print(".", end="")
+            self._dots = True
         else:
+            self._end_dots()
             self._console.print(data.message)
 
     def save(self, data: ImageProgressSave) -> None:
@@ -200,7 +208,7 @@ class StreamDockerImageProgress(DockerImageProgress):
         self._console.print("Image created")
 
     def close(self) -> None:
-        pass
+        self._end_dots()
 
 
 class BaseImagesFormatter:
@@ -267,7 +275,7 @@ class LongTagsFormatter(BaseTagsFormatter):
         table.add_column("Size")
         for tag in tags:
             assert tag.name
-            assert tag.size
+            assert tag.size is not None
             table.add_row(tag.name, format_size(tag.size))
         return table
 
@@ -276,15 +284,15 @@ class ImageInfoFormatter:
     def __call__(self, image: RemoteImage, info: ImageInfo) -> RenderableType:
         header = Table(box=None, show_header=False, show_edge=False)
         header.add_column()
-        header.add_column(style="bold")
+        header.add_column(style="bold", overflow="fold")
         header.add_row("Image", str(image))
         header.add_row("Digest", info.digest)
         header.add_row("Media type", info.media_type)
         header.add_row("Size", format_size(info.size))
 
         platforms = Table(box=box.SIMPLE_HEAVY)
-        platforms.add_column("Platform", style="bold")
-        platforms.add_column("Digest")
+        platforms.add_column("Platform", style="bold", overflow="fold")
+        platforms.add_column("Digest", overflow="fold")
         platforms.add_column("Size", justify="right")
         names: dict[str, str] = {}
         for item in info.platforms:
@@ -295,10 +303,10 @@ class ImageInfoFormatter:
 
         if info.attestations:
             attestations = Table(box=box.SIMPLE_HEAVY)
-            attestations.add_column("Attestation", style="bold")
-            attestations.add_column("Platform")
-            attestations.add_column("Predicate types")
-            attestations.add_column("Digest")
+            attestations.add_column("Attestation", style="bold", overflow="fold")
+            attestations.add_column("Platform", overflow="fold")
+            attestations.add_column("Predicate types", overflow="fold")
+            attestations.add_column("Digest", overflow="fold")
             attestations.add_column("Size", justify="right")
             for attestation in info.attestations:
                 reference = attestation.reference_digest or ""

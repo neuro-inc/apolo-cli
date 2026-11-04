@@ -119,12 +119,13 @@ async def pull(
         local_obj: LocalImage | None = root.client.parse.local_image(local_image)
     else:
         local_obj = None
-    if all_platforms:
-        info = await root.client.images.inspect(remote_obj)
-        platforms = [item.platform for item in info.platforms if item.platform]
     with contextlib.closing(progress):
         result_local_image = await root.client.images.pull(
-            remote_obj, local_obj, progress=progress, platform=platforms or None
+            remote_obj,
+            local_obj,
+            progress=progress,
+            platform=platforms or None,
+            all_platforms=all_platforms,
         )
     root.print(result_local_image)
 

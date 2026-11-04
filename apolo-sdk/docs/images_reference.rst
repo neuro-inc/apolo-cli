@@ -47,6 +47,7 @@ Images
                       *, \
                       progress: Optional[AbstractDockerImageProgress] = None, \
                       platform: Union[str, Sequence[str], None] = None, \
+                      all_platforms: bool = False, \
                  ) -> RemoteImage
       :async:
 
@@ -71,7 +72,15 @@ Images
 
                        Pulling several platforms requires the containerd image
                        store in the docker engine, :class:`ValueError` is raised
-                       otherwise.
+                       otherwise. The tag is resolved to its digest once, so all
+                       platforms come from the same image even if the tag is
+                       moved during the pull.
+
+      :param bool all_platforms: pull every platform image of a multi-platform
+                                 *remote* image, ``False`` by default. Cannot be
+                                 combined with *platform*. :class:`ValueError` is
+                                 raised if the image index has a platform image
+                                 without a platform.
 
       :return: *local* image if explicitly specified, calculated remote image if
                *local* is ``None`` (:class:`LocalImage`)

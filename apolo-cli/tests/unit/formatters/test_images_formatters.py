@@ -1,5 +1,8 @@
+import io
 import time
 from typing import Any
+
+from rich.console import Console
 
 from apolo_sdk import (
     ImageAttestation,
@@ -94,6 +97,22 @@ class TestDockerImageProgress:
             rich_cmp(console, index=1)
             formatter.step(ImageProgressStep("message2", "layer1", "status2", 30, 100))
             rich_cmp(console, index=2)
+
+    def test_no_tty_pull_platforms(self, new_console: NewConsole) -> None:
+        console = new_console(tty=False, color=False)
+        with DockerImageProgress.create(console, quiet=False) as formatter:
+            formatter.step(
+                ImageProgressStep("Platform linux/amd64", "", "", None, None)
+            )
+            formatter.step(ImageProgressStep("message1", "layer1", "status1", 1, 100))
+            formatter.step(ImageProgressStep("message2", "layer2", "status1", 1, 100))
+            formatter.step(
+                ImageProgressStep("Platform linux/arm64", "", "", None, None)
+            )
+            formatter.step(ImageProgressStep("message3", "layer3", "status1", 1, 100))
+        assert console.export_text() == (
+            "Platform linux/amd64\n..\nPlatform linux/arm64\n.\n"
+        )
 
     def test_no_tty_push(self, rich_cmp: Any, new_console: NewConsole) -> None:
         console = new_console(tty=False)
@@ -299,6 +318,29 @@ class TestImageInfoFormatter:
             ],
         )
         rich_cmp(ImageInfoFormatter()(self.image, info))
+
+    def test_narrow_terminal(self) -> None:
+        digest = "sha256:" + "a" * 64
+        info = ImageInfo(
+            name="v1",
+            digest=digest,
+            media_type="application/vnd.oci.image.index.v1+json",
+            size=1,
+            platforms=[ImagePlatform(digest=digest, platform="linux/amd64", size=1)],
+            attestations=[
+                ImageAttestation(
+                    digest=digest,
+                    type="attestation-manifest",
+                    reference_digest=digest,
+                    predicate_types=["https://slsa.dev/provenance/v1"],
+                    size=1,
+                )
+            ],
+        )
+        file = io.StringIO()
+        console = Console(file=file, width=80, color_system=None)
+        console.print(ImageInfoFormatter()(self.image, info))
+        assert "…" not in file.getvalue()
 
     def test_manifest(self, rich_cmp: Any) -> None:
         info = ImageInfo(

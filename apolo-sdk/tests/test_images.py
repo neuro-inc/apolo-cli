@@ -1329,66 +1329,6 @@ class TestImages:
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
     @mock.patch("aiodocker.images.DockerImages.pull")
-    async def test_success_pull_image_several_platforms(
-        self,
-        patched_pull: Any,
-        patched_tag: Any,
-        patched_info: Any,
-        make_client: _MakeClient,
-    ) -> None:
-        async def message_generator() -> AsyncIterator[dict[str, Any]]:
-            yield {}
-
-        patched_info.return_value = {
-            "DriverStatus": [["driver-type", "io.containerd.snapshotter.v1"]]
-        }
-        patched_tag.return_value = True
-        patched_pull.side_effect = lambda *args, **kwargs: message_generator()
-        progress = mock.Mock()
-        image = self.parser.parse_as_platform_image(
-            "image://default/project/image:bananas"
-        )
-        local_image = self.parser.parse_as_local_image("bananas:latest")
-        async with make_client("https://api.localhost.localdomain") as client:
-            result = await client.images.pull(
-                image,
-                local_image,
-                progress=progress,
-                platform=["linux/amd64", "linux/arm64", "linux/amd64"],
-            )
-        assert result == local_image
-        assert [call.kwargs["platform"] for call in patched_pull.call_args_list] == [
-            "linux/amd64",
-            "linux/arm64",
-        ]
-        assert [call.args[0] for call in progress.step.call_args_list] == [
-            ImageProgressStep("Platform linux/amd64", "", "", None, None),
-            ImageProgressStep("Platform linux/arm64", "", "", None, None),
-        ]
-        patched_tag.assert_called_once()
-
-    @mock.patch("aiodocker.system.DockerSystem.info")
-    @mock.patch("aiodocker.images.DockerImages.pull")
-    async def test_pull_image_several_platforms_classic_store(
-        self, patched_pull: Any, patched_info: Any, make_client: _MakeClient
-    ) -> None:
-        patched_info.return_value = {
-            "DriverStatus": [
-                ["Backing Filesystem", "extfs"],
-                ["Supports d_type", "true"],
-            ]
-        }
-        image = self.parser.parse_as_platform_image(
-            "image://default/project/image:bananas"
-        )
-        async with make_client("https://api.localhost.localdomain") as client:
-            with pytest.raises(ValueError, match="containerd image store"):
-                await client.images.pull(image, platform=["linux/amd64", "linux/arm64"])
-        patched_pull.assert_not_called()
-
-    @mock.patch("aiodocker.system.DockerSystem.info")
-    @mock.patch("aiodocker.images.DockerImages.tag")
-    @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_success_pull_image_one_platform_in_list(
         self,
         patched_pull: Any,
@@ -1429,6 +1369,420 @@ class TestImages:
 
 
 class TestRegistry:
+
+    @pytest.fixture()
+    async def registry(
+        self, aiohttp_server: _TestServerFactory
+    ) -> tuple[URL, dict[str, dict[str, Any]], list[str]]:
+        index_type = "application/vnd.oci.image.index.v1+json"
+        manifest_type = "application/vnd.oci.image.manifest.v1+json"
+        documents: dict[str, dict[str, Any]] = {}
+        requested: list[str] = []
+
+        async def handler(request: web.Request) -> web.Response:
+            reference = request.match_info["reference"]
+            requested.append(reference)
+            document = documents[reference]
+            return web.json_response(
+                document,
+                content_type=document.get("mediaType", manifest_type),
+                headers={"Docker-Content-Digest": "sha256:index"},
+            )
+
+        app = web.Application()
+        app.router.add_get("/v2/project/test/manifests/{reference}", handler)
+        srv = await aiohttp_server(app)
+        documents["test_tag"] = {
+            "schemaVersion": 2,
+            "mediaType": index_type,
+            "manifests": [
+                {
+                    "mediaType": manifest_type,
+                    "digest": "sha256:amd64",
+                    "size": 1,
+                    "platform": {"architecture": "amd64", "os": "linux"},
+                },
+                {
+                    "mediaType": manifest_type,
+                    "digest": "sha256:arm64",
+                    "size": 1,
+                    "artifactType": "application/vnd.oci.image.config.v1+json",
+                    "platform": {"architecture": "arm64", "os": "linux"},
+                },
+                {
+                    "mediaType": manifest_type,
+                    "digest": "sha256:attestation",
+                    "size": 1,
+                    "platform": {"architecture": "unknown", "os": "unknown"},
+                },
+            ],
+        }
+        for digest in ("sha256:amd64", "sha256:arm64"):
+            documents[digest] = {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "config": {
+                    "mediaType": "application/vnd.oci.image.config.v1+json",
+                    "digest": "sha256:config",
+                    "size": 1,
+                },
+                "layers": [{"digest": f"{digest}-layer", "size": 10}],
+            }
+        return srv.make_url("/v2/"), documents, requested
+
+    def _image(self) -> RemoteImage:
+        return RemoteImage.new_platform_image(
+            name="test",
+            tag="test_tag",
+            cluster_name="default",
+            registry="reg",
+            org_name=None,
+            project_name="project",
+        )
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_several_platforms_pinned_to_digest(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        registry_url, _, _ = registry
+        patched_info.return_value = {
+            "DriverStatus": [["driver-type", "io.containerd.snapshotter.v1"]]
+        }
+        patched_pull.side_effect = lambda *args, **kwargs: message_generator()
+        progress = mock.Mock()
+        local_image = LocalImage("bananas", "latest")
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            result = await client.images.pull(
+                self._image(),
+                local_image,
+                progress=progress,
+                platform=["linux/amd64", "linux/arm64", "linux/amd64"],
+            )
+        assert result == local_image
+        assert [
+            (call.args[0], call.kwargs["platform"])
+            for call in patched_pull.call_args_list
+        ] == [
+            ("reg/project/test@sha256:index", "linux/amd64"),
+            ("reg/project/test@sha256:index", "linux/arm64"),
+        ]
+        assert [call.args[0] for call in progress.step.call_args_list] == [
+            ImageProgressStep("Platform linux/amd64", "", "", None, None),
+            ImageProgressStep("Platform linux/arm64", "", "", None, None),
+        ]
+        patched_tag.assert_called_once_with(
+            "reg/project/test@sha256:index", "bananas:latest"
+        )
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_all_platforms(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        registry_url, _, requested = registry
+        patched_info.return_value = {
+            "DriverStatus": [["driver-type", "io.containerd.snapshotter.v1"]]
+        }
+        patched_pull.side_effect = lambda *args, **kwargs: message_generator()
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            await client.images.pull(
+                self._image(), LocalImage("bananas", "latest"), all_platforms=True
+            )
+        assert [call.kwargs["platform"] for call in patched_pull.call_args_list] == [
+            "linux/amd64",
+            "linux/arm64",
+        ]
+        assert requested == ["test_tag", "sha256:amd64", "sha256:arm64"]
+        patched_tag.assert_called_once_with(
+            "reg/project/test@sha256:index", "bananas:latest"
+        )
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_all_platforms_single_manifest(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        registry_url, documents, _ = registry
+        documents["test_tag"] = documents["sha256:amd64"]
+        patched_pull.return_value = message_generator()
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            await client.images.pull(
+                self._image(), LocalImage("bananas", "latest"), all_platforms=True
+            )
+        patched_pull.assert_called_once()
+        assert patched_pull.call_args.args[0] == "reg/project/test@sha256:index"
+        assert patched_pull.call_args.kwargs["platform"] is None
+        patched_info.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "manifests,message",
+        [
+            (
+                [{"mediaType": "m", "digest": "sha256:amd64", "size": 1}],
+                "no platform for sha256:amd64",
+            ),
+            (
+                [
+                    {
+                        "mediaType": "m",
+                        "digest": "sha256:attestation",
+                        "size": 1,
+                        "platform": {"architecture": "unknown", "os": "unknown"},
+                    }
+                ],
+                "has no platform images",
+            ),
+        ],
+    )
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_all_platforms_unknown(
+        self,
+        patched_pull: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+        manifests: list[dict[str, Any]],
+        message: str,
+    ) -> None:
+        registry_url, documents, _ = registry
+        documents["test_tag"]["manifests"] = manifests
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            with pytest.raises(ValueError, match=message):
+                await client.images.pull(self._image(), all_platforms=True)
+        patched_pull.assert_not_called()
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_several_platforms_classic_store(
+        self,
+        patched_pull: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        registry_url, _, _ = registry
+        patched_info.return_value = {
+            "DriverStatus": [
+                ["Backing Filesystem", "extfs"],
+                ["Supports d_type", "true"],
+            ]
+        }
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            with pytest.raises(ValueError, match="containerd image store"):
+                await client.images.pull(
+                    self._image(), platform=["linux/amd64", "linux/arm64"]
+                )
+        patched_pull.assert_not_called()
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_several_platforms_docker_info_error(
+        self,
+        patched_pull: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        registry_url, _, _ = registry
+        patched_info.side_effect = _make_docker_error(500, "boom")
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            with pytest.raises(ValueError, match="Cannot detect the image store"):
+                await client.images.pull(self._image(), all_platforms=True)
+        patched_pull.assert_not_called()
+
+    @mock.patch("aiodocker.system.DockerSystem.info")
+    @mock.patch("aiodocker.images.DockerImages.tag")
+    @mock.patch("aiodocker.images.DockerImages.pull")
+    async def test_pull_several_platforms_second_fails(
+        self,
+        patched_pull: Any,
+        patched_tag: Any,
+        patched_info: Any,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        async def message_generator() -> AsyncIterator[dict[str, Any]]:
+            yield {}
+
+        registry_url, _, _ = registry
+        patched_info.return_value = {
+            "DriverStatus": [["driver-type", "io.containerd.snapshotter.v1"]]
+        }
+        patched_pull.side_effect = [
+            message_generator(),
+            _make_docker_error(
+                404, "no matching manifest for linux/s390x in the manifest list"
+            ),
+        ]
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            with pytest.raises(ValueError, match="linux/s390x"):
+                await client.images.pull(
+                    self._image(), platform=["linux/amd64", "linux/s390x"]
+                )
+        assert patched_pull.call_count == 2
+        patched_tag.assert_not_called()
+
+    async def test_pull_platform_and_all_platforms(
+        self, make_client: _MakeClient
+    ) -> None:
+        async with make_client("http://platform") as client:
+            with pytest.raises(ValueError, match="mutually exclusive"):
+                await client.images.pull(
+                    self._image(), platform="linux/amd64", all_platforms=True
+                )
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_size_artifact_classification(
+        self,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        registry_url, documents, requested = registry
+        documents["test_tag"]["manifests"] += [
+            {
+                "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                "digest": "sha256:signature",
+                "size": 1,
+            },
+            {
+                "mediaType": "application/vnd.oci.image.index.v1+json",
+                "digest": "sha256:sboms",
+                "size": 1,
+                "artifactType": "application/spdx+json",
+            },
+        ]
+        documents["sha256:signature"] = {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "config": {
+                "mediaType": "application/vnd.dev.cosign.artifact.sig.v1+json",
+                "digest": "sha256:sig-config",
+                "size": 1,
+            },
+            "layers": [{"digest": "sha256:sig", "size": 1000}],
+        }
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            size = await client.images.size(self._image())
+        assert size == 20
+        assert "sha256:sboms" not in requested
+        assert "sha256:attestation" not in requested
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_inspect_nested_index(
+        self,
+        registry: tuple[URL, dict[str, dict[str, Any]], list[str]],
+        make_client: _MakeClient,
+    ) -> None:
+        index_type = "application/vnd.oci.image.index.v1+json"
+        manifest_type = "application/vnd.oci.image.manifest.v1+json"
+        registry_url, documents, _ = registry
+        documents["test_tag"] = {
+            "schemaVersion": 2,
+            "mediaType": index_type,
+            "manifests": [
+                {"mediaType": index_type, "digest": "sha256:nested", "size": 1},
+                {
+                    "mediaType": index_type,
+                    "digest": "sha256:sboms",
+                    "size": 1,
+                    "artifactType": "application/spdx+json",
+                },
+                {"mediaType": manifest_type, "digest": "sha256:signature", "size": 1},
+            ],
+        }
+        documents["sha256:nested"] = {
+            "schemaVersion": 2,
+            "mediaType": index_type,
+            "manifests": [
+                {
+                    "mediaType": manifest_type,
+                    "digest": "sha256:amd64",
+                    "size": 1,
+                    "platform": {"architecture": "amd64", "os": "linux"},
+                },
+            ],
+        }
+        documents["sha256:sboms"] = {
+            "schemaVersion": 2,
+            "mediaType": index_type,
+            "manifests": [
+                {"mediaType": manifest_type, "digest": "sha256:arm64", "size": 1},
+            ],
+        }
+        documents["sha256:signature"] = {
+            "schemaVersion": 2,
+            "mediaType": manifest_type,
+            "artifactType": "application/vnd.dev.sigstore.bundle+json",
+            "config": {
+                "mediaType": "application/vnd.oci.empty.v1+json",
+                "digest": "sha256:empty",
+                "size": 2,
+            },
+            "layers": [{"digest": "sha256:bundle", "size": 300}],
+            "subject": {"mediaType": index_type, "digest": "sha256:index", "size": 1},
+        }
+        async with make_client("http://platform", registry_url=registry_url) as client:
+            info = await client.images.inspect(self._image())
+            size = await client.images.size(self._image())
+
+        assert info == ImageInfo(
+            name="test_tag",
+            digest="sha256:index",
+            media_type=index_type,
+            size=10,
+            platforms=[
+                ImagePlatform(digest="sha256:amd64", platform="linux/amd64", size=10)
+            ],
+            attestations=[
+                ImageAttestation(
+                    digest="sha256:arm64",
+                    type=None,
+                    reference_digest=None,
+                    predicate_types=[],
+                    size=10,
+                ),
+                ImageAttestation(
+                    digest="sha256:signature",
+                    type="application/vnd.dev.sigstore.bundle+json",
+                    reference_digest="sha256:index",
+                    predicate_types=[],
+                    size=300,
+                ),
+            ],
+        )
+        assert size == info.size
+
     @pytest.mark.skipif(
         sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
     )
