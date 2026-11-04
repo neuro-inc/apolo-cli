@@ -5,6 +5,19 @@
 
 [comment]: # (towncrier release notes start)
 
+# Apolo SDK/CLI 26.11.2 (2026-11-04)
+
+## Features
+
+- Added `--platform` option to `apolo image pull` to pull an image built for another platform, e.g. `--platform linux/amd64` on an arm64 machine. The option can be repeated, and `--all-platforms` pulls every platform of a multi-platform image; pulling several platforms requires the containerd image store in Docker.
+  Added `apolo image inspect` command and `Images.inspect()` SDK method that list the platform images of an image tag and its build attestations (SBOM, provenance) with the platform each attestation describes. ([#3577](https://github.com/neuro-inc/apolo-cli/issues/3577))
+
+## Bugfixes
+
+- Fixed `apolo image size` and `apolo image tags -l` failing with `KeyError: 'layers'` for multi-platform images and images with build attestations.
+  Fixed `apolo image pull` reporting an image that has no build for the local platform as not found; Docker's error is shown instead. ([#3577](https://github.com/neuro-inc/apolo-cli/issues/3577))
+
+
 # Apolo SDK/CLI 26.11.1 (2026-11-03)
 
 No significant changes.
