@@ -139,7 +139,8 @@ Images
 
       For a multi-platform image (an image index or a manifest list) the size is
       the total size of unique layers across all platform images, attestation
-      manifests and other attached artifacts are not counted.
+      manifests and other attached artifacts are not counted. A tag that references
+      an artifact (e.g. an SBOM or a signature) has size 0.
 
       :param RemoteImage image: a spec for remote image with tag on Apolo
                                 registry.

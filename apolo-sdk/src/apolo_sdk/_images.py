@@ -206,26 +206,17 @@ class Images(metaclass=NoPublicConstructor):
         assert remote.tag
         url = self._get_image_url(remote) / "manifests"
         data = await self._get_manifest(url / remote.tag, auth)
-        if "manifests" in data:
-            children = await self._index_manifests(url, data, auth, attestations=False)
-            size = _unique_layers_size(manifest for _, manifest, _ in children)
-        else:
-            size = sum(layer["size"] for layer in data["layers"])
-        return Tag(name=remote.tag, size=size)
+        children = await self._tag_manifests(
+            url, remote.tag, data, auth, attestations=False
+        )
+        return Tag(name=remote.tag, size=_image_size(data, children))
 
     async def inspect(self, remote: RemoteImage) -> ImageInfo:
         auth = await self._config._registry_auth()
         assert remote.tag
         url = self._get_image_url(remote) / "manifests"
         digest, media_type, data = await self._resolve_manifest(url / remote.tag, auth)
-        if "manifests" in data:
-            children = await self._index_manifests(url, data, auth, attestations=True)
-            size = _unique_layers_size(
-                manifest for _, manifest, attestation in children if not attestation
-            )
-        else:
-            children = [({"digest": digest}, data, False)]
-            size = sum(layer["size"] for layer in data.get("layers", []))
+        children = await self._tag_manifests(url, digest, data, auth, attestations=True)
         platforms = []
         attestations = []
         for entry, manifest, attestation in children:
@@ -262,7 +253,7 @@ class Images(metaclass=NoPublicConstructor):
             name=remote.tag,
             digest=digest,
             media_type=media_type,
-            size=size,
+            size=_image_size(data, children),
             platforms=platforms,
             attestations=attestations,
         )
@@ -290,6 +281,28 @@ class Images(metaclass=NoPublicConstructor):
                 resp.content_type,
                 await resp.json(),
             )
+
+    async def _tag_manifests(
+        self,
+        url: URL,
+        digest: str,
+        data: dict[str, Any],
+        auth: str,
+        *,
+        attestations: bool,
+    ) -> list[tuple[dict[str, Any], dict[str, Any], bool]]:
+        attestation = _manifest_artifact_type(data) is not None
+        if attestation and not attestations:
+            return []
+        if "manifests" in data:
+            return await self._index_manifests(
+                url,
+                data,
+                auth,
+                attestations=attestations,
+                parent_attestation=attestation,
+            )
+        return [({"digest": digest}, data, attestation)]
 
     async def _index_manifests(
         self,
@@ -323,18 +336,20 @@ class Images(metaclass=NoPublicConstructor):
                 result.append((entry, data, attestation))
         return result
 
-    async def _pinned_platforms(
+    async def _all_platforms(
         self, remote: RemoteImage
     ) -> tuple[str, builtins.list[str | None]]:
         auth = await self._config._registry_auth()
         assert remote.tag
         url = self._get_image_url(remote) / "manifests"
         digest, _, data = await self._resolve_manifest(url / remote.tag, auth)
-        if "manifests" not in data:
-            return digest, [None]
-        children = await self._index_manifests(url, data, auth, attestations=False)
+        children = await self._tag_manifests(
+            url, digest, data, auth, attestations=False
+        )
         if not children:
             raise ValueError(f"Image {remote} has no platform images")
+        if "manifests" not in data:
+            return digest, [None]
         unknown = [
             entry["digest"] for entry, _, _ in children if not entry.get("platform")
         ]
@@ -348,6 +363,15 @@ class Images(metaclass=NoPublicConstructor):
             _format_platform(entry["platform"]) for entry, _, _ in children
         ]
         return digest, builtins.list(dict.fromkeys(platforms))
+
+    async def _image_exists(self, name: str) -> bool:
+        try:
+            await self._docker.images.inspect(name)
+        except DockerError as error:
+            if error.status == 404:
+                return False
+            raise
+        return True
 
     async def _check_multi_platform_store(self) -> None:
         try:
@@ -389,13 +413,17 @@ class Images(metaclass=NoPublicConstructor):
         else:
             platforms = list(dict.fromkeys(platform)) or [None]
         repo = remote.as_docker_url()
+        temporary = True
         if all_platforms or len(platforms) > 1:
-            digest, pinned = await self._pinned_platforms(remote)
             if all_platforms:
-                platforms = pinned
+                digest, platforms = await self._all_platforms(remote)
+            else:
+                digest = await self.digest(remote)
             if len(platforms) > 1:
                 await self._check_multi_platform_store()
-            repo = f"{replace(remote, tag=None).as_docker_url()}@{digest}"
+            name = replace(remote, tag=None).as_docker_url()
+            repo = f"{name}@{digest}"
+            temporary = local.name != name and not await self._image_exists(repo)
 
         if progress is None:
             progress = _DummyProgress()
@@ -414,7 +442,8 @@ class Images(metaclass=NoPublicConstructor):
                     )
                 ) as it:
                     async for obj in it:
-                        self._temporary_images.add(repo)
+                        if temporary:
+                            self._temporary_images.add(repo)
                         step = _try_parse_image_progress_step(obj, remote.tag)
                         if step:
                             progress.step(step)
@@ -518,6 +547,18 @@ def _manifest_artifact_type(manifest: dict[str, Any]) -> str | None:
     if config_type is None or config_type in IMAGE_CONFIG_TYPES:
         return None
     return config_type
+
+
+def _image_size(
+    data: dict[str, Any],
+    children: Iterable[tuple[dict[str, Any], dict[str, Any], bool]],
+) -> int:
+    manifests = [manifest for _, manifest, attestation in children if not attestation]
+    if "manifests" in data:
+        return _unique_layers_size(manifests)
+    return sum(
+        layer["size"] for manifest in manifests for layer in manifest.get("layers", [])
+    )
 
 
 def _unique_layers_size(manifests: Iterable[dict[str, Any]]) -> int:
