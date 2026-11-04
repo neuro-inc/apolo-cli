@@ -377,7 +377,7 @@ ImageInfo
 
    .. attribute:: platforms
 
-      Platform images, a sequence of :class:`ImagePlatform`.
+      Image platforms, a sequence of :class:`ImagePlatform`.
 
    .. attribute:: attestations
 
@@ -390,7 +390,7 @@ ImagePlatform
 
 .. class:: ImagePlatform
 
-   *Read-only* :class:`~dataclasses.dataclass` for a platform image.
+   *Read-only* :class:`~dataclasses.dataclass` for an image platform.
 
    .. attribute:: digest
 
