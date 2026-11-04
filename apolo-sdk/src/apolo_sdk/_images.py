@@ -161,7 +161,7 @@ class Images(metaclass=NoPublicConstructor):
 
     async def size(self, remote: RemoteImage) -> int:
         tag_information = await self.tag_info(remote)
-        assert tag_information.size
+        assert tag_information.size is not None
         return tag_information.size
 
     async def tag_info(self, remote: RemoteImage) -> Tag:
@@ -196,7 +196,7 @@ class Images(metaclass=NoPublicConstructor):
             if "manifests" in data:
                 layers.update(await self._index_layers(url, data, auth))
             else:
-                for layer in data["layers"]:
+                for layer in data.get("layers", []):
                     layers[layer["digest"]] = layer["size"]
         return layers
 
@@ -236,7 +236,10 @@ class Images(metaclass=NoPublicConstructor):
                         progress.step(step)
         except DockerError as error:
             if error.status == 404:
-                if "no matching manifest" in error.message:
+                if (
+                    "no matching manifest" in error.message
+                    or "no match for platform" in error.message
+                ):
                     raise ValueError(
                         f"Cannot pull image {remote}: {error.message}"
                     ) from error

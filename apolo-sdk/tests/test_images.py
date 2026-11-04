@@ -1231,14 +1231,17 @@ class TestImages:
             with pytest.raises(ValueError, match=r"not found"):
                 await client.images.pull(image, local_image)
 
+    @pytest.mark.parametrize(
+        "message",
+        [
+            "no matching manifest for linux/arm64/v8 in the manifest list entries",
+            "no match for platform in manifest: not found",
+        ],
+    )
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_pull_image_platform_mismatch(
-        self, patched_pull: Any, make_client: _MakeClient
+        self, patched_pull: Any, make_client: _MakeClient, message: str
     ) -> None:
-        message = (
-            "no matching manifest for linux/arm64/v8 in the manifest list entries: "
-            "no match for platform in manifest: not found"
-        )
         patched_pull.side_effect = _make_docker_error(404, message)
         async with make_client("https://api.localhost.localdomain") as client:
             image = self.parser.parse_as_platform_image(
@@ -1679,6 +1682,16 @@ class TestRegistry:
                     },
                     "platform": {"architecture": "unknown", "os": "unknown"},
                 },
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "digest": "sha256:attestation-annotated",
+                    "size": 836,
+                    "annotations": {
+                        "vnd.docker.reference.digest": "sha256:arm64",
+                        "vnd.docker.reference.type": "attestation-manifest",
+                    },
+                    "platform": {"architecture": "arm64", "os": "linux"},
+                },
             ],
         }
         manifests = {
@@ -1691,11 +1704,11 @@ class TestRegistry:
                 {"digest": "sha256:layer-shared", "size": 104},
             ],
         }
-        requested = []
+        requested = {}
 
         async def handler(request: web.Request) -> web.Response:
             reference = request.match_info["reference"]
-            requested.append(reference)
+            requested[reference] = request.headers["Accept"]
             if reference == "test_tag":
                 return web.json_response(index)
             return web.json_response(
@@ -1728,7 +1741,140 @@ class TestRegistry:
 
         assert ret == Tag(name="test_tag", size=3630321 + 4092319 + 104)
         assert size == 3630321 + 4092319 + 104
-        assert "sha256:attestation" not in requested
+        assert set(requested) == {"test_tag", "sha256:amd64", "sha256:arm64"}
+        for accept in requested.values():
+            assert "application/vnd.oci.image.index.v1+json" in accept
+            assert "application/vnd.oci.image.manifest.v1+json" in accept
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_tag_info_nested_index(
+        self, aiohttp_server: _TestServerFactory, make_client: _MakeClient
+    ) -> None:
+        index_type = "application/vnd.oci.image.index.v1+json"
+        manifest_type = "application/vnd.oci.image.manifest.v1+json"
+        documents: dict[str, dict[str, Any]] = {
+            "test_tag": {
+                "schemaVersion": 2,
+                "mediaType": index_type,
+                "manifests": [
+                    {"mediaType": index_type, "digest": "sha256:nested", "size": 1},
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:arm64",
+                        "size": 1,
+                        "platform": {"architecture": "arm64", "os": "linux"},
+                    },
+                ],
+            },
+            "sha256:nested": {
+                "schemaVersion": 2,
+                "mediaType": index_type,
+                "manifests": [
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:amd64",
+                        "size": 1,
+                        "platform": {"architecture": "amd64", "os": "linux"},
+                    },
+                    {
+                        "mediaType": manifest_type,
+                        "digest": "sha256:artifact",
+                        "size": 1,
+                        "artifactType": "application/vnd.example.sbom",
+                    },
+                ],
+            },
+            "sha256:amd64": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "layers": [
+                    {"digest": "sha256:layer-amd64", "size": 1000},
+                    {"digest": "sha256:layer-shared", "size": 10},
+                ],
+            },
+            "sha256:arm64": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "layers": [
+                    {"digest": "sha256:layer-arm64", "size": 2000},
+                    {"digest": "sha256:layer-shared", "size": 10},
+                ],
+            },
+            "sha256:artifact": {
+                "schemaVersion": 2,
+                "mediaType": manifest_type,
+                "artifactType": "application/vnd.example.sbom",
+                "blobs": [{"digest": "sha256:blob", "size": 500}],
+            },
+        }
+
+        async def handler(request: web.Request) -> web.Response:
+            assert index_type in request.headers["Accept"]
+            return web.json_response(documents[request.match_info["reference"]])
+
+        app = web.Application()
+        app.router.add_get("/v2/project/test/manifests/{reference}", handler)
+
+        srv = await aiohttp_server(app)
+        url = "http://platform"
+        registry_url = srv.make_url("/v2/")
+
+        async with make_client(url, registry_url=registry_url) as client:
+            image = RemoteImage.new_platform_image(
+                name="test",
+                tag="test_tag",
+                cluster_name="default",
+                registry="reg",
+                org_name=None,
+                project_name="project",
+            )
+            ret = await client.images.tag_info(image)
+
+        assert ret == Tag(name="test_tag", size=1000 + 2000 + 10)
+
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"
+    )
+    async def test_size_attestation_only_index(
+        self, aiohttp_server: _TestServerFactory, make_client: _MakeClient
+    ) -> None:
+        index = {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "manifests": [
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "digest": "sha256:attestation",
+                    "size": 836,
+                    "platform": {"architecture": "unknown", "os": "unknown"},
+                },
+            ],
+        }
+
+        async def handler(request: web.Request) -> web.Response:
+            return web.json_response(index)
+
+        app = web.Application()
+        app.router.add_get("/v2/project/test/manifests/test_tag", handler)
+
+        srv = await aiohttp_server(app)
+        url = "http://platform"
+        registry_url = srv.make_url("/v2/")
+
+        async with make_client(url, registry_url=registry_url) as client:
+            image = RemoteImage.new_platform_image(
+                name="test",
+                tag="test_tag",
+                cluster_name="default",
+                registry="reg",
+                org_name=None,
+                project_name="project",
+            )
+            size = await client.images.size(image)
+
+        assert size == 0
 
     @pytest.mark.skipif(
         sys.platform == "win32", reason="aiodocker doesn't support Windows pipes yet"

@@ -1,1 +1,2 @@
-Fixed `apolo image size` and `apolo image tags -l` failing with `KeyError: 'layers'` for multi-platform images (OCI image index or Docker manifest list, the default for Docker 25+ builds with attestations): the size is now the total of unique layers across platform images, attestation manifests excluded. `apolo image pull` now shows Docker's own error instead of "not found" when the image has no build for the local platform.
+Fixed `apolo image size` and `apolo image tags -l` failing with `KeyError: 'layers'` for multi-platform images and images with build attestations.
+Fixed `apolo image pull` reporting an image that has no build for the local platform as not found; Docker's error is shown instead.
