@@ -1440,6 +1440,7 @@ class TestRegistry:
             project_name="project",
         )
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
@@ -1488,6 +1489,7 @@ class TestRegistry:
             "reg/project/test@sha256:index", "bananas:latest"
         )
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
@@ -1524,6 +1526,7 @@ class TestRegistry:
             "reg/project/test@sha256:index", "bananas:latest"
         )
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
@@ -1574,6 +1577,7 @@ class TestRegistry:
             ),
         ],
     )
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_pull_all_platforms_unknown(
         self,
@@ -1590,6 +1594,7 @@ class TestRegistry:
                 await client.images.pull(self._image(), all_platforms=True)
         patched_pull.assert_not_called()
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_pull_several_platforms_classic_store(
@@ -1613,6 +1618,7 @@ class TestRegistry:
                 )
         patched_pull.assert_not_called()
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_pull_several_platforms_docker_info_error(
@@ -1629,6 +1635,7 @@ class TestRegistry:
                 await client.images.pull(self._image(), all_platforms=True)
         patched_pull.assert_not_called()
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
@@ -1673,6 +1680,7 @@ class TestRegistry:
             (False, "reg/project/test", []),
         ],
     )
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.delete")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
@@ -1713,6 +1721,7 @@ class TestRegistry:
             patched_inspect.assert_called_once_with("reg/project/test@sha256:index")
         assert [call.args[0] for call in patched_delete.call_args_list] == deleted
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.inspect")
     @mock.patch("aiodocker.system.DockerSystem.info")
     @mock.patch("aiodocker.images.DockerImages.tag")
@@ -1751,6 +1760,7 @@ class TestRegistry:
         ]
         assert requested == ["test_tag"]
 
+    @pytest.mark.usefixtures("patch_docker_host")
     @mock.patch("aiodocker.images.DockerImages.pull")
     async def test_pull_all_platforms_root_artifact(
         self,
@@ -1845,6 +1855,7 @@ class TestRegistry:
         assert info.size == size == 0
         assert requested == ["test_tag"]
 
+    @pytest.mark.usefixtures("patch_docker_host")
     async def test_pull_platform_and_all_platforms(
         self, make_client: _MakeClient
     ) -> None:
