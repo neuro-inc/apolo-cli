@@ -67,9 +67,17 @@ async def push(root: Root, local_image: str, remote_image: str | None) -> None:
 
 
 @command()
+@option(
+    "--platform",
+    metavar="PLATFORM",
+    help="Pull the image for a specific platform, e.g. linux/amd64 "
+    "(the docker engine platform by default).",
+)
 @argument("remote_image")
 @argument("local_image", required=False)
-async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
+async def pull(
+    root: Root, platform: str | None, remote_image: str, local_image: str | None
+) -> None:
     """
     Pull an image from platform registry.
 
@@ -81,6 +89,7 @@ async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
     apolo pull image:myimage
     apolo pull image:/other-project/alpine:shared
     apolo pull image:/project/my-alpine:production alpine:from-registry
+    apolo pull --platform linux/amd64 image:myimage
 
     """
 
@@ -92,7 +101,7 @@ async def pull(root: Root, remote_image: str, local_image: str | None) -> None:
         local_obj = None
     with contextlib.closing(progress):
         result_local_image = await root.client.images.pull(
-            remote_obj, local_obj, progress=progress
+            remote_obj, local_obj, progress=progress, platform=platform
         )
     root.print(result_local_image)
 

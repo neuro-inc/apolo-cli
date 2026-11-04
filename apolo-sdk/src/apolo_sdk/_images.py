@@ -167,16 +167,38 @@ class Images(metaclass=NoPublicConstructor):
     async def tag_info(self, remote: RemoteImage) -> Tag:
         auth = await self._config._registry_auth()
         assert remote.tag
-        url = self._get_image_url(remote) / "manifests" / remote.tag
+        url = self._get_image_url(remote) / "manifests"
+        data = await self._get_manifest(url / remote.tag, auth)
+        if "manifests" in data:
+            layers = await self._index_layers(url, data, auth)
+            size = sum(layers.values())
+        else:
+            size = sum(layer["size"] for layer in data["layers"])
+        return Tag(name=remote.tag, size=size)
+
+    async def _get_manifest(self, url: URL, auth: str) -> dict[str, Any]:
         async with self._core.request(
             "GET",
             url,
             auth=auth,
             headers={"Accept": MANIFEST_ACCEPT},
         ) as resp:
-            data = await resp.json()
-            size = sum(layer["size"] for layer in data["layers"])
-            return Tag(name=remote.tag, size=size)
+            return await resp.json()
+
+    async def _index_layers(
+        self, url: URL, index: dict[str, Any], auth: str
+    ) -> dict[str, int]:
+        layers: dict[str, int] = {}
+        for entry in index["manifests"]:
+            if _is_attestation(entry):
+                continue
+            data = await self._get_manifest(url / entry["digest"], auth)
+            if "manifests" in data:
+                layers.update(await self._index_layers(url, data, auth))
+            else:
+                for layer in data["layers"]:
+                    layers[layer["digest"]] = layer["size"]
+        return layers
 
     async def rm(self, remote: RemoteImage, digest: str) -> None:
         auth = await self._config._registry_auth()
@@ -190,6 +212,7 @@ class Images(metaclass=NoPublicConstructor):
         local: LocalImage | None = None,
         *,
         progress: AbstractDockerImageProgress | None = None,
+        platform: str | None = None,
     ) -> LocalImage:
         if local is None:
             local = self._parse._remote_to_local_image(remote)
@@ -202,7 +225,9 @@ class Images(metaclass=NoPublicConstructor):
         auth = await self._config._docker_auth()
         try:
             async with aclosing(  # type: ignore
-                self._docker.pull(repo, auth=auth, repo=repo, stream=True)
+                self._docker.pull(
+                    repo, auth=auth, repo=repo, platform=platform, stream=True
+                )
             ) as it:
                 async for obj in it:
                     self._temporary_images.add(repo)
@@ -211,6 +236,10 @@ class Images(metaclass=NoPublicConstructor):
                         progress.step(step)
         except DockerError as error:
             if error.status == 404:
+                if "no matching manifest" in error.message:
+                    raise ValueError(
+                        f"Cannot pull image {remote}: {error.message}"
+                    ) from error
                 raise ValueError(
                     f"Image {remote} was not found " "in registry"
                 ) from error
@@ -275,6 +304,14 @@ class Images(metaclass=NoPublicConstructor):
                     break
                 url = URL(resp.links["next"]["url"])
         return result
+
+
+def _is_attestation(entry: dict[str, Any]) -> bool:
+    annotations = entry.get("annotations", {})
+    if annotations.get("vnd.docker.reference.type") == "attestation-manifest":
+        return True
+    platform = entry.get("platform", {})
+    return platform.get("os") == platform.get("architecture") == "unknown"
 
 
 def _try_parse_image_progress_step(

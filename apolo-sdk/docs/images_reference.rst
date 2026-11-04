@@ -46,6 +46,7 @@ Images
                       local: LocalImage, \
                       *, \
                       progress: Optional[AbstractDockerImageProgress] = None, \
+                      platform: Optional[str] = None, \
                  ) -> RemoteImage
       :async:
 
@@ -62,6 +63,10 @@ Images
 
          a callback interface for reporting pulling progress, ``None`` for no progress
          report (default).
+
+      :param str platform: platform to pull in the ``os[/arch[/variant]]`` format,
+                           e.g. ``"linux/amd64"``. ``None`` means the platform of
+                           the docker engine (default).
 
       :return: *local* image if explicitly specified, calculated remote image if
                *local* is ``None`` (:class:`LocalImage`)
@@ -117,6 +122,10 @@ Images
       :async:
 
       Return image size.
+
+      For a multi-platform image (an image index or a manifest list) the size is
+      the total size of unique layers across all platform images, attestation
+      manifests are not counted.
 
       :param RemoteImage image: a spec for remote image with tag on Apolo
                                 registry.

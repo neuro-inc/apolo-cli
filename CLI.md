@@ -2768,6 +2768,7 @@ apolo image pull [OPTIONS] REMOTE_IMAGE [LOCAL_IMAGE]
 apolo pull image:myimage
 apolo pull image:/other-project/alpine:shared
 apolo pull image:/project/my-alpine:production alpine:from-registry
+apolo pull --platform linux/amd64 image:myimage
 
 ```
 
@@ -2776,6 +2777,7 @@ apolo pull image:/project/my-alpine:production alpine:from-registry
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_--platform PLATFORM_|Pull the image for a specific platform, e.g. linux/amd64 \(the docker engine platform by default).|
 
 
 
@@ -4435,6 +4437,7 @@ apolo pull [OPTIONS] REMOTE_IMAGE [LOCAL_IMAGE]
 apolo pull image:myimage
 apolo pull image:/other-project/alpine:shared
 apolo pull image:/project/my-alpine:production alpine:from-registry
+apolo pull --platform linux/amd64 image:myimage
 
 ```
 
@@ -4443,6 +4446,7 @@ apolo pull image:/project/my-alpine:production alpine:from-registry
 Name | Description|
 |----|------------|
 |_--help_|Show this message and exit.|
+|_--platform PLATFORM_|Pull the image for a specific platform, e.g. linux/amd64 \(the docker engine platform by default).|
 
 
 
