@@ -194,6 +194,18 @@ class TestExternalAliasArgs:
         assert cmd is not None
         assert cmd.get_short_help_str() == "Custom help."
 
+    async def test_external_alias_short_help_stops_at_first_period(
+        self, root: Root, nmrc_path: Path
+    ) -> None:
+        user_cfg = nmrc_path / "user.toml"
+        help = "List files, e.g. images and logs, in long format."
+        user_cfg.write_text(
+            toml.dumps({"alias": {"user-cmd": {"exec": "script", "help": help}}})
+        )
+        cmd = await find_alias(root, "user-cmd")
+        assert cmd is not None
+        assert cmd.get_short_help_str() == "List files, e.g."
+
     def test_external_alias_arg(
         self, run_cli: _RunCli, nmrc_path: Path, script: str
     ) -> None:

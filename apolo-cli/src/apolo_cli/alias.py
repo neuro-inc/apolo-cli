@@ -5,12 +5,11 @@ import sys
 from typing import Any, cast
 
 import click
-from click.utils import make_default_short_help
 
 from apolo_sdk import ConfigError
 
 from .root import Root
-from .utils import ApoloClickMixin, Option
+from .utils import ApoloClickMixin, Option, make_default_short_help
 
 
 class InternalAlias(ApoloClickMixin, click.Command):

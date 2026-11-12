@@ -84,6 +84,8 @@ def gen_command(out, cmd, parent_ctx):
         opts = []
         w1 = w2 = 0
         for param in cmd.get_params(ctx):
+            if isinstance(param, click.Argument):
+                continue
             rv = param.get_help_record(ctx)
             if rv is None:
                 continue

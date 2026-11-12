@@ -50,6 +50,8 @@ def parse_doc(ctx, command, stack) -> CommandInfo:
         info.examples = dedent(parts[1])
 
     for param in command.get_params(ctx):
+        if isinstance(param, click.Argument):
+            continue
         ret = param.get_help_record(ctx)
         if ret:
             info.options.append(Option(click.unstyle(ret[0]), click.unstyle(ret[1])))
