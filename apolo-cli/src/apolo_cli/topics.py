@@ -2,10 +2,10 @@ from collections.abc import Callable
 from typing import Any, cast
 
 import click
-from click.utils import make_default_short_help
 from rich.markdown import Markdown
 
 from .root import Root
+from .utils import make_default_short_help
 
 
 class Command(click.Command):
