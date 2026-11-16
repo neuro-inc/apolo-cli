@@ -47,9 +47,9 @@ from apolo_sdk import (
     JobStatus,
     ResourceNotFound,
     Resources,
+    login_with_token,
 )
 from apolo_sdk import get as api_get
-from apolo_sdk import login_with_token
 
 from apolo_cli.utils import resolve_job
 
