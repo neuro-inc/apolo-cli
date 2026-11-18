@@ -5,7 +5,6 @@ import sys
 from typing import Any, cast
 
 import click
-from click.utils import make_default_short_help
 
 from apolo_sdk import ConfigError
 
@@ -40,7 +39,7 @@ class InternalAlias(ApoloClickMixin, click.Command):
 
     def get_short_help_str(self, limit: int = 45) -> str:
         txt = self.alias.get("help") or "apolo " + self.alias["cmd"]
-        return make_default_short_help(txt)
+        return click.Command(None, help=txt).get_short_help_str()
 
     def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
         self.format_usage(ctx, formatter)
@@ -123,7 +122,7 @@ class ExternalAlias(ApoloClickMixin, click.Command):
 
     def get_short_help_str(self, limit: int = 45) -> str:
         txt = self.alias.get("help") or self.alias["exec"]
-        return make_default_short_help(txt)
+        return click.Command(None, help=txt).get_short_help_str()
 
     def format_help_text(
         self, ctx: click.Context, formatter: click.HelpFormatter

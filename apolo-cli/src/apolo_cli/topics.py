@@ -2,7 +2,6 @@ from collections.abc import Callable
 from typing import Any, cast
 
 import click
-from click.utils import make_default_short_help
 from rich.markdown import Markdown
 
 from .root import Root
@@ -21,7 +20,7 @@ class Command(click.Command):
         if self.help is None:
             return ""
         head, *tail = self.help.split("\n", 1)
-        return make_default_short_help(head.strip(" *_.#"))
+        return click.Command(None, help=head.strip(" *_.#")).get_short_help_str()
 
 
 def command(
